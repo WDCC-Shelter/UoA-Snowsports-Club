@@ -148,7 +148,7 @@ jobs:
     needs: [check_changes, setup]
     if: ${{ needs.check_changes.outputs.exists == 'true' && github.event.pull_request.head.repo.full_name == github.repository }}
     # For now, it is the same env variables as staging, can be changed later if needed
-    environment: 'client-staging'
+    environment: 'client-preview'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -173,7 +173,7 @@ jobs:
           NEXT_CONFIG_ENV: staging
           # Firebase Hosting Secrets
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          FIREBASE_SERVICE_ACCOUNT_UASC_CEEBC: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          FIREBASE_SERVICE_ACCOUNT_UASC_CEEBC: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_UASC_CEEBC }}
           PROJECT_ID: uasc-ceebc
           ENTRY_POINT: client
 

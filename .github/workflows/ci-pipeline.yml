@@ -152,6 +152,8 @@ jobs:
     # For now, it is the same env variables as staging, can be changed later if needed
     environment: 'client-preview'
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

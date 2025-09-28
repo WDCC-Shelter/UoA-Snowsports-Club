@@ -24,6 +24,9 @@ jobs:
     name: Deploy Client Staging
     needs: [setup]
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      checks: write
     environment:
       name: client-staging
       url: ${{ vars.DEPLOYMENT_URL }}

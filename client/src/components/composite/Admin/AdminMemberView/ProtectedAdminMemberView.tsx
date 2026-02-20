@@ -22,6 +22,7 @@ import { auth } from "@/firebase"
 import type { ReducedUserAdditionalInfo } from "@/models/User"
 import { CSVLink } from "react-csv"
 import { DateUtils } from "@/components/utils/DateUtils"
+import AdminLodgeCreditManagementModal from "@/components/composite/Admin/AdminMemberView/AdminLodgeCreditManagement/AdminLodgeCreditManagementModal"
 
 /**
  * Component that handles all the network requests for `AdminMemberView`
@@ -92,6 +93,12 @@ const WrappedAdminMemberView = () => {
    * Controls if the *Add new user* modal should be shown
    */
   const [showAddUserModal, setShowAddUserModal] = useState<boolean>(false)
+  /**
+   * Controls if the *manage lodge credits* modal should be shown
+   */
+  const [selectedLodgeCreditUser, setSelectedLodgeCreditUser] = useState<
+    { userDisplayName: string; userId: string } | undefined
+  >()
 
   /**
    * Kept
@@ -142,48 +149,60 @@ const WrappedAdminMemberView = () => {
   /**
    * You should optimistically handle the mutations in `AdminMutations`
    */
-  const rowOperations: TableRowOperation[] = [
-    {
-      name: "promote",
-      handler: (uid: string) => {
-        promoteUser(uid)
-      }
-    },
-    {
-      name: "demote",
-      handler: (uid: string) => {
-        demoteUser(uid)
-      }
-    },
-    {
-      name: "delete",
-      handler: (uid: string) => {
-        const matchingUser = transformedDataList?.find(
-          (user) => user.uid === uid
-        )
-        /**
-         * This should be enforced in the endpoint anyway, exists for UX
-         */
-        if (matchingUser?.Status === "admin") {
-          alert("You may not delete admins")
-          return
+  const rowOperations: TableRowOperation[] = useMemo(
+    () => [
+      {
+        name: "promote",
+        handler: (uid: string) => {
+          promoteUser(uid)
         }
-        if (
-          confirm(
-            `Are you SURE you want to delete the user ${matchingUser?.Name} (${matchingUser?.Email}). This action can NOT be undone!!!`
+      },
+      {
+        name: "demote",
+        handler: (uid: string) => {
+          demoteUser(uid)
+        }
+      },
+      {
+        name: "delete",
+        handler: (uid: string) => {
+          const matchingUser = transformedDataList?.find(
+            (user) => user.uid === uid
           )
-        )
-          deleteUser({ uid })
+          /**
+           * This should be enforced in the endpoint anyway, exists for UX
+           */
+          if (matchingUser?.Status === "admin") {
+            alert("You may not delete admins")
+            return
+          }
+          if (
+            confirm(
+              `Are you SURE you want to delete the user ${matchingUser?.Name} (${matchingUser?.Email}). This action can NOT be undone!!!`
+            )
+          )
+            deleteUser({ uid })
+        }
+      },
+      {
+        name: "lodge credits",
+        handler: (uid: string) => {
+          const matchingUser = transformedDataList?.find(
+            (user) => user.uid === uid
+          )
+          setSelectedLodgeCreditUser(
+            matchingUser
+              ? {
+                  userDisplayName: matchingUser.Name || matchingUser.uid,
+                  userId: matchingUser.uid
+                }
+              : undefined
+          )
+        }
       }
-    },
-    {
-      name: "edit",
-      handler: () => {
-        // TODO
-        alert("Not Implemented")
-      }
-    }
-  ]
+    ],
+    [deleteUser, promoteUser, demoteUser, transformedDataList]
+  )
 
   return (
     <>
@@ -226,6 +245,14 @@ const WrappedAdminMemberView = () => {
           }}
         />
       </ModalContainer>
+      {selectedLodgeCreditUser && (
+        <ModalContainer>
+          <AdminLodgeCreditManagementModal
+            userId={selectedLodgeCreditUser.userId}
+            userName={selectedLodgeCreditUser.userDisplayName}
+          />
+        </ModalContainer>
+      )}
     </>
   )
 }

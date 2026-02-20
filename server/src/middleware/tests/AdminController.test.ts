@@ -652,52 +652,100 @@ describe("AdminController endpoint tests", () => {
     })
   })
 
-  describe("/admin/users/add-coupon", () => {
+  describe("/admin/users/{uid}/coupon", () => {
     it("Should allow admins to add a coupon to a user", async () => {
       // Create a user with a stripe_id
       const stripeId = "test_stripe_id"
       await createUserDataWithStripeId(ADMIN_USER_UID, { stripe_id: stripeId })
 
       const response = await request
-        .post("/admin/users/add-coupon")
+        .post(`/admin/users/${ADMIN_USER_UID}/coupon`)
         .set("Authorization", `Bearer ${adminToken}`)
-        .send({ uid: ADMIN_USER_UID, quantity: 5 })
+        .send({ quantity: 5 }) // Should create a single coupon worth 5 * $40 = $200
 
       expect(response.status).toEqual(StatusCodes.OK)
     })
 
     it("Should not allow adding a coupon to a user without stripe_id", async () => {
       const response = await request
-        .post("/admin/users/add-coupon")
+        .post(`/admin/users/${MEMBER_USER_UID}/coupon`)
         .set("Authorization", `Bearer ${adminToken}`)
-        .send({ uid: MEMBER_USER_UID, quantity: 5 })
+        .send({ quantity: 5 })
 
       expect(response.status).toEqual(StatusCodes.BAD_REQUEST)
     })
 
     it("Should return 404 if user is not found", async () => {
       const response = await request
-        .post("/admin/users/add-coupon")
+        .post(`/admin/users/non_existent_user/coupon`)
         .set("Authorization", `Bearer ${adminToken}`)
-        .send({ uid: "non_existent_user", quantity: 5 })
+        .send({ quantity: 5 })
 
       expect(response.status).toEqual(StatusCodes.NOT_FOUND)
     })
 
     it("Should not allow members to add a coupon", async () => {
       const response = await request
-        .post("/admin/users/add-coupon")
+        .post(`/admin/users/${MEMBER_USER_UID}/coupon`)
         .set("Authorization", `Bearer ${memberToken}`)
-        .send({ uid: MEMBER_USER_UID, quantity: 5 })
+        .send({ quantity: 5 })
 
       expect(response.status).toEqual(StatusCodes.UNAUTHORIZED)
     })
 
     it("Should not allow guests to add a coupon", async () => {
       const response = await request
-        .post("/admin/users/add-coupon")
+        .post(`/admin/users/${MEMBER_USER_UID}/coupon`)
         .set("Authorization", `Bearer ${guestToken}`)
-        .send({ uid: MEMBER_USER_UID, quantity: 5 })
+        .send({ quantity: 5 })
+
+      expect(response.status).toEqual(StatusCodes.UNAUTHORIZED)
+    })
+
+    it("Should allow admins to delete a coupon from a user", async () => {
+      const stripeId = "test_stripe_id_delete"
+      await createUserDataWithStripeId(ADMIN_USER_UID, { stripe_id: stripeId })
+
+      const response = await request
+        .delete(`/admin/users/${ADMIN_USER_UID}/coupon`)
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send()
+
+      expect(response.status).toEqual(StatusCodes.OK)
+    })
+
+    it("Should return 404 when deleting coupon for non-existent user", async () => {
+      const response = await request
+        .delete(`/admin/users/non_existent_user/coupon`)
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send()
+
+      expect(response.status).toEqual(StatusCodes.NOT_FOUND)
+    })
+
+    it("Should return 400 when deleting coupon for user without stripe_id", async () => {
+      const response = await request
+        .delete(`/admin/users/${MEMBER_USER_UID}/coupon`)
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send()
+
+      expect(response.status).toEqual(StatusCodes.BAD_REQUEST)
+    })
+
+    it("Should not allow members to delete a coupon", async () => {
+      const response = await request
+        .delete(`/admin/users/${MEMBER_USER_UID}/coupon`)
+        .set("Authorization", `Bearer ${memberToken}`)
+        .send()
+
+      expect(response.status).toEqual(StatusCodes.UNAUTHORIZED)
+    })
+
+    it("Should not allow guests to delete a coupon", async () => {
+      const response = await request
+        .delete(`/admin/users/${MEMBER_USER_UID}/coupon`)
+        .set("Authorization", `Bearer ${guestToken}`)
+        .send()
 
       expect(response.status).toEqual(StatusCodes.UNAUTHORIZED)
     })

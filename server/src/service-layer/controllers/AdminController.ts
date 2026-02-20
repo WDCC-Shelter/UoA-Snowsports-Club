@@ -646,19 +646,8 @@ export class AdminController extends Controller {
     }
   }
 
-  /**
-   * Adds a coupon to a user's stripe id.
-   * Requires an admin JWT token.
-   * @param requestBody - The UID of the user to add the coupon to and the quantity of coupons to add.
-   * @returns void.
-   */
-  @SuccessResponse("200", "Coupon Added")
-  @Post("users/add-coupon")
-  public async addCoupon(
-    @Body() requestBody: AddCouponRequestBody
-  ): Promise<void> {
-    const { uid, quantity } = requestBody
-    const amount = 40 // Hardcoded amount
+  @Delete("/users/{uid}/coupon")
+  public async deleteCoupon(@Path() uid: string): Promise<void> {
     try {
       const userService = new UserDataService()
       const stripeService = new StripeService()
@@ -673,12 +662,47 @@ export class AdminController extends Controller {
         return
       }
 
-      // Add coupon to the user using Stripe ID
-      const couponPromises = Array.from(
-        { length: quantity },
-        async () => await stripeService.addCouponToUser(user.stripe_id, amount)
-      )
-      await Promise.all(couponPromises)
+      await stripeService.removeCouponForUser(user.stripe_id)
+      this.setStatus(StatusCodes.OK)
+    } catch {
+      this.setStatus(StatusCodes.INTERNAL_SERVER_ERROR)
+    }
+  }
+
+  /**
+   * Adds a coupon to a user's stripe id.
+   * Requires an admin JWT token.
+   * Each user can only have one coupon. The coupon value equals quantity * $40.
+   * @param uid - The UID of the user to add the coupon to.
+   * @param requestBody - The quantity of coupons to add (multiplied by $40 for total value).
+   * @returns void.
+   */
+  @SuccessResponse("200", "Coupon Added")
+  @Post("users/{uid}/coupon")
+  public async addCoupon(
+    @Path() uid: string,
+    @Body() requestBody: AddCouponRequestBody
+  ): Promise<void> {
+    const { quantity } = requestBody
+    const DEFAULT_COUPON_VALUE = 40
+    const totalAmount = quantity * DEFAULT_COUPON_VALUE
+
+    try {
+      const userService = new UserDataService()
+      const stripeService = new StripeService()
+      const user = await userService.getUserData(uid)
+
+      if (!user) {
+        this.setStatus(StatusCodes.NOT_FOUND)
+        return
+      }
+      if (!user.stripe_id) {
+        this.setStatus(StatusCodes.BAD_REQUEST)
+        return
+      }
+
+      // Add a single coupon with the total calculated value
+      await stripeService.addCouponToUser(user.stripe_id, totalAmount)
 
       this.setStatus(StatusCodes.OK)
     } catch {

@@ -60,6 +60,10 @@ export default class StripeService {
     return result.data
   }
 
+  public async removeCouponForUser(customer_id: string) {
+    return await stripe.customers.deleteDiscount(customer_id)
+  }
+
   /**
    * Creates a new Stripe customer if it doesn't exist and sets the Stripe customer id to the user info after creation.
    * @param user, user data extracted from JWT

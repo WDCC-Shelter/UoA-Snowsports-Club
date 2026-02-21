@@ -60,8 +60,18 @@ export default class StripeService {
     return result.data
   }
 
+  public async getCouponForUser(customer_id: string) {
+    const filteredCouponsResponse = await stripe.promotionCodes.list({
+      customer: customer_id
+    })
+    /**
+     * Assume there will only be one coupon per user as that's how the coupons are created in `addCouponToUser`. If there are multiple coupons for a user, this will just return the first one which is not ideal but also not expected to happen.
+     */
+    return filteredCouponsResponse.data[0]?.coupon || null
+  }
+
   public async removeCouponForUser(customer_id: string) {
-    return await stripe.customers.deleteDiscount(customer_id)
+    await stripe.customers.deleteDiscount(customer_id)
   }
 
   /**

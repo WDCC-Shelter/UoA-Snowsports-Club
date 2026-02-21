@@ -85,6 +85,7 @@ import StripeService from "../../business-layer/services/StripeService"
 import type { UserAccountTypes } from "../../business-layer/utils/AuthServiceClaims"
 import { RedirectKeys } from "../../business-layer/utils/RedirectKeys"
 
+const DEFAULT_COUPON_VALUE = 40 as const
 @Route("admin")
 @Security("jwt", ["admin"])
 export class AdminController extends Controller {
@@ -646,6 +647,39 @@ export class AdminController extends Controller {
     }
   }
 
+  @Get("/users/{uid}/coupon")
+  public async getCoupon(@Path() uid: string): Promise<{ quantity: number }> {
+    try {
+      const userService = new UserDataService()
+      const stripeService = new StripeService()
+      const user = await userService.getUserData(uid)
+
+      if (!user) {
+        this.setStatus(StatusCodes.NOT_FOUND)
+        return { quantity: 0 }
+      }
+      if (!user.stripe_id) {
+        this.setStatus(StatusCodes.BAD_REQUEST)
+        return { quantity: 0 }
+      }
+
+      const coupon = await stripeService.getCouponForUser(user.stripe_id)
+
+      if (!coupon) {
+        this.setStatus(StatusCodes.OK)
+        return { quantity: 0 }
+      }
+
+      const quantity = Math.floor(coupon.amount_off / DEFAULT_COUPON_VALUE)
+
+      this.setStatus(StatusCodes.OK)
+      return { quantity }
+    } catch {
+      this.setStatus(StatusCodes.INTERNAL_SERVER_ERROR)
+      return { quantity: 0 }
+    }
+  }
+
   @Delete("/users/{uid}/coupon")
   public async deleteCoupon(@Path() uid: string): Promise<void> {
     try {
@@ -684,7 +718,6 @@ export class AdminController extends Controller {
     @Body() requestBody: AddCouponRequestBody
   ): Promise<void> {
     const { quantity } = requestBody
-    const DEFAULT_COUPON_VALUE = 40
     const totalAmount = quantity * DEFAULT_COUPON_VALUE
 
     try {

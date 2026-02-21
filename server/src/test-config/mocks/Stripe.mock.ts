@@ -172,3 +172,23 @@ export const checkoutSessionMock: Stripe.Stripe.Checkout.Session = {
   payment_method_configuration_details: undefined,
   ui_mode: "embedded"
 }
+
+export const couponMock: Stripe.Stripe.Coupon = {
+  id: "jMT0WJUD",
+  object: "coupon",
+  amount_off: null,
+  applies_to: null,
+  created: 1678037688,
+  currency: null,
+  currency_options: null,
+  duration: "repeating",
+  duration_in_months: 3,
+  livemode: false,
+  max_redemptions: null,
+  metadata: {},
+  name: null,
+  percent_off: 25.5,
+  redeem_by: null,
+  times_redeemed: 0,
+  valid: true
+}

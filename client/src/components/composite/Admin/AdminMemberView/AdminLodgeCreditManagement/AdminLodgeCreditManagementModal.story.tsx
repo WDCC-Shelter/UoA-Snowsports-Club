@@ -19,8 +19,13 @@ const meta: Meta<typeof AdminLodgeCreditManagementModal> = {
       control: "text"
     },
     currentAmount: {
-      description: "Current credit amount (used for edit operations)",
+      description:
+        "Current credit amount - determines available operations (0 = add only, > 0 = edit/delete)",
       control: "number"
+    },
+    isLoading: {
+      description: "Whether the current amount is being loaded",
+      control: "boolean"
     },
     couponUpdateHandler: {
       description: "Callback when a coupon operation is submitted",
@@ -36,14 +41,6 @@ const meta: Meta<typeof AdminLodgeCreditManagementModal> = {
 export default meta
 type Story = StoryObj<typeof AdminLodgeCreditManagementModal>
 
-export const DefaultModal: Story = {
-  args: {
-    userId: "user-123",
-    userName: "John Doe",
-    currentAmount: 5
-  }
-}
-
 export const NewUserNoCredits: Story = {
   args: {
     userId: "user-456",
@@ -53,7 +50,8 @@ export const NewUserNoCredits: Story = {
   parameters: {
     docs: {
       description: {
-        story: "Modal for a user with no existing lodge credits"
+        story:
+          "Modal for a user with no existing lodge credits - only Add option available"
       }
     }
   }
@@ -68,7 +66,24 @@ export const UserWithExistingCredits: Story = {
   parameters: {
     docs: {
       description: {
-        story: "Modal for a user with existing lodge credits to edit or delete"
+        story:
+          "Modal for a user with existing lodge credits - Edit and Delete options available"
+      }
+    }
+  }
+}
+
+export const LoadingState: Story = {
+  args: {
+    userId: "user-loading",
+    userName: "Loading User",
+    currentAmount: 0,
+    isLoading: true
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: "Modal while credit information is being loaded"
       }
     }
   }
@@ -90,27 +105,47 @@ export const WithoutUserName: Story = {
 
 export const OpenAndCloseExample = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false)
+  const [currentAmount, setCurrentAmount] = useState<number>(0)
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+
+  const handleOpen = () => {
+    setIsOpen(true)
+    setIsLoading(true)
+    // Simulate loading
+    setTimeout(() => {
+      setIsLoading(false)
+    }, 1000)
+  }
 
   const handleCouponUpdate = (userId: string, operation: CouponOperation) => {
     console.log("Coupon update:", { userId, operation })
+    if (operation.type === "add" || operation.type === "edit") {
+      setCurrentAmount(operation.amount)
+    } else if (operation.type === "delete") {
+      setCurrentAmount(0)
+    }
     alert(`Operation: ${operation.type} for user: ${userId}`)
     setIsOpen(false)
   }
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
-      >
-        Manage Lodge Credits
-      </button>
+      <div className="flex flex-col gap-2">
+        <p>Current credits: {currentAmount}</p>
+        <button
+          type="button"
+          onClick={handleOpen}
+          className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+        >
+          Manage Lodge Credits
+        </button>
+      </div>
       <ModalContainer isOpen={isOpen}>
         <AdminLodgeCreditManagementModal
           userId="user-interactive"
           userName="Interactive User"
-          currentAmount={7}
+          currentAmount={currentAmount}
+          isLoading={isLoading}
           couponUpdateHandler={handleCouponUpdate}
           handleClose={() => setIsOpen(false)}
         />
@@ -123,7 +158,7 @@ OpenAndCloseExample.parameters = {
   docs: {
     description: {
       story:
-        "Interactive example demonstrating opening/closing the modal and handling form submission"
+        "Interactive example demonstrating opening/closing the modal, loading state, and handling form submission"
     }
   }
 }

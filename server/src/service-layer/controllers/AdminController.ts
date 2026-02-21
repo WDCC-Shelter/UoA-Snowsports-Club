@@ -85,7 +85,7 @@ import StripeService from "../../business-layer/services/StripeService"
 import type { UserAccountTypes } from "../../business-layer/utils/AuthServiceClaims"
 import { RedirectKeys } from "../../business-layer/utils/RedirectKeys"
 
-const DEFAULT_COUPON_VALUE = 40 as const
+const DEFAULT_COUPON_VALUE_NZD = 40 as const
 @Route("admin")
 @Security("jwt", ["admin"])
 export class AdminController extends Controller {
@@ -670,7 +670,10 @@ export class AdminController extends Controller {
         return { quantity: 0 }
       }
 
-      const quantity = Math.floor(coupon.amount_off / DEFAULT_COUPON_VALUE)
+      // Stripe stores the discount amount in cents, so we need to convert it back to dollars before calculating the quantity
+      const quantity = Math.floor(
+        coupon.amount_off / (DEFAULT_COUPON_VALUE_NZD * 100)
+      )
 
       this.setStatus(StatusCodes.OK)
       return { quantity }
@@ -718,7 +721,7 @@ export class AdminController extends Controller {
     @Body() requestBody: AddCouponRequestBody
   ): Promise<void> {
     const { quantity } = requestBody
-    const totalAmount = quantity * DEFAULT_COUPON_VALUE
+    const totalAmount = quantity * DEFAULT_COUPON_VALUE_NZD
 
     try {
       const userService = new UserDataService()

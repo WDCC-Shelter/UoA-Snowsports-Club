@@ -517,6 +517,11 @@ export default class StripeService {
     }
   }
 
+  /**
+   * Creates a coupon for the specified amount and adds it to the user with the given Stripe ID.
+   * @param stripeId The Stripe ID of the user to whom the coupon will be added.
+   * @param amount The amount **(in NZD)** for the coupon to be created.
+   */
   public async addCouponToUser(
     stripeId: string,
     amount: number

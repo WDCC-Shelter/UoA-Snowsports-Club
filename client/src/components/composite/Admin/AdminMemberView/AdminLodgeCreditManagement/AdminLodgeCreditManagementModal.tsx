@@ -1,6 +1,5 @@
 import Button from "@/components/generic/FigmaButtons/FigmaButton"
 import TextInput from "@/components/generic/TextInputComponent/TextInput"
-import Dropdown from "@/components/generic/Dropdown/Dropdown"
 import CloseIcon from "@/assets/icons/x.svg"
 import { useClickOutside } from "@/components/utils/Utils"
 import { type FormEvent, useRef, useState } from "react"
@@ -41,9 +40,15 @@ interface IAdminLodgeCreditManagementModal {
    */
   userName?: string
   /**
-   * Current credit amount (used for edit operations)
+   * Current credit amount - determines available operations
+   * - 0: Can only add credits
+   * - > 0: Can edit or delete credits
    */
-  currentAmount?: number
+  currentAmount: number
+  /**
+   * Whether the current amount is being loaded
+   */
+  isLoading?: boolean
   /**
    * Callback when a coupon operation is submitted
    */
@@ -58,33 +63,23 @@ interface IAdminLodgeCreditManagementModal {
  * @deprecated Do not use, exported for testing purposes
  */
 export const AdminLodgeCreditFormKeys = {
-  OPERATION_TYPE: "operation type",
   AMOUNT: "amount"
 } as const
 
-const operationTypeDescription = (operationType: CouponOperationType) => {
-  switch (operationType) {
-    case "add":
-      return `Add a new lodge credit coupon with the specified amount.`
-    case "edit":
-      return `Edit the existing lodge credit amount for this user.`
-    case "delete":
-      return `Remove all lodge credits from this user.`
-  }
-}
-
 /**
  * Popup for managing lodge credits for a specific user.
- * Allows adding, editing, or deleting lodge credit coupons.
+ * Operations are determined by currentAmount:
+ * - If 0: Can only add credits
+ * - If > 0: Can edit or delete credits
  */
 export const AdminLodgeCreditManagementModal = ({
   userId,
   userName,
   currentAmount,
+  isLoading = false,
   couponUpdateHandler,
   handleClose
 }: IAdminLodgeCreditManagementModal) => {
-  const [operationType, setOperationType] = useState<CouponOperationType>("add")
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
 
   const formContainerRef = useRef<HTMLDivElement>(null)
@@ -92,8 +87,12 @@ export const AdminLodgeCreditManagementModal = ({
     handleClose?.()
   })
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+  const hasExistingCredits = currentAmount > 0
+
+  const handleSubmit = (
+    e: FormEvent<HTMLFormElement>,
+    operationType: CouponOperationType
+  ) => {
     const data = new FormData(e.currentTarget)
 
     let operation: CouponOperation
@@ -131,7 +130,7 @@ export const AdminLodgeCreditManagementModal = ({
     }
   }
 
-  const showAmountField = operationType !== "delete"
+  const isDisabled = isSubmitting || isLoading
 
   return (
     <div
@@ -148,48 +147,104 @@ export const AdminLodgeCreditManagementModal = ({
       </div>
       <h2>Manage Lodge Credits</h2>
       {userName && <p className="text-gray-600">User: {userName}</p>}
-      {currentAmount !== undefined && (
-        <p className="text-gray-600">Current Balance: {currentAmount}</p>
-      )}
+      <p className="text-gray-600">
+        Current Balance: {isLoading ? "Loading..." : currentAmount}
+      </p>
       <form
-        onSubmit={handleSubmit}
+        onSubmit={(e) => e.preventDefault()}
         className="xs:max-w-[500px] flex w-full max-w-[250px] flex-col gap-2"
       >
-        <Dropdown
-          name={AdminLodgeCreditFormKeys.OPERATION_TYPE}
-          data-testid={AdminLodgeCreditFormKeys.OPERATION_TYPE}
-          value={operationType}
-          label="Operation Type"
-          onChange={(e) =>
-            setOperationType(e.target.value as CouponOperationType)
-          }
-        >
-          <option value={ADD_OPERATION}>Add</option>
-          <option value={EDIT_OPERATION}>Edit</option>
-          <option value={DELETE_OPERATION}>Delete</option>
-        </Dropdown>
-        <h5>{operationTypeDescription(operationType)}</h5>
-        {showAmountField && (
-          <TextInput
-            name={AdminLodgeCreditFormKeys.AMOUNT}
-            data-testid={AdminLodgeCreditFormKeys.AMOUNT}
-            type="number"
-            label="Quantity"
-            min={0}
-            step={1}
-            defaultValue={operationType === "edit" ? currentAmount : undefined}
-            required
-          />
+        <TextInput
+          name={AdminLodgeCreditFormKeys.AMOUNT}
+          data-testid={AdminLodgeCreditFormKeys.AMOUNT}
+          type="number"
+          label="Credit Amount"
+          min={currentAmount > 0 ? 1 : 0}
+          step={1}
+          defaultValue={hasExistingCredits ? currentAmount : undefined}
+          required
+          disabled={isLoading}
+        />
+        {isLoading ? (
+          <p className="text-gray-500 text-center text-sm">
+            Loading credit information...
+          </p>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {!hasExistingCredits ? (
+              <>
+                <p className="text-gray-600 text-sm">
+                  This user has no credits. Add credits to get started.
+                </p>
+                <Button
+                  disabled={isDisabled}
+                  type="submit"
+                  data-testid="add-lodge-credit-button"
+                  onClick={(e) => {
+                    const form = e.currentTarget.closest("form")
+                    if (form?.reportValidity()) {
+                      handleSubmit(
+                        {
+                          ...e,
+                          currentTarget: form
+                        } as FormEvent<HTMLFormElement>,
+                        "add"
+                      )
+                    }
+                  }}
+                >
+                  Add Credits
+                </Button>
+              </>
+            ) : (
+              <>
+                <p className="text-gray-600 text-sm">
+                  Update the credit amount or remove all credits.
+                </p>
+                <Button
+                  disabled={isDisabled}
+                  type="submit"
+                  data-testid="update-lodge-credit-button"
+                  onClick={(e) => {
+                    const form = e.currentTarget.closest("form")
+                    if (form?.reportValidity()) {
+                      handleSubmit(
+                        {
+                          ...e,
+                          currentTarget: form
+                        } as FormEvent<HTMLFormElement>,
+                        "edit"
+                      )
+                    }
+                  }}
+                >
+                  Update Credits
+                </Button>
+                <Button
+                  disabled={isDisabled}
+                  type="button"
+                  variant="secondary"
+                  data-testid="delete-lodge-credit-button"
+                  onClick={(e) => {
+                    const form = e.currentTarget.closest("form")
+                    if (form) {
+                      handleSubmit(
+                        {
+                          ...e,
+                          currentTarget: form,
+                          preventDefault: () => {}
+                        } as FormEvent<HTMLFormElement>,
+                        "delete"
+                      )
+                    }
+                  }}
+                >
+                  Delete All Credits
+                </Button>
+              </>
+            )}
+          </div>
         )}
-        <Button
-          disabled={isSubmitting}
-          type="submit"
-          data-testid="submit-lodge-credit-button"
-        >
-          {operationType === "add" && "Add Credit"}
-          {operationType === "edit" && "Update Credit"}
-          {operationType === "delete" && "Delete Credit"}
-        </Button>
       </form>
     </div>
   )

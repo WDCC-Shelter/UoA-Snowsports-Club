@@ -1,5 +1,6 @@
 import {
   useMemberGoogleSheetUrlQuery,
+  useUserCouponQuery,
   useUsersQuery
 } from "@/services/Admin/AdminQueries"
 import { AdminMemberView, type MemberColumnFormat } from "./AdminMemberView"
@@ -99,6 +100,10 @@ const WrappedAdminMemberView = () => {
   const [selectedLodgeCreditUser, setSelectedLodgeCreditUser] = useState<
     { userDisplayName: string; userId: string } | undefined
   >()
+
+  const { data: couponCount } = useUserCouponQuery(
+    selectedLodgeCreditUser?.userId
+  )
 
   /**
    * Kept
@@ -245,14 +250,16 @@ const WrappedAdminMemberView = () => {
           }}
         />
       </ModalContainer>
-      {selectedLodgeCreditUser && (
-        <ModalContainer>
+      <ModalContainer isOpen={!!selectedLodgeCreditUser}>
+        {selectedLodgeCreditUser && (
           <AdminLodgeCreditManagementModal
+            handleClose={() => setSelectedLodgeCreditUser(undefined)}
             userId={selectedLodgeCreditUser.userId}
             userName={selectedLodgeCreditUser.userDisplayName}
+            currentAmount={couponCount}
           />
-        </ModalContainer>
-      )}
+        )}
+      </ModalContainer>
     </>
   )
 }

@@ -279,6 +279,23 @@ const AdminService = {
     }
 
     return data?.url
+  },
+  getCouponsForUser: async (userId: string) => {
+    const { response, data } = await fetchClient.GET(
+      "/admin/users/{uid}/coupon",
+      {
+        params: {
+          path: {
+            uid: userId
+          }
+        }
+      }
+    )
+    if (!response.ok) {
+      throw new Error(`Failed to fetch coupons for user with id ${userId}`)
+    }
+
+    return data?.quantity
   }
 } as const
 

@@ -10,8 +10,10 @@ pre-commit:
       run: pnpm lint {staged_files}
       exclude:
         - server/*/__generated__/*
+        - client/*/__generated__/*
     prettier:
       glob: "*.{js,jsx,ts,tsx,json,css,scss,md}"
       run: pnpm prettier --write {staged_files} && git add {staged_files}
       exclude:
         - server/*/__generated__/*
+        - client/*/__generated__/*

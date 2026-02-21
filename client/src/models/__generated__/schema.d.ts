@@ -3,61 +3,62 @@
  * Do not make direct changes to the file.
  */
 
+
 export interface paths {
   "/users/self": {
     /** @description Fetches users additional info based on their uid. */
-    get: operations["GetSelf"]
-  }
+    get: operations["GetSelf"];
+  };
   "/users/edit-self": {
     /** @description Edits the user's additional info based on their uid. */
-    patch: operations["EditSelf"]
-  }
+    patch: operations["EditSelf"];
+  };
   "/users/delete-user": {
     /** @description Deletes a user based on their uid. This requires an admin JWT token. */
-    delete: operations["DeleteUser"]
-  }
+    delete: operations["DeleteUser"];
+  };
   "/webhook": {
     /**
      * @description Webhook endpoint for Stripe events.
      * This single endpoint is setup in the Stripe developer config to handle various events.
      */
-    post: operations["ReceiveWebhook"]
-  }
+    post: operations["ReceiveWebhook"];
+  };
   "/signup": {
     /** @description Signs up a user and creates a user record in the database. Also creates a JWT token for the user in AuthService. */
-    post: operations["Signup"]
-  }
+    post: operations["Signup"];
+  };
   "/payment/membership_prices": {
     /** @description Fetches the prices of the membership products from Stripe. */
-    get: operations["GetMembershipPrices"]
-  }
+    get: operations["GetMembershipPrices"];
+  };
   "/payment/lodge_prices": {
     /** @description Fetches the prices of the lodge products from Stripe. */
-    get: operations["GetLodgePrices"]
-  }
+    get: operations["GetLodgePrices"];
+  };
   "/payment/checkout_status": {
     /** @description Fetches the details of a checkout session based on a stripe checkout session id. */
-    get: operations["GetCheckoutSessionDetails"]
-  }
+    get: operations["GetCheckoutSessionDetails"];
+  };
   "/payment/membership": {
     /** @description Creates a checkout session for membership payment. */
-    post: operations["GetMembershipPayment"]
-  }
+    post: operations["GetMembershipPayment"];
+  };
   "/payment/booking": {
     /**
      * @description Creates a new booking session for the date ranges passed in,
      * will return any existing sessions if they have been started in
      * the last 30 minutes (the minimum period stripe has to persist a session for)
      */
-    post: operations["GetBookingPayment"]
-  }
+    post: operations["GetBookingPayment"];
+  };
   "/events": {
     /**
      * @description Fetches latest events starting from the event with the latest starting date
      * (**NOT** the signup open date) based on limit. Is paginated with a cursor
      */
-    get: operations["GetAllEvents"]
-  }
+    get: operations["GetAllEvents"];
+  };
   "/events/for-members": {
     /**
      * @description Fetches latest events starting from the event with the latest starting date
@@ -66,131 +67,132 @@ export interface paths {
      * This endpoint is only accessible to members as it includes the sign up links
      * members-only events
      */
-    get: operations["GetAllEventsAsMember"]
-  }
+    get: operations["GetAllEventsAsMember"];
+  };
   "/bookings": {
     /** @description Fetches all bookings for a user based on their UID. */
-    get: operations["GetAllBookings"]
-  }
+    get: operations["GetAllBookings"];
+  };
   "/bookings/available-dates": {
     /** @description Fetches all available booking dates within a date range. */
-    post: operations["GetAvailableDates"]
-  }
+    post: operations["GetAvailableDates"];
+  };
   "/bookings/fetch-users": {
     /**
      * @description This method fetches users based on a booking date range.
      * This method requires an admin JWT token.
      */
-    post: operations["FetchUsersByBookingDateRange"]
-  }
+    post: operations["FetchUsersByBookingDateRange"];
+  };
   "/admin/bookings/make-dates-available": {
     /** @description Booking Operations */
-    post: operations["MakeDateAvailable"]
-  }
+    post: operations["MakeDateAvailable"];
+  };
   "/admin/bookings/make-dates-unavailable": {
     /** @description Decreases availability count to 0 for all booking slots in a date range. */
-    post: operations["MakeDateUnavailable"]
-  }
+    post: operations["MakeDateUnavailable"];
+  };
   "/admin/bookings/create": {
     /** @description An admin method to create bookings for a list of users within a date range. */
-    post: operations["CreateBookings"]
-  }
+    post: operations["CreateBookings"];
+  };
   "/admin/bookings/delete": {
     /** @description Delete a users booking by booking ID. */
-    post: operations["RemoveBooking"]
-  }
+    post: operations["RemoveBooking"];
+  };
   "/admin/users": {
     /** @description User Operations */
-    get: operations["GetAllUsers"]
-  }
+    get: operations["GetAllUsers"];
+  };
   "/admin/users/{uid}": {
     /**
      * @description Get a user by their UID.
      * Requires an admin JWT token.
      */
-    get: operations["GetUser"]
-  }
+    get: operations["GetUser"];
+  };
   "/admin/users/create": {
     /**
      * @description Adds a new user to the database with their UID and user data.
      * Requires an admin JWT token.
      */
-    put: operations["CreateUser"]
-  }
+    put: operations["CreateUser"];
+  };
   "/admin/users/bulk-edit": {
     /**
      * @description Edits a list of users with updated user additional info.
      * Requires an admin JWT token.
      */
-    patch: operations["EditUsers"]
-  }
+    patch: operations["EditUsers"];
+  };
   "/admin/users/promote": {
     /**
      * @description Promotes a user to a member. This returns a conflict when the user is already a member.
      * Requires an admin JWT token.
      */
-    put: operations["PromoteUser"]
-  }
+    put: operations["PromoteUser"];
+  };
   "/admin/users/demote": {
     /**
      * @description Demotes a member to a guest. This returns a conflict when the user is already a guest.
      * Requires an admin JWT token.
      */
-    put: operations["DemoteUser"]
-  }
+    put: operations["DemoteUser"];
+  };
   "/admin/users/demote-all": {
     /**
      * @description Demotes all non-admin users to guests. This is used to purge all membership statuses at the end of a billing cycle.
      * Requires an admin JWT token.
      */
-    patch: operations["DemoteAllUsers"]
-  }
+    patch: operations["DemoteAllUsers"];
+  };
   "/admin/users/{uid}/coupon": {
+    get: operations["GetCoupon"];
     /**
      * @description Adds a coupon to a user's stripe id.
      * Requires an admin JWT token.
      * Each user can only have one coupon. The coupon value equals quantity * $40.
      */
-    post: operations["AddCoupon"]
-    delete: operations["DeleteCoupon"]
-  }
+    post: operations["AddCoupon"];
+    delete: operations["DeleteCoupon"];
+  };
   "/admin/bookings/history": {
     /** @description Fetches the **latest** booking history events (uses cursor-based pagination) */
-    get: operations["GetLatestHistory"]
-  }
+    get: operations["GetLatestHistory"];
+  };
   "/admin/events": {
     /** @description Endpoint for admin to create a new event */
-    post: operations["CreateNewEvent"]
-  }
+    post: operations["CreateNewEvent"];
+  };
   "/admin/events/{id}": {
-    get: operations["GetEventById"]
-    delete: operations["DeleteEvent"]
+    get: operations["GetEventById"];
+    delete: operations["DeleteEvent"];
     /** @description Endpoint for admints to edit an event. */
-    patch: operations["EditEvent"]
-  }
+    patch: operations["EditEvent"];
+  };
   "/admin/redirect/{redirectKey}": {
     /** @description Returns a URL specified in environment variables */
-    get: operations["GetEnvUrl"]
-  }
+    get: operations["GetEnvUrl"];
+  };
   "/admin/mail/config": {
     /** @description Mail Configuration Operations */
-    get: operations["GetMailConfig"]
+    get: operations["GetMailConfig"];
     /** @description Update the mail configuration */
-    put: operations["UpdateMailConfig"]
-  }
+    put: operations["UpdateMailConfig"];
+  };
   "/admin/mail/templates": {
     /** @description Get all available email templates */
-    get: operations["GetAllEmailTemplates"]
+    get: operations["GetAllEmailTemplates"];
     /** @description Update or create an email template */
-    put: operations["UpdateEmailTemplate"]
-  }
+    put: operations["UpdateEmailTemplate"];
+  };
   "/admin/mail/templates/{id}": {
     /** @description Get a specific email template by ID */
-    get: operations["GetEmailTemplate"]
-  }
+    get: operations["GetEmailTemplate"];
+  };
 }
 
-export type webhooks = Record<string, never>
+export type webhooks = Record<string, never>;
 
 export interface components {
   schemas: {
@@ -208,452 +210,448 @@ export interface components {
        * Format: double
        * @description The number of seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z.
        */
-      seconds: number
+      seconds: number;
       /**
        * Format: double
        * @description The non-negative fractions of a second at nanosecond resolution.
        */
-      nanoseconds: number
-    }
+      nanoseconds: number;
+    };
     /** @description From T, pick a set of properties whose keys are in the union K */
     "Pick_Partial_UserAdditionalInfo_.Exclude_keyofPartial_UserAdditionalInfo_.stripe_id__": {
-      date_of_birth?: components["schemas"]["FirebaseFirestore.Timestamp"]
-      does_snowboarding?: boolean
-      does_racing?: boolean
-      does_ski?: boolean
+      date_of_birth?: components["schemas"]["FirebaseFirestore.Timestamp"];
+      does_snowboarding?: boolean;
+      does_racing?: boolean;
+      does_ski?: boolean;
       /** Format: double */
-      phone_number?: number
-      gender?: string
-      emergency_contact?: string
-      first_name?: string
-      last_name?: string
-      dietary_requirements?: string
+      phone_number?: number;
+      gender?: string;
+      emergency_contact?: string;
+      first_name?: string;
+      last_name?: string;
+      dietary_requirements?: string;
       /** @description **OPTIONAL** field that the user should have the choice to provide */
-      ethnicity?: string
-      faculty?: string
-      university?: string
-      student_id?: string
-      university_year?: string
+      ethnicity?: string;
+      faculty?: string;
+      university?: string;
+      student_id?: string;
+      university_year?: string;
       /** @description If the user has a Whakapapa season pass, this should be set to `true`. */
-      has_whakapapa_season_pass?: boolean
-    }
+      has_whakapapa_season_pass?: boolean;
+    };
     /** @description Construct a type with the properties of T except for those in type K. */
-    "Omit_Partial_UserAdditionalInfo_.stripe_id_": components["schemas"]["Pick_Partial_UserAdditionalInfo_.Exclude_keyofPartial_UserAdditionalInfo_.stripe_id__"]
+    "Omit_Partial_UserAdditionalInfo_.stripe_id_": components["schemas"]["Pick_Partial_UserAdditionalInfo_.Exclude_keyofPartial_UserAdditionalInfo_.stripe_id__"];
     EditSelfRequestBody: {
-      updatedInformation: components["schemas"]["Omit_Partial_UserAdditionalInfo_.stripe_id_"]
-    }
+      updatedInformation: components["schemas"]["Omit_Partial_UserAdditionalInfo_.stripe_id_"];
+    };
     CommonResponse: {
-      error?: string
-      message?: string
-    }
+      error?: string;
+      message?: string;
+    };
     DeleteUserRequestBody: {
-      uid: string
-    }
+      uid: string;
+    };
     UserSignupResponse: {
-      error?: string
-      message?: string
-      jwtToken?: string
-      uid?: string
-    }
+      error?: string;
+      message?: string;
+      jwtToken?: string;
+      uid?: string;
+    };
     /** @description From T, pick a set of properties whose keys are in the union K */
     "Pick_UserAdditionalInfo.Exclude_keyofUserAdditionalInfo.stripe_id__": {
-      date_of_birth: components["schemas"]["FirebaseFirestore.Timestamp"]
-      does_snowboarding?: boolean
-      does_racing?: boolean
-      does_ski?: boolean
+      date_of_birth: components["schemas"]["FirebaseFirestore.Timestamp"];
+      does_snowboarding?: boolean;
+      does_racing?: boolean;
+      does_ski?: boolean;
       /** Format: double */
-      phone_number: number
-      gender?: string
-      emergency_contact?: string
-      first_name: string
-      last_name: string
-      dietary_requirements: string
+      phone_number: number;
+      gender?: string;
+      emergency_contact?: string;
+      first_name: string;
+      last_name: string;
+      dietary_requirements: string;
       /** @description **OPTIONAL** field that the user should have the choice to provide */
-      ethnicity?: string
-      faculty?: string
-      university?: string
-      student_id?: string
-      university_year?: string
+      ethnicity?: string;
+      faculty?: string;
+      university?: string;
+      student_id?: string;
+      university_year?: string;
       /** @description If the user has a Whakapapa season pass, this should be set to `true`. */
-      has_whakapapa_season_pass?: boolean
-    }
+      has_whakapapa_season_pass?: boolean;
+    };
     /** @description Construct a type with the properties of T except for those in type K. */
-    "Omit_UserAdditionalInfo.stripe_id_": components["schemas"]["Pick_UserAdditionalInfo.Exclude_keyofUserAdditionalInfo.stripe_id__"]
+    "Omit_UserAdditionalInfo.stripe_id_": components["schemas"]["Pick_UserAdditionalInfo.Exclude_keyofUserAdditionalInfo.stripe_id__"];
     UserSignupBody: {
-      email: string
-      user: components["schemas"]["Omit_UserAdditionalInfo.stripe_id_"]
-    }
+      email: string;
+      user: components["schemas"]["Omit_UserAdditionalInfo.stripe_id_"];
+    };
     /** @enum {string} */
-    MembershipTypeValues:
-      | "uoa_student"
-      | "non_uoa_student"
-      | "returning_member"
-      | "new_non_student"
+    MembershipTypeValues: "uoa_student" | "non_uoa_student" | "returning_member" | "new_non_student";
     MembershipStripeProductResponse: {
-      error?: string
-      message?: string
+      error?: string;
+      message?: string;
       data?: {
-        originalPrice?: string
-        displayPrice: string
-        discount: boolean
-        description?: string
-        name: components["schemas"]["MembershipTypeValues"]
-        productId: string
-      }[]
-    }
+          originalPrice?: string;
+          displayPrice: string;
+          discount: boolean;
+          description?: string;
+          name: components["schemas"]["MembershipTypeValues"];
+          productId: string;
+        }[];
+    };
     /** @enum {string} */
-    LodgePricingTypeValues: "single_friday_or_saturday" | "normal"
+    LodgePricingTypeValues: "single_friday_or_saturday" | "normal";
     LodgeStripeProductResponse: {
-      error?: string
-      message?: string
+      error?: string;
+      message?: string;
       data?: {
-        originalPrice?: string
-        displayPrice: string
-        discount: boolean
-        description?: string
-        name: components["schemas"]["LodgePricingTypeValues"]
-        productId: string
-      }[]
-    }
+          originalPrice?: string;
+          displayPrice: string;
+          discount: boolean;
+          description?: string;
+          name: components["schemas"]["LodgePricingTypeValues"];
+          productId: string;
+        }[];
+    };
     /** @enum {string} */
-    "stripe.Stripe.Checkout.Session.Status": "complete" | "expired" | "open"
+    "stripe.Stripe.Checkout.Session.Status": "complete" | "expired" | "open";
     /** @description Set of key-value pairs that you can attach to an object. This can be useful for storing additional information about the object in a structured format. */
     "stripe.Stripe.Metadata": {
-      [key: string]: string
-    }
+      [key: string]: string;
+    };
     MembershipPaymentResponse: {
-      error?: string
-      message?: string
-      stripeClientSecret?: string
-      membershipType?: components["schemas"]["MembershipTypeValues"]
-    }
+      error?: string;
+      message?: string;
+      stripeClientSecret?: string;
+      membershipType?: components["schemas"]["MembershipTypeValues"];
+    };
     UserPaymentRequestModel: {
-      membershipType?: components["schemas"]["MembershipTypeValues"]
-    }
+      membershipType?: components["schemas"]["MembershipTypeValues"];
+    };
     BookingPaymentResponse: {
-      error?: string
-      message?: string
-      stripeClientSecret?: string
-    }
+      error?: string;
+      message?: string;
+      stripeClientSecret?: string;
+    };
     UserBookingRequestingModel: {
       /** @description Firestore timestamp, should represent a UTC date that is set to exactly midnight */
-      startDate?: components["schemas"]["FirebaseFirestore.Timestamp"]
+      startDate?: components["schemas"]["FirebaseFirestore.Timestamp"];
       /** @description Firestore timestamp, should represent a UTC date that is set to exactly midnight */
-      endDate?: components["schemas"]["FirebaseFirestore.Timestamp"]
-    }
+      endDate?: components["schemas"]["FirebaseFirestore.Timestamp"];
+    };
     Event: {
       /** @description The title of this event */
-      title: string
+      title: string;
       /**
        * @description An optional description for this event
        * This should be in markdown
        */
-      description?: string
+      description?: string;
       /** @description The link for the image to display on the event page (essentially a thumbnail) */
-      image_url?: string
+      image_url?: string;
       /** @description The location of this event */
-      location?: string
+      location?: string;
       /**
        * @description A URL to the google form for signing up to the event. This is not to be included
        * in any response body unless we are _near_ the period for sign up
        */
-      google_forms_link?: string
+      google_forms_link?: string;
       /**
        * @description The signup period start date.
        * Note that this date is in UTC time.
        * Use the same start and end date to indicate a 1 day signup period.
        */
-      sign_up_start_date?: components["schemas"]["FirebaseFirestore.Timestamp"]
+      sign_up_start_date?: components["schemas"]["FirebaseFirestore.Timestamp"];
       /**
        * @description The signup period end date.
        * Note that this date is in UTC time.
        */
-      sign_up_end_date?: components["schemas"]["FirebaseFirestore.Timestamp"]
+      sign_up_end_date?: components["schemas"]["FirebaseFirestore.Timestamp"];
       /**
        * @description Event start date for the event i.e the day members should meet at shads,
        * **NOT** the signups, refer to {@link sign_up_start_date} for signup start
        */
-      physical_start_date: components["schemas"]["FirebaseFirestore.Timestamp"]
+      physical_start_date: components["schemas"]["FirebaseFirestore.Timestamp"];
       /**
        * @description Event end time for the event i.e the last day members will be at the lodge,
        * is optionial in case of one day events. **NOT** the signups, refer to
        * {@link sign_up_end_date} for signup end date
        */
-      physical_end_date?: components["schemas"]["FirebaseFirestore.Timestamp"]
+      physical_end_date?: components["schemas"]["FirebaseFirestore.Timestamp"];
       /**
        * Format: double
        * @description Max number of attendees at this event, left as optional for uncapped
        * @example 30
        */
-      max_occupancy?: number
+      max_occupancy?: number;
       /** @description If `true` then only members should see the sign up link */
-      is_members_only?: boolean
-    }
+      is_members_only?: boolean;
+    };
     DocumentDataWithUid_Event_: components["schemas"]["Event"] & {
       /** @description The ID of the document for which this document contains data. */
-      id: string
-    }
+      id: string;
+    };
     GetAllEventsResponse: {
-      error?: string
-      message?: string
+      error?: string;
+      message?: string;
       /**
        * @description Needed for firestore operations which do not support offset
        * based pagination
        *
        * **Will be undefined in case of last page**
        */
-      nextCursor?: string
-      data?: components["schemas"]["DocumentDataWithUid_Event_"][]
-    }
+      nextCursor?: string;
+      data?: components["schemas"]["DocumentDataWithUid_Event_"][];
+    };
     AllUserBookingSlotsResponse: {
-      error?: string
-      message?: string
-      dates?: string[]
-    }
+      error?: string;
+      message?: string;
+      dates?: string[];
+    };
     AvailableDates: {
       /** Format: double */
-      availableSpaces: number
+      availableSpaces: number;
       /** Format: double */
-      maxBookings: number
-      date: components["schemas"]["FirebaseFirestore.Timestamp"]
-      description?: string
-      id: string
-    }
+      maxBookings: number;
+      date: components["schemas"]["FirebaseFirestore.Timestamp"];
+      description?: string;
+      id: string;
+    };
     AvailableDatesResponse: {
-      error?: string
-      message?: string
-      data?: components["schemas"]["AvailableDates"][]
-    }
+      error?: string;
+      message?: string;
+      data?: components["schemas"]["AvailableDates"][];
+    };
     AvailableDatesRequestModel: {
       /** @description Firestore timestamp, should represent a UTC date that is set to exactly midnight */
-      startDate?: components["schemas"]["FirebaseFirestore.Timestamp"]
+      startDate?: components["schemas"]["FirebaseFirestore.Timestamp"];
       /** @description Firestore timestamp, should represent a UTC date that is set to exactly midnight */
-      endDate?: components["schemas"]["FirebaseFirestore.Timestamp"]
-    }
+      endDate?: components["schemas"]["FirebaseFirestore.Timestamp"];
+    };
     /** @enum {string} */
-    UserAccountTypes: "admin" | "member" | "guest"
+    UserAccountTypes: "admin" | "member" | "guest";
     BookingIdandUserData: {
-      date_of_birth: components["schemas"]["FirebaseFirestore.Timestamp"]
-      does_snowboarding?: boolean
-      does_racing?: boolean
-      does_ski?: boolean
+      date_of_birth: components["schemas"]["FirebaseFirestore.Timestamp"];
+      does_snowboarding?: boolean;
+      does_racing?: boolean;
+      does_ski?: boolean;
       /** Format: double */
-      phone_number: number
-      gender?: string
-      emergency_contact?: string
-      first_name: string
-      last_name: string
-      dietary_requirements: string
+      phone_number: number;
+      gender?: string;
+      emergency_contact?: string;
+      first_name: string;
+      last_name: string;
+      dietary_requirements: string;
       /** @description **OPTIONAL** field that the user should have the choice to provide */
-      ethnicity?: string
-      faculty?: string
-      university?: string
-      student_id?: string
-      university_year?: string
+      ethnicity?: string;
+      faculty?: string;
+      university?: string;
+      student_id?: string;
+      university_year?: string;
       /** @description If the user has a Whakapapa season pass, this should be set to `true`. */
-      has_whakapapa_season_pass?: boolean
+      has_whakapapa_season_pass?: boolean;
       /** @description For identification DO NOT RETURN to users in exposed endpoints */
-      stripe_id?: string
+      stripe_id?: string;
       /** @description Firebase identifier of the user *data* based on the firestore document */
-      uid: string
+      uid: string;
       /** @description Formatted UTC date string of when the account was created */
-      dateJoined?: string
+      dateJoined?: string;
       /** @description The email the user uses to log in */
-      email: string
+      email: string;
       /** @description What type of account the user has */
-      membership: components["schemas"]["UserAccountTypes"]
-      bookingId: string
-    }
+      membership: components["schemas"]["UserAccountTypes"];
+      bookingId: string;
+    };
     /** @description Represents the response structure for fetching users by date range. */
     UsersByDateRangeResponse: {
       data?: {
-        users: components["schemas"]["BookingIdandUserData"][]
-        date: components["schemas"]["FirebaseFirestore.Timestamp"]
-      }[]
-      error?: string
-    }
+          users: components["schemas"]["BookingIdandUserData"][];
+          date: components["schemas"]["FirebaseFirestore.Timestamp"];
+        }[];
+      error?: string;
+    };
     /** @description Represents the structure of a request model for fetching bookings within a specific date range. */
     BookingsByDateRangeRequestModel: {
       /** @description Firestore timestamp, should represent a UTC date that is set to exactly midnight */
-      startDate: components["schemas"]["FirebaseFirestore.Timestamp"]
+      startDate: components["schemas"]["FirebaseFirestore.Timestamp"];
       /** @description Firestore timestamp, should represent a UTC date that is set to exactly midnight */
-      endDate: components["schemas"]["FirebaseFirestore.Timestamp"]
-    }
+      endDate: components["schemas"]["FirebaseFirestore.Timestamp"];
+    };
     BookingSlotUpdateResponse: {
-      error?: string
-      message?: string
+      error?: string;
+      message?: string;
       updatedBookingSlots?: {
-        bookingSlotId: string
-        date: components["schemas"]["FirebaseFirestore.Timestamp"]
-      }[]
-    }
+          bookingSlotId: string;
+          date: components["schemas"]["FirebaseFirestore.Timestamp"];
+        }[];
+    };
     MakeDatesAvailableRequestBody: {
       /** @description Firestore timestamp, should represent a UTC date that is set to exactly midnight */
-      startDate: components["schemas"]["FirebaseFirestore.Timestamp"]
+      startDate: components["schemas"]["FirebaseFirestore.Timestamp"];
       /** @description Firestore timestamp, should represent a UTC date that is set to exactly midnight */
-      endDate: components["schemas"]["FirebaseFirestore.Timestamp"]
+      endDate: components["schemas"]["FirebaseFirestore.Timestamp"];
       /** Format: double */
-      slots?: number
-    }
+      slots?: number;
+    };
     /** @description From T, pick a set of properties whose keys are in the union K */
     "Pick_MakeDatesAvailableRequestBody.Exclude_keyofMakeDatesAvailableRequestBody.slots__": {
       /** @description Firestore timestamp, should represent a UTC date that is set to exactly midnight */
-      startDate: components["schemas"]["FirebaseFirestore.Timestamp"]
+      startDate: components["schemas"]["FirebaseFirestore.Timestamp"];
       /** @description Firestore timestamp, should represent a UTC date that is set to exactly midnight */
-      endDate: components["schemas"]["FirebaseFirestore.Timestamp"]
-    }
+      endDate: components["schemas"]["FirebaseFirestore.Timestamp"];
+    };
     /** @description Construct a type with the properties of T except for those in type K. */
-    "Omit_MakeDatesAvailableRequestBody.slots_": components["schemas"]["Pick_MakeDatesAvailableRequestBody.Exclude_keyofMakeDatesAvailableRequestBody.slots__"]
+    "Omit_MakeDatesAvailableRequestBody.slots_": components["schemas"]["Pick_MakeDatesAvailableRequestBody.Exclude_keyofMakeDatesAvailableRequestBody.slots__"];
     /** @description Represents the response structure for fetching user ids by date range. */
     UIdssByDateRangeResponse: {
       data?: {
-        users: string[]
-        date: components["schemas"]["FirebaseFirestore.Timestamp"]
-      }[]
-      error?: string
-    }
+          users: string[];
+          date: components["schemas"]["FirebaseFirestore.Timestamp"];
+        }[];
+      error?: string;
+    };
     CreateBookingsRequestModel: {
       /** @description Firestore timestamp, should represent a UTC date that is set to exactly midnight */
-      startDate: components["schemas"]["FirebaseFirestore.Timestamp"]
+      startDate: components["schemas"]["FirebaseFirestore.Timestamp"];
       /** @description Firestore timestamp, should represent a UTC date that is set to exactly midnight */
-      endDate: components["schemas"]["FirebaseFirestore.Timestamp"]
+      endDate: components["schemas"]["FirebaseFirestore.Timestamp"];
       /** @description List of users to add to the bookings between date range */
-      userId: string
-    }
+      userId: string;
+    };
     BookingDeleteResponse: {
-      error?: string
-      message?: string
-      user_id?: string
-    }
+      error?: string;
+      message?: string;
+      user_id?: string;
+    };
     DeleteBookingRequest: {
-      bookingID: string
-    }
+      bookingID: string;
+    };
     CombinedUserData: {
-      date_of_birth: components["schemas"]["FirebaseFirestore.Timestamp"]
-      does_snowboarding?: boolean
-      does_racing?: boolean
-      does_ski?: boolean
+      date_of_birth: components["schemas"]["FirebaseFirestore.Timestamp"];
+      does_snowboarding?: boolean;
+      does_racing?: boolean;
+      does_ski?: boolean;
       /** Format: double */
-      phone_number: number
-      gender?: string
-      emergency_contact?: string
-      first_name: string
-      last_name: string
-      dietary_requirements: string
+      phone_number: number;
+      gender?: string;
+      emergency_contact?: string;
+      first_name: string;
+      last_name: string;
+      dietary_requirements: string;
       /** @description **OPTIONAL** field that the user should have the choice to provide */
-      ethnicity?: string
-      faculty?: string
-      university?: string
-      student_id?: string
-      university_year?: string
+      ethnicity?: string;
+      faculty?: string;
+      university?: string;
+      student_id?: string;
+      university_year?: string;
       /** @description If the user has a Whakapapa season pass, this should be set to `true`. */
-      has_whakapapa_season_pass?: boolean
+      has_whakapapa_season_pass?: boolean;
       /** @description For identification DO NOT RETURN to users in exposed endpoints */
-      stripe_id?: string
+      stripe_id?: string;
       /** @description Firebase identifier of the user *data* based on the firestore document */
-      uid: string
+      uid: string;
       /** @description Formatted UTC date string of when the account was created */
-      dateJoined?: string
+      dateJoined?: string;
       /** @description The email the user uses to log in */
-      email: string
+      email: string;
       /** @description What type of account the user has */
-      membership: components["schemas"]["UserAccountTypes"]
-    }
+      membership: components["schemas"]["UserAccountTypes"];
+    };
     AllUsersResponse: {
-      error?: string
-      message?: string
+      error?: string;
+      message?: string;
       /**
        * @description Needed for firestore operations which do not support offset
        * based pagination
        *
        * **Will be undefined in case of last page**
        */
-      nextCursor?: string
-      data?: components["schemas"]["CombinedUserData"][]
-    }
+      nextCursor?: string;
+      data?: components["schemas"]["CombinedUserData"][];
+    };
     GetUserResponse: {
-      error?: string
-      message?: string
-      data?: components["schemas"]["CombinedUserData"]
-    }
+      error?: string;
+      message?: string;
+      data?: components["schemas"]["CombinedUserData"];
+    };
     UserAdditionalInfo: {
-      date_of_birth: components["schemas"]["FirebaseFirestore.Timestamp"]
-      does_snowboarding?: boolean
-      does_racing?: boolean
-      does_ski?: boolean
+      date_of_birth: components["schemas"]["FirebaseFirestore.Timestamp"];
+      does_snowboarding?: boolean;
+      does_racing?: boolean;
+      does_ski?: boolean;
       /** Format: double */
-      phone_number: number
-      gender?: string
-      emergency_contact?: string
-      first_name: string
-      last_name: string
-      dietary_requirements: string
+      phone_number: number;
+      gender?: string;
+      emergency_contact?: string;
+      first_name: string;
+      last_name: string;
+      dietary_requirements: string;
       /** @description **OPTIONAL** field that the user should have the choice to provide */
-      ethnicity?: string
-      faculty?: string
-      university?: string
-      student_id?: string
-      university_year?: string
+      ethnicity?: string;
+      faculty?: string;
+      university?: string;
+      student_id?: string;
+      university_year?: string;
       /** @description If the user has a Whakapapa season pass, this should be set to `true`. */
-      has_whakapapa_season_pass?: boolean
+      has_whakapapa_season_pass?: boolean;
       /** @description For identification DO NOT RETURN to users in exposed endpoints */
-      stripe_id?: string
-    }
+      stripe_id?: string;
+    };
     CreateUserRequestBody: {
-      uid: string
-      user: components["schemas"]["UserAdditionalInfo"]
-    }
+      uid: string;
+      user: components["schemas"]["UserAdditionalInfo"];
+    };
     /** @description Make all properties in T optional */
     Partial_UserAdditionalInfo_: {
-      date_of_birth?: components["schemas"]["FirebaseFirestore.Timestamp"]
-      does_snowboarding?: boolean
-      does_racing?: boolean
-      does_ski?: boolean
+      date_of_birth?: components["schemas"]["FirebaseFirestore.Timestamp"];
+      does_snowboarding?: boolean;
+      does_racing?: boolean;
+      does_ski?: boolean;
       /** Format: double */
-      phone_number?: number
-      gender?: string
-      emergency_contact?: string
-      first_name?: string
-      last_name?: string
-      dietary_requirements?: string
+      phone_number?: number;
+      gender?: string;
+      emergency_contact?: string;
+      first_name?: string;
+      last_name?: string;
+      dietary_requirements?: string;
       /** @description **OPTIONAL** field that the user should have the choice to provide */
-      ethnicity?: string
-      faculty?: string
-      university?: string
-      student_id?: string
-      university_year?: string
+      ethnicity?: string;
+      faculty?: string;
+      university?: string;
+      student_id?: string;
+      university_year?: string;
       /** @description If the user has a Whakapapa season pass, this should be set to `true`. */
-      has_whakapapa_season_pass?: boolean
+      has_whakapapa_season_pass?: boolean;
       /** @description For identification DO NOT RETURN to users in exposed endpoints */
-      stripe_id?: string
-    }
+      stripe_id?: string;
+    };
     EditUsersRequestBody: {
       users: {
-        updatedInformation: components["schemas"]["Partial_UserAdditionalInfo_"]
-        uid: string
-      }[]
-    }
+          updatedInformation: components["schemas"]["Partial_UserAdditionalInfo_"];
+          uid: string;
+        }[];
+    };
     PromoteUserRequestBody: {
-      uid: string
-    }
+      uid: string;
+    };
     DemoteUserRequestBody: {
-      uid: string
-    }
+      uid: string;
+    };
     AddCouponRequestBody: {
       /**
        * Format: double
        * @description The number of the coupon to be added.
        */
-      quantity: number
-    }
+      quantity: number;
+    };
     /** @description Event used to track a user being **manually** added to a booking (only possible via admin view) */
     BookingAddedEvent: {
       /** @description The time which the booking operation was performed. MUST be in UTC format */
-      timestamp: components["schemas"]["FirebaseFirestore.Timestamp"]
+      timestamp: components["schemas"]["FirebaseFirestore.Timestamp"];
       /** @description The start of the operated on date range */
-      start_date: components["schemas"]["FirebaseFirestore.Timestamp"]
+      start_date: components["schemas"]["FirebaseFirestore.Timestamp"];
       /** @description The end of the operated on date range */
-      end_date: components["schemas"]["FirebaseFirestore.Timestamp"]
+      end_date: components["schemas"]["FirebaseFirestore.Timestamp"];
       /**
        * @description The type of event that the admin performed, used for parsing on the front-end
        *
@@ -664,18 +662,18 @@ export interface components {
        * - `"changed_date_availability"`: {@link BookingAvailabilityChangeEvent}
        * @enum {string}
        */
-      event_type: "added_user_to_booking"
+      event_type: "added_user_to_booking";
       /** @description The id corresponding to the user who had a **manually** added booking */
-      uid: string
-    }
+      uid: string;
+    };
     /** @description Event used to track the removal of a user from a date range (only possible via admin view) */
     BookingDeletedEvent: {
       /** @description The time which the booking operation was performed. MUST be in UTC format */
-      timestamp: components["schemas"]["FirebaseFirestore.Timestamp"]
+      timestamp: components["schemas"]["FirebaseFirestore.Timestamp"];
       /** @description The start of the operated on date range */
-      start_date: components["schemas"]["FirebaseFirestore.Timestamp"]
+      start_date: components["schemas"]["FirebaseFirestore.Timestamp"];
       /** @description The end of the operated on date range */
-      end_date: components["schemas"]["FirebaseFirestore.Timestamp"]
+      end_date: components["schemas"]["FirebaseFirestore.Timestamp"];
       /**
        * @description The type of event that the admin performed, used for parsing on the front-end
        *
@@ -686,18 +684,18 @@ export interface components {
        * - `"changed_date_availability"`: {@link BookingAvailabilityChangeEvent}
        * @enum {string}
        */
-      event_type: "removed_user_from_booking"
+      event_type: "removed_user_from_booking";
       /** @description The id corresponding to the user who had a **manually** deleted booking */
-      uid: string
-    }
+      uid: string;
+    };
     /** @description Event used to track the history of the availability of dates changing */
     BookingAvailabilityChangeEvent: {
       /** @description The time which the booking operation was performed. MUST be in UTC format */
-      timestamp: components["schemas"]["FirebaseFirestore.Timestamp"]
+      timestamp: components["schemas"]["FirebaseFirestore.Timestamp"];
       /** @description The start of the operated on date range */
-      start_date: components["schemas"]["FirebaseFirestore.Timestamp"]
+      start_date: components["schemas"]["FirebaseFirestore.Timestamp"];
       /** @description The end of the operated on date range */
-      end_date: components["schemas"]["FirebaseFirestore.Timestamp"]
+      end_date: components["schemas"]["FirebaseFirestore.Timestamp"];
       /**
        * @description The type of event that the admin performed, used for parsing on the front-end
        *
@@ -708,7 +706,7 @@ export interface components {
        * - `"changed_date_availability"`: {@link BookingAvailabilityChangeEvent}
        * @enum {string}
        */
-      event_type: "changed_date_availability"
+      event_type: "changed_date_availability";
       /**
        * Format: double
        * @description The **signed** difference between the newly available slots and the previously available slots.
@@ -719,13 +717,10 @@ export interface components {
        * And vice versa, if the original available slots was 16, and the availability was set to 32,
        * the `change` would be **32 - 16 = 16**
        */
-      change: number
-    }
+      change: number;
+    };
     /** @description Helper type to specify the possible datastruces for the booking history */
-    BookingHistoryEvent:
-      | components["schemas"]["BookingAddedEvent"]
-      | components["schemas"]["BookingDeletedEvent"]
-      | components["schemas"]["BookingAvailabilityChangeEvent"]
+    BookingHistoryEvent: components["schemas"]["BookingAddedEvent"] | components["schemas"]["BookingDeletedEvent"] | components["schemas"]["BookingAvailabilityChangeEvent"];
     FetchLatestBookingHistoryEventResponse: {
       /**
        * @description Needed for firestore operations which do not support offset
@@ -733,173 +728,178 @@ export interface components {
        *
        * **Will be undefined in case of last page**
        */
-      nextCursor?: string
-      error?: string
-      message?: string
-      historyEvents?: components["schemas"]["BookingHistoryEvent"][]
-    }
+      nextCursor?: string;
+      error?: string;
+      message?: string;
+      historyEvents?: components["schemas"]["BookingHistoryEvent"][];
+    };
     CreateEventBody: {
-      data: components["schemas"]["Event"]
-    }
+      data: components["schemas"]["Event"];
+    };
     /** @description Make all properties in T optional */
     Partial_Event_: {
       /** @description The title of this event */
-      title?: string
+      title?: string;
       /**
        * @description An optional description for this event
        * This should be in markdown
        */
-      description?: string
+      description?: string;
       /** @description The link for the image to display on the event page (essentially a thumbnail) */
-      image_url?: string
+      image_url?: string;
       /** @description The location of this event */
-      location?: string
+      location?: string;
       /**
        * @description A URL to the google form for signing up to the event. This is not to be included
        * in any response body unless we are _near_ the period for sign up
        */
-      google_forms_link?: string
+      google_forms_link?: string;
       /**
        * @description The signup period start date.
        * Note that this date is in UTC time.
        * Use the same start and end date to indicate a 1 day signup period.
        */
-      sign_up_start_date?: components["schemas"]["FirebaseFirestore.Timestamp"]
+      sign_up_start_date?: components["schemas"]["FirebaseFirestore.Timestamp"];
       /**
        * @description The signup period end date.
        * Note that this date is in UTC time.
        */
-      sign_up_end_date?: components["schemas"]["FirebaseFirestore.Timestamp"]
+      sign_up_end_date?: components["schemas"]["FirebaseFirestore.Timestamp"];
       /**
        * @description Event start date for the event i.e the day members should meet at shads,
        * **NOT** the signups, refer to {@link sign_up_start_date} for signup start
        */
-      physical_start_date?: components["schemas"]["FirebaseFirestore.Timestamp"]
+      physical_start_date?: components["schemas"]["FirebaseFirestore.Timestamp"];
       /**
        * @description Event end time for the event i.e the last day members will be at the lodge,
        * is optionial in case of one day events. **NOT** the signups, refer to
        * {@link sign_up_end_date} for signup end date
        */
-      physical_end_date?: components["schemas"]["FirebaseFirestore.Timestamp"]
+      physical_end_date?: components["schemas"]["FirebaseFirestore.Timestamp"];
       /**
        * Format: double
        * @description Max number of attendees at this event, left as optional for uncapped
        * @example 30
        */
-      max_occupancy?: number
+      max_occupancy?: number;
       /** @description If `true` then only members should see the sign up link */
-      is_members_only?: boolean
-    }
+      is_members_only?: boolean;
+    };
     GetEventResponse: {
-      error?: string
-      message?: string
-      data?: components["schemas"]["Event"]
-    }
+      error?: string;
+      message?: string;
+      data?: components["schemas"]["Event"];
+    };
     /** @description Interface for mail configuration settings that can be stored in Firebase */
     MailConfig: {
       /** @description Email address used for sending emails */
-      email?: string
+      email?: string;
       /** @description App password for the email service */
-      password?: string
+      password?: string;
       /**
        * @description From header for sent emails
        * @default UASC Bookings
        */
-      fromHeader?: string
-    }
+      fromHeader?: string;
+    };
     GetMailConfigResponse: {
-      error?: string
-      message?: string
+      error?: string;
+      message?: string;
       /** @description The current mail configuration or undefined if not found */
-      config?: components["schemas"]["MailConfig"]
-    }
+      config?: components["schemas"]["MailConfig"];
+    };
     UpdateMailConfigResponse: {
-      error?: string
-      message?: string
-    }
+      error?: string;
+      message?: string;
+    };
     /** @description Make all properties in T optional */
     Partial_MailConfig_: {
       /** @description Email address used for sending emails */
-      email?: string
+      email?: string;
       /** @description App password for the email service */
-      password?: string
+      password?: string;
       /**
        * @description From header for sent emails
        * @default UASC Bookings
        */
-      fromHeader?: string
-    }
+      fromHeader?: string;
+    };
     UpdateMailConfigRequestBody: {
       /** @description The updated mail configuration settings */
-      config: components["schemas"]["Partial_MailConfig_"]
-    }
+      config: components["schemas"]["Partial_MailConfig_"];
+    };
     /** @description Interface for email template configuration */
     EmailTemplate: {
       /**
        * @description The template ID
        * @example booking_confirmation
        */
-      id: string
+      id: string;
       /** @description The template content in Pug format */
-      content: string
+      content: string;
       /**
        * Format: date-time
        * @description Last updated timestamp
        */
-      updatedAt: string
+      updatedAt: string;
       /**
        * @description The name of the template
        * @example Booking Confirmation
        */
-      name: string
+      name: string;
       /** @description A description of the template's purpose */
-      description?: string
-    }
+      description?: string;
+    };
     GetAllEmailTemplatesResponse: {
-      error?: string
-      message?: string
+      error?: string;
+      message?: string;
       /** @description The list of available email templates */
-      templates: components["schemas"]["EmailTemplate"][]
-    }
+      templates: components["schemas"]["EmailTemplate"][];
+    };
     GetEmailTemplateResponse: {
-      error?: string
-      message?: string
+      error?: string;
+      message?: string;
       /** @description The email template or undefined if not found */
-      template?: components["schemas"]["EmailTemplate"]
-    }
+      template?: components["schemas"]["EmailTemplate"];
+    };
     UpdateEmailTemplateResponse: {
-      error?: string
-      message?: string
-    }
+      error?: string;
+      message?: string;
+    };
     UpdateEmailTemplateRequestBody: {
       /**
        * @description The template ID
        * @example booking_confirmation
        */
-      id: string
+      id: string;
       /**
        * @description The template name
        * @example Booking Confirmation
        */
-      name: string
+      name: string;
       /** @description The template content in Pug format */
-      content: string
+      content: string;
       /** @description An optional description of the template's purpose */
-      description?: string
-    }
-  }
-  responses: {}
-  parameters: {}
-  requestBodies: {}
-  headers: {}
-  pathItems: never
+      description?: string;
+    };
+  };
+  responses: {
+  };
+  parameters: {
+  };
+  requestBodies: {
+  };
+  headers: {
+  };
+  pathItems: never;
 }
 
-export type $defs = Record<string, never>
+export type $defs = Record<string, never>;
 
-export type external = Record<string, never>
+export type external = Record<string, never>;
 
 export interface operations {
+
   /** @description Fetches users additional info based on their uid. */
   GetSelf: {
     responses: {
@@ -907,62 +907,62 @@ export interface operations {
       200: {
         content: {
           "application/json": {
-            stripe_id?: string
-            has_whakapapa_season_pass?: boolean
-            university_year?: string
-            student_id?: string
-            university?: string
-            faculty?: string
-            ethnicity?: string
-            dietary_requirements: string
-            last_name: string
-            first_name: string
-            emergency_contact?: string
-            gender?: string
+            stripe_id?: string;
+            has_whakapapa_season_pass?: boolean;
+            university_year?: string;
+            student_id?: string;
+            university?: string;
+            faculty?: string;
+            ethnicity?: string;
+            dietary_requirements: string;
+            last_name: string;
+            first_name: string;
+            emergency_contact?: string;
+            gender?: string;
             /** Format: double */
-            phone_number: number
-            does_ski?: boolean
-            does_racing?: boolean
-            does_snowboarding?: boolean
-            date_of_birth: components["schemas"]["FirebaseFirestore.Timestamp"]
-            uid: string
-          }
-        }
-      }
-    }
-  }
+            phone_number: number;
+            does_ski?: boolean;
+            does_racing?: boolean;
+            does_snowboarding?: boolean;
+            date_of_birth: components["schemas"]["FirebaseFirestore.Timestamp"];
+            uid: string;
+          };
+        };
+      };
+    };
+  };
   /** @description Edits the user's additional info based on their uid. */
   EditSelf: {
     /** @description - The updated user additional info, note that the stripe_id is omitted. */
     requestBody: {
       content: {
-        "application/json": components["schemas"]["EditSelfRequestBody"]
-      }
-    }
+        "application/json": components["schemas"]["EditSelfRequestBody"];
+      };
+    };
     responses: {
       /** @description Successful edit */
       200: {
-        content: never
-      }
-    }
-  }
+        content: never;
+      };
+    };
+  };
   /** @description Deletes a user based on their uid. This requires an admin JWT token. */
   DeleteUser: {
     /** @description - The uid of the user to be deleted. */
     requestBody: {
       content: {
-        "application/json": components["schemas"]["DeleteUserRequestBody"]
-      }
-    }
+        "application/json": components["schemas"]["DeleteUserRequestBody"];
+      };
+    };
     responses: {
       /** @description Deleted user */
       200: {
         content: {
-          "application/json": unknown
-        }
-      }
-    }
-  }
+          "application/json": unknown;
+        };
+      };
+    };
+  };
   /**
    * @description Webhook endpoint for Stripe events.
    * This single endpoint is setup in the Stripe developer config to handle various events.
@@ -971,89 +971,89 @@ export interface operations {
     responses: {
       /** @description Webhook post received */
       200: {
-        content: never
-      }
-    }
-  }
+        content: never;
+      };
+    };
+  };
   /** @description Signs up a user and creates a user record in the database. Also creates a JWT token for the user in AuthService. */
   Signup: {
     /** @description - The user's email and their user additional info. */
     requestBody: {
       content: {
-        "application/json": components["schemas"]["UserSignupBody"]
-      }
-    }
+        "application/json": components["schemas"]["UserSignupBody"];
+      };
+    };
     responses: {
       /** @description Signup successful */
       200: {
         content: {
-          "application/json": components["schemas"]["UserSignupResponse"]
-        }
-      }
-    }
-  }
+          "application/json": components["schemas"]["UserSignupResponse"];
+        };
+      };
+    };
+  };
   /** @description Fetches the prices of the membership products from Stripe. */
   GetMembershipPrices: {
     responses: {
       /** @description The prices of the membership products. */
       200: {
         content: {
-          "application/json": components["schemas"]["MembershipStripeProductResponse"]
-        }
-      }
-    }
-  }
+          "application/json": components["schemas"]["MembershipStripeProductResponse"];
+        };
+      };
+    };
+  };
   /** @description Fetches the prices of the lodge products from Stripe. */
   GetLodgePrices: {
     responses: {
       /** @description The prices of the lodge products. */
       200: {
         content: {
-          "application/json": components["schemas"]["LodgeStripeProductResponse"]
-        }
-      }
-    }
-  }
+          "application/json": components["schemas"]["LodgeStripeProductResponse"];
+        };
+      };
+    };
+  };
   /** @description Fetches the details of a checkout session based on a stripe checkout session id. */
   GetCheckoutSessionDetails: {
     parameters: {
       query: {
         /** @description The id of the stripe checkout session to fetch. */
-        sessionId: string
-      }
-    }
+        sessionId: string;
+      };
+    };
     responses: {
       /** @description Session Fetched */
       200: {
         content: {
           "application/json": {
-            metadata: components["schemas"]["stripe.Stripe.Metadata"]
+            metadata: components["schemas"]["stripe.Stripe.Metadata"];
             /** Format: double */
-            pricePaid: number
-            customer_email: string
-            status: components["schemas"]["stripe.Stripe.Checkout.Session.Status"]
-          }
-        }
-      }
-    }
-  }
+            pricePaid: number;
+            customer_email: string;
+            status: components["schemas"]["stripe.Stripe.Checkout.Session.Status"];
+          };
+        };
+      };
+    };
+  };
   /** @description Creates a checkout session for membership payment. */
   GetMembershipPayment: {
     /** @description The request body containing the membership type. */
     requestBody: {
       content: {
-        "application/json": components["schemas"]["UserPaymentRequestModel"]
-      }
-    }
+        "application/json": components["schemas"]["UserPaymentRequestModel"];
+      };
+    };
     responses: {
       /** @description Session created */
       200: {
         content: {
-          "application/json": components["schemas"]["MembershipPaymentResponse"]
-        }
-      }
-    }
-  }
+          "application/json": components["schemas"]["MembershipPaymentResponse"];
+        };
+      };
+    };
+  };
   /**
    * @description Creates a new booking session for the date ranges passed in,
    * will return any existing sessions if they have been started in
@@ -1063,18 +1063,18 @@ export interface operations {
     /** @description The request body containing the date ranges for the booking. */
     requestBody: {
       content: {
-        "application/json": components["schemas"]["UserBookingRequestingModel"]
-      }
-    }
+        "application/json": components["schemas"]["UserBookingRequestingModel"];
+      };
+    };
     responses: {
       /** @description Created booking checkout session */
       200: {
         content: {
-          "application/json": components["schemas"]["BookingPaymentResponse"]
-        }
-      }
-    }
-  }
+          "application/json": components["schemas"]["BookingPaymentResponse"];
+        };
+      };
+    };
+  };
   /**
    * @description Fetches latest events starting from the event with the latest starting date
    * (**NOT** the signup open date) based on limit. Is paginated with a cursor
@@ -1082,19 +1082,19 @@ export interface operations {
   GetAllEvents: {
     parameters: {
       query?: {
-        limit?: number
-        cursor?: string
-      }
-    }
+        limit?: number;
+        cursor?: string;
+      };
+    };
     responses: {
       /** @description Successfully fetched all events */
       200: {
         content: {
-          "application/json": components["schemas"]["GetAllEventsResponse"]
-        }
-      }
-    }
-  }
+          "application/json": components["schemas"]["GetAllEventsResponse"];
+        };
+      };
+    };
+  };
   /**
    * @description Fetches latest events starting from the event with the latest starting date
    * (**NOT** the signup open date) based on limit. Is paginated with a cursor.
@@ -1105,47 +1105,47 @@ export interface operations {
   GetAllEventsAsMember: {
     parameters: {
       query?: {
-        limit?: number
-        cursor?: string
-      }
-    }
+        limit?: number;
+        cursor?: string;
+      };
+    };
     responses: {
       /** @description Successfully fetched all events */
       200: {
         content: {
-          "application/json": components["schemas"]["GetAllEventsResponse"]
-        }
-      }
-    }
-  }
+          "application/json": components["schemas"]["GetAllEventsResponse"];
+        };
+      };
+    };
+  };
   /** @description Fetches all bookings for a user based on their UID. */
   GetAllBookings: {
     responses: {
       /** @description Found bookings */
       200: {
         content: {
-          "application/json": components["schemas"]["AllUserBookingSlotsResponse"]
-        }
-      }
-    }
-  }
+          "application/json": components["schemas"]["AllUserBookingSlotsResponse"];
+        };
+      };
+    };
+  };
   /** @description Fetches all available booking dates within a date range. */
   GetAvailableDates: {
     /** @description - The date range to check for available booking slots. */
     requestBody: {
       content: {
-        "application/json": components["schemas"]["AvailableDatesRequestModel"]
-      }
-    }
+        "application/json": components["schemas"]["AvailableDatesRequestModel"];
+      };
+    };
     responses: {
       /** @description Availabilities found */
       200: {
         content: {
-          "application/json": components["schemas"]["AvailableDatesResponse"]
-        }
-      }
-    }
-  }
+          "application/json": components["schemas"]["AvailableDatesResponse"];
+        };
+      };
+    };
+  };
   /**
    * @description This method fetches users based on a booking date range.
    * This method requires an admin JWT token.
@@ -1154,105 +1154,105 @@ export interface operations {
     /** @description - The date range to check for user bookings. */
     requestBody: {
       content: {
-        "application/json": components["schemas"]["BookingsByDateRangeRequestModel"]
-      }
-    }
+        "application/json": components["schemas"]["BookingsByDateRangeRequestModel"];
+      };
+    };
     responses: {
       /** @description Users found */
       200: {
         content: {
-          "application/json": components["schemas"]["UsersByDateRangeResponse"]
-        }
-      }
-    }
-  }
+          "application/json": components["schemas"]["UsersByDateRangeResponse"];
+        };
+      };
+    };
+  };
   /** @description Booking Operations */
   MakeDateAvailable: {
     /** @description - The start and end date of the range and the number of slots to add. */
     requestBody: {
       content: {
-        "application/json": components["schemas"]["MakeDatesAvailableRequestBody"]
-      }
-    }
+        "application/json": components["schemas"]["MakeDatesAvailableRequestBody"];
+      };
+    };
     responses: {
       /** @description Slot made available */
       201: {
         content: {
-          "application/json": components["schemas"]["BookingSlotUpdateResponse"]
-        }
-      }
-    }
-  }
+          "application/json": components["schemas"]["BookingSlotUpdateResponse"];
+        };
+      };
+    };
+  };
   /** @description Decreases availability count to 0 for all booking slots in a date range. */
   MakeDateUnavailable: {
     /** @description - The start and end date of the range, the number of slots is omitted as we're decreases all slots to 0. */
     requestBody: {
       content: {
-        "application/json": components["schemas"]["Omit_MakeDatesAvailableRequestBody.slots_"]
-      }
-    }
+        "application/json": components["schemas"]["Omit_MakeDatesAvailableRequestBody.slots_"];
+      };
+    };
     responses: {
       /** @description Slot made unavailable */
       201: {
         content: {
-          "application/json": components["schemas"]["BookingSlotUpdateResponse"]
-        }
-      }
-    }
-  }
+          "application/json": components["schemas"]["BookingSlotUpdateResponse"];
+        };
+      };
+    };
+  };
   /** @description An admin method to create bookings for a list of users within a date range. */
   CreateBookings: {
     /** @description - The date range and list of user ids to create bookings for. */
     requestBody: {
       content: {
-        "application/json": components["schemas"]["CreateBookingsRequestModel"]
-      }
-    }
+        "application/json": components["schemas"]["CreateBookingsRequestModel"];
+      };
+    };
     responses: {
       /** @description Bookings successfully created */
       200: {
         content: {
-          "application/json": components["schemas"]["UIdssByDateRangeResponse"]
-        }
-      }
-    }
-  }
+          "application/json": components["schemas"]["UIdssByDateRangeResponse"];
+        };
+      };
+    };
+  };
   /** @description Delete a users booking by booking ID. */
   RemoveBooking: {
     /** @description - The booking ID to delete. */
     requestBody: {
       content: {
-        "application/json": components["schemas"]["DeleteBookingRequest"]
-      }
-    }
+        "application/json": components["schemas"]["DeleteBookingRequest"];
+      };
+    };
     responses: {
       /** @description Booking deleted successfuly */
       200: {
         content: {
-          "application/json": components["schemas"]["BookingDeleteResponse"]
-        }
-      }
-    }
-  }
+          "application/json": components["schemas"]["BookingDeleteResponse"];
+        };
+      };
+    };
+  };
   /** @description User Operations */
   GetAllUsers: {
     parameters: {
       query?: {
         /** @description - The cursor to start fetching users from. Essentially a pagination token. */
-        cursor?: string
+        cursor?: string;
         /** @description - The number of users to fetch. Defaults to 100. Is also a maximum of 100 users per fetch */
-        toFetch?: number
-      }
-    }
+        toFetch?: number;
+      };
+    };
     responses: {
       /** @description Users found */
       200: {
         content: {
-          "application/json": components["schemas"]["AllUsersResponse"]
-        }
-      }
-    }
-  }
+          "application/json": components["schemas"]["AllUsersResponse"];
+        };
+      };
+    };
+  };
   /**
    * @description Get a user by their UID.
    * Requires an admin JWT token.
@@ -1261,18 +1261,18 @@ export interface operations {
     parameters: {
       path: {
         /** @description - The UID of the user to fetch. */
-        uid: string
-      }
-    }
+        uid: string;
+      };
+    };
     responses: {
       /** @description User found */
       200: {
         content: {
-          "application/json": components["schemas"]["GetUserResponse"]
-        }
-      }
-    }
-  }
+          "application/json": components["schemas"]["GetUserResponse"];
+        };
+      };
+    };
+  };
   /**
    * @description Adds a new user to the database with their UID and user data.
    * Requires an admin JWT token.
@@ -1281,16 +1281,16 @@ export interface operations {
     /** @description - The user data to create and their UID. */
     requestBody: {
       content: {
-        "application/json": components["schemas"]["CreateUserRequestBody"]
-      }
-    }
+        "application/json": components["schemas"]["CreateUserRequestBody"];
+      };
+    };
     responses: {
       /** @description Created */
       200: {
-        content: never
-      }
-    }
-  }
+        content: never;
+      };
+    };
+  };
   /**
    * @description Edits a list of users with updated user additional info.
    * Requires an admin JWT token.
@@ -1299,16 +1299,16 @@ export interface operations {
     /** @description - The list of users to edit and their updated information. */
     requestBody: {
       content: {
-        "application/json": components["schemas"]["EditUsersRequestBody"]
-      }
-    }
+        "application/json": components["schemas"]["EditUsersRequestBody"];
+      };
+    };
     responses: {
       /** @description Edited */
       200: {
-        content: never
-      }
-    }
-  }
+        content: never;
+      };
+    };
+  };
   /**
    * @description Promotes a user to a member. This returns a conflict when the user is already a member.
    * Requires an admin JWT token.
@@ -1317,16 +1317,16 @@ export interface operations {
     /** @description - The UID of the user to promote. */
     requestBody: {
       content: {
-        "application/json": components["schemas"]["PromoteUserRequestBody"]
-      }
-    }
+        "application/json": components["schemas"]["PromoteUserRequestBody"];
+      };
+    };
     responses: {
       /** @description Promoted user */
       200: {
-        content: never
-      }
-    }
-  }
+        content: never;
+      };
+    };
+  };
   /**
    * @description Demotes a member to a guest. This returns a conflict when the user is already a guest.
    * Requires an admin JWT token.
@@ -1335,16 +1335,16 @@ export interface operations {
     /** @description - The UID of the user to demote. */
     requestBody: {
       content: {
-        "application/json": components["schemas"]["DemoteUserRequestBody"]
-      }
-    }
+        "application/json": components["schemas"]["DemoteUserRequestBody"];
+      };
+    };
     responses: {
       /** @description Demoted user */
       200: {
-        content: never
-      }
-    }
-  }
+        content: never;
+      };
+    };
+  };
   /**
    * @description Demotes all non-admin users to guests. This is used to purge all membership statuses at the end of a billing cycle.
    * Requires an admin JWT token.
@@ -1353,10 +1353,28 @@ export interface operations {
     responses: {
       /** @description Demoted all non-admin users */
       200: {
-        content: never
-      }
-    }
-  }
+        content: never;
+      };
+    };
+  };
+  GetCoupon: {
+    parameters: {
+      path: {
+        uid: string;
+      };
+    };
+    responses: {
+      /** @description Ok */
+      200: {
+        content: {
+          "application/json": {
+            /** Format: double */
+            quantity: number;
+          };
+        };
+      };
+    };
+  };
   /**
    * @description Adds a coupon to a user's stripe id.
    * Requires an admin JWT token.
@@ -1366,206 +1384,206 @@ export interface operations {
     parameters: {
       path: {
         /** @description - The UID of the user to add the coupon to. */
-        uid: string
-      }
-    }
+        uid: string;
+      };
+    };
     /** @description - The quantity of coupons to add (multiplied by $40 for total value). */
     requestBody: {
       content: {
-        "application/json": components["schemas"]["AddCouponRequestBody"]
-      }
-    }
+        "application/json": components["schemas"]["AddCouponRequestBody"];
+      };
+    };
     responses: {
       /** @description Coupon Added */
       200: {
-        content: never
-      }
-    }
-  }
+        content: never;
+      };
+    };
+  };
   DeleteCoupon: {
     parameters: {
       path: {
-        uid: string
-      }
-    }
+        uid: string;
+      };
+    };
     responses: {
       /** @description No content */
       204: {
-        content: never
-      }
-    }
-  }
+        content: never;
+      };
+    };
+  };
   /** @description Fetches the **latest** booking history events (uses cursor-based pagination) */
   GetLatestHistory: {
     parameters: {
       query: {
         /** @description The maximum number of history events to fetch */
-        limit: number
+        limit: number;
         /** @description Optional starting point for pagination */
-        cursor?: string
-      }
-    }
+        cursor?: string;
+      };
+    };
     responses: {
       /** @description History Events Fetched */
       200: {
         content: {
-          "application/json": components["schemas"]["FetchLatestBookingHistoryEventResponse"]
-        }
-      }
-    }
-  }
+          "application/json": components["schemas"]["FetchLatestBookingHistoryEventResponse"];
+        };
+      };
+    };
+  };
   /** @description Endpoint for admin to create a new event */
   CreateNewEvent: {
     requestBody: {
       content: {
-        "application/json": components["schemas"]["CreateEventBody"]
-      }
-    }
+        "application/json": components["schemas"]["CreateEventBody"];
+      };
+    };
     responses: {
       /** @description Created Event */
       201: {
-        content: never
-      }
-    }
-  }
+        content: never;
+      };
+    };
+  };
   GetEventById: {
     parameters: {
       path: {
-        id: string
-      }
-    }
+        id: string;
+      };
+    };
     responses: {
       /** @description Successfully fetched the event */
       200: {
         content: {
-          "application/json": components["schemas"]["GetEventResponse"]
-        }
-      }
-    }
-  }
+          "application/json": components["schemas"]["GetEventResponse"];
+        };
+      };
+    };
+  };
   DeleteEvent: {
     parameters: {
       path: {
-        id: string
-      }
-    }
+        id: string;
+      };
+    };
     responses: {
       /** @description Deleted single event */
       204: {
-        content: never
-      }
-    }
-  }
+        content: never;
+      };
+    };
+  };
   /** @description Endpoint for admints to edit an event. */
   EditEvent: {
     parameters: {
       path: {
-        id: string
-      }
-    }
+        id: string;
+      };
+    };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["Partial_Event_"]
-      }
-    }
+        "application/json": components["schemas"]["Partial_Event_"];
+      };
+    };
     responses: {
       /** @description Successfully edited the event! */
       200: {
-        content: never
-      }
-    }
-  }
+        content: never;
+      };
+    };
+  };
   /** @description Returns a URL specified in environment variables */
   GetEnvUrl: {
     parameters: {
       path: {
         /** @description - Key to look up in environment variables for the URL */
-        redirectKey: string
-      }
-    }
+        redirectKey: string;
+      };
+    };
     responses: {
       /** @description Successfully retrieved URL */
       200: {
         content: {
           "application/json": {
-            error?: string
-            url?: string
-          }
-        }
-      }
-    }
-  }
+            error?: string;
+            url?: string;
+          };
+        };
+      };
+    };
+  };
   /** @description Mail Configuration Operations */
   GetMailConfig: {
     responses: {
       /** @description Mail configuration retrieved */
       200: {
         content: {
-          "application/json": components["schemas"]["GetMailConfigResponse"]
-        }
-      }
-    }
-  }
+          "application/json": components["schemas"]["GetMailConfigResponse"];
+        };
+      };
+    };
+  };
   /** @description Update the mail configuration */
   UpdateMailConfig: {
     /** @description The updated mail configuration */
     requestBody: {
       content: {
-        "application/json": components["schemas"]["UpdateMailConfigRequestBody"]
-      }
-    }
+        "application/json": components["schemas"]["UpdateMailConfigRequestBody"];
+      };
+    };
     responses: {
       /** @description Mail configuration updated */
       200: {
         content: {
-          "application/json": components["schemas"]["UpdateMailConfigResponse"]
-        }
-      }
-    }
-  }
+          "application/json": components["schemas"]["UpdateMailConfigResponse"];
+        };
+      };
+    };
+  };
   /** @description Get all available email templates */
   GetAllEmailTemplates: {
     responses: {
       /** @description Email templates retrieved */
       200: {
         content: {
-          "application/json": components["schemas"]["GetAllEmailTemplatesResponse"]
-        }
-      }
-    }
-  }
+          "application/json": components["schemas"]["GetAllEmailTemplatesResponse"];
+        };
+      };
+    };
+  };
   /** @description Update or create an email template */
   UpdateEmailTemplate: {
     /** @description The email template to update or create */
     requestBody: {
       content: {
-        "application/json": components["schemas"]["UpdateEmailTemplateRequestBody"]
-      }
-    }
+        "application/json": components["schemas"]["UpdateEmailTemplateRequestBody"];
+      };
+    };
     responses: {
       /** @description Email template updated */
       200: {
         content: {
-          "application/json": components["schemas"]["UpdateEmailTemplateResponse"]
-        }
-      }
-    }
-  }
+          "application/json": components["schemas"]["UpdateEmailTemplateResponse"];
+        };
+      };
+    };
+  };
   /** @description Get a specific email template by ID */
   GetEmailTemplate: {
     parameters: {
       path: {
         /** @description The template ID */
-        id: string
-      }
-    }
+        id: string;
+      };
+    };
     responses: {
       /** @description Email template retrieved */
       200: {
         content: {
-          "application/json": components["schemas"]["GetEmailTemplateResponse"]
-        }
-      }
-    }
-  }
+          "application/json": components["schemas"]["GetEmailTemplateResponse"];
+        };
+      };
+    };
+  };
 }

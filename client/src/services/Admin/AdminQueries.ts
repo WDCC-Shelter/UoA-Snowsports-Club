@@ -59,3 +59,14 @@ export function useMemberGoogleSheetUrlQuery() {
     queryFn: AdminService.getMemberGoogleSheetUrl
   })
 }
+
+export function useUserCouponQuery(userId: string | undefined) {
+  return useQuery({
+    enabled: Boolean(userId),
+    queryKey: ["user-coupon", userId],
+    queryFn: () => {
+      if (userId) return AdminService.getCouponsForUser(userId)
+      return Promise.resolve(undefined)
+    }
+  })
+}

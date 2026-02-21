@@ -280,7 +280,7 @@ const AdminService = {
 
     return data?.url
   },
-  getCouponsForUser: async (userId: string) => {
+  getLodgeCreditsForUser: async (userId: string) => {
     const { response, data } = await fetchClient.GET(
       "/admin/users/{uid}/coupon",
       {
@@ -296,6 +296,30 @@ const AdminService = {
     }
 
     return data?.quantity
+  },
+  addLodgeCreditsForUser: async ({
+    userId,
+    amount
+  }: {
+    userId: string
+    amount: number
+  }) => {
+    const { response } = await fetchClient.POST("/admin/users/{uid}/coupon", {
+      params: {
+        path: {
+          uid: userId
+        }
+      },
+      body: {
+        quantity: amount
+      }
+    })
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to add ${amount} coupons for user with id ${userId}`
+      )
+    }
   }
 } as const
 

@@ -6,7 +6,8 @@ import { BOOKING_AVAILABLITY_KEY } from "@/services/Booking/BookingQueries"
 import {
   ALL_BOOKINGS_BETWEEN_RANGE_QUERY,
   ALL_USERS_QUERY,
-  BOOKING_HISTORY_QUERY
+  BOOKING_HISTORY_QUERY,
+  LODGE_CREDITS_FOR_USER_QUERY
 } from "./AdminQueries"
 import type { CombinedUserData } from "@/models/User"
 import { replaceUserInPage } from "./AdminUtils"
@@ -216,6 +217,19 @@ export function useResetMembershipsMutation() {
     onSuccess: () => {
       queryClient.removeQueries({
         queryKey: [ALL_USERS_QUERY]
+      })
+    }
+  })
+}
+
+export function useAddLodgeCreditMutation() {
+  return useMutation({
+    mutationKey: ["add-lodge-credit"],
+    retry: false,
+    mutationFn: AdminService.addLodgeCreditsForUser,
+    onSuccess: () => {
+      queryClient.removeQueries({
+        queryKey: [LODGE_CREDITS_FOR_USER_QUERY]
       })
     }
   })

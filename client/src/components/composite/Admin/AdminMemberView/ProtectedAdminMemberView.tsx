@@ -1,10 +1,11 @@
 import {
   useMemberGoogleSheetUrlQuery,
-  useUserCouponQuery,
+  useAdminUserLodgeCreditsQuery,
   useUsersQuery
 } from "@/services/Admin/AdminQueries"
 import { AdminMemberView, type MemberColumnFormat } from "./AdminMemberView"
 import {
+  useAddLodgeCreditMutation,
   useDeleteUserMutation,
   useDemoteUserMutation,
   usePromoteUserMutation,
@@ -101,7 +102,7 @@ const WrappedAdminMemberView = () => {
     { userDisplayName: string; userId: string } | undefined
   >()
 
-  const { data: couponCount } = useUserCouponQuery(
+  const { data: couponCount } = useAdminUserLodgeCreditsQuery(
     selectedLodgeCreditUser?.userId
   )
 
@@ -142,7 +143,24 @@ const WrappedAdminMemberView = () => {
   const { mutateAsync: promoteUser } = usePromoteUserMutation()
   const { mutateAsync: demoteUser } = useDemoteUserMutation()
   const { mutateAsync: deleteUser, isPending } = useDeleteUserMutation()
+  const { mutateAsync: addLodgeCredits } = useAddLodgeCreditMutation()
   const { data: memberGoogleSheetData } = useMemberGoogleSheetUrlQuery()
+
+  const handleAddLodgeCredits = useCallback(
+    (userId: string, amount: number) =>
+      addLodgeCredits(
+        { userId, amount },
+        {
+          onSuccess() {
+            alert(`Successfully added ${amount} lodge credits for ${userId}`)
+          },
+          onError(err) {
+            alert(`Failed to add lodge credits: ${err.message}`)
+          }
+        }
+      ),
+    [addLodgeCredits]
+  )
 
   const handleExportUsers = useCallback(() => {
     if (hasNextPage) {
@@ -256,6 +274,19 @@ const WrappedAdminMemberView = () => {
             handleClose={() => setSelectedLodgeCreditUser(undefined)}
             userId={selectedLodgeCreditUser.userId}
             userName={selectedLodgeCreditUser.userDisplayName}
+            couponUpdateHandler={async (userId, operation) => {
+              switch (operation.type) {
+                case "add":
+                  await handleAddLodgeCredits(userId, operation.amount)
+                  break
+                case "edit":
+                  alert("Editing lodge credits is not implemented yet")
+                  break
+                case "delete":
+                  alert("Deleting lodge credits is not implemented yet")
+                  break
+              }
+            }}
             currentAmount={couponCount}
           />
         )}

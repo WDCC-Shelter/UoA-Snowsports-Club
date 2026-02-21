@@ -5,6 +5,7 @@ import AdminService from "./AdminService"
 export const ALL_USERS_QUERY = "allUsers"
 export const ALL_BOOKINGS_BETWEEN_RANGE_QUERY = "bookings-between-range"
 export const BOOKING_HISTORY_QUERY = "latest-booking-history"
+export const LODGE_CREDITS_FOR_USER_QUERY = "lodge-credits-for-user"
 
 export function useUsersQuery() {
   return useInfiniteQuery({
@@ -60,12 +61,12 @@ export function useMemberGoogleSheetUrlQuery() {
   })
 }
 
-export function useUserCouponQuery(userId: string | undefined) {
+export function useAdminUserLodgeCreditsQuery(userId: string | undefined) {
   return useQuery({
     enabled: Boolean(userId),
-    queryKey: ["user-coupon", userId],
+    queryKey: [LODGE_CREDITS_FOR_USER_QUERY, userId],
     queryFn: () => {
-      if (userId) return AdminService.getCouponsForUser(userId)
+      if (userId) return AdminService.getLodgeCreditsForUser(userId)
       return Promise.resolve(undefined)
     }
   })

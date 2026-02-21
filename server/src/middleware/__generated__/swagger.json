@@ -2638,6 +2638,45 @@
 					}
 				]
 			},
+			"put": {
+				"operationId": "UpdateCoupon",
+				"responses": {
+					"200": {
+						"description": "Coupon Updated"
+					}
+				},
+				"description": "Updates a user's coupon by deleting the existing one and creating a new one with the specified quantity.\nRequires an admin JWT token.",
+				"security": [
+					{
+						"jwt": [
+							"admin"
+						]
+					}
+				],
+				"parameters": [
+					{
+						"description": "- The UID of the user to update the coupon for.",
+						"in": "path",
+						"name": "uid",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"description": "- The new quantity of coupons (multiplied by $40 for total value).",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/AddCouponRequestBody",
+								"description": "- The new quantity of coupons (multiplied by $40 for total value)."
+							}
+						}
+					}
+				}
+			},
 			"delete": {
 				"operationId": "DeleteCoupon",
 				"responses": {

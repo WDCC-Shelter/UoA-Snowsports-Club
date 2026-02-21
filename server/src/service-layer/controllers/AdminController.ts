@@ -90,6 +90,26 @@ const DEFAULT_COUPON_VALUE_NZD = 40 as const
 @Security("jwt", ["admin"])
 export class AdminController extends Controller {
   /**
+   * Helper method to validate user exists and has a stripe_id
+   * @returns The user's stripe_id or null if validation fails (status is set accordingly)
+   */
+  private async validateUserForCoupon(uid: string): Promise<string | null> {
+    const userService = new UserDataService()
+    const user = await userService.getUserData(uid)
+
+    if (!user) {
+      this.setStatus(StatusCodes.NOT_FOUND)
+      return null
+    }
+    if (!user.stripe_id) {
+      this.setStatus(StatusCodes.BAD_REQUEST)
+      return null
+    }
+
+    return user.stripe_id
+  }
+
+  /**
    * Booking Operations
    */
 
@@ -650,20 +670,13 @@ export class AdminController extends Controller {
   @Get("/users/{uid}/coupon")
   public async getCoupon(@Path() uid: string): Promise<{ quantity: number }> {
     try {
-      const userService = new UserDataService()
+      const stripeId = await this.validateUserForCoupon(uid)
+      if (!stripeId) {
+        return { quantity: 0 }
+      }
+
       const stripeService = new StripeService()
-      const user = await userService.getUserData(uid)
-
-      if (!user) {
-        this.setStatus(StatusCodes.NOT_FOUND)
-        return { quantity: 0 }
-      }
-      if (!user.stripe_id) {
-        this.setStatus(StatusCodes.BAD_REQUEST)
-        return { quantity: 0 }
-      }
-
-      const coupon = await stripeService.getCouponForUser(user.stripe_id)
+      const coupon = await stripeService.getCouponForUser(stripeId)
 
       if (!coupon) {
         this.setStatus(StatusCodes.OK)
@@ -683,23 +696,52 @@ export class AdminController extends Controller {
     }
   }
 
+  /**
+   * Updates a user's coupon by deleting the existing one and creating a new one with the specified quantity.
+   * Requires an admin JWT token.
+   * @param uid - The UID of the user to update the coupon for.
+   * @param requestBody - The new quantity of coupons (multiplied by $40 for total value).
+   * @returns void.
+   */
+  @SuccessResponse("200", "Coupon Updated")
+  @Put("/users/{uid}/coupon")
+  public async updateCoupon(
+    @Path() uid: string,
+    @Body() requestBody: AddCouponRequestBody
+  ): Promise<void> {
+    try {
+      const stripeId = await this.validateUserForCoupon(uid)
+      if (!stripeId) {
+        return
+      }
+
+      const stripeService = new StripeService()
+
+      // Delete existing coupon first (user can only have one coupon, so we remove it before adding the new one with updated quantity)
+      await stripeService.removeCouponForUser(stripeId)
+
+      // Add new coupon with updated quantity
+      const couponValueInCents =
+        requestBody.quantity * DEFAULT_COUPON_VALUE_NZD * 100
+      await stripeService.addCouponToUser(stripeId, couponValueInCents)
+
+      this.setStatus(StatusCodes.OK)
+    } catch (e) {
+      console.error("Failed to update coupon", e)
+      this.setStatus(StatusCodes.INTERNAL_SERVER_ERROR)
+    }
+  }
+
   @Delete("/users/{uid}/coupon")
   public async deleteCoupon(@Path() uid: string): Promise<void> {
     try {
-      const userService = new UserDataService()
+      const stripeId = await this.validateUserForCoupon(uid)
+      if (!stripeId) {
+        return
+      }
+
       const stripeService = new StripeService()
-      const user = await userService.getUserData(uid)
-
-      if (!user) {
-        this.setStatus(StatusCodes.NOT_FOUND)
-        return
-      }
-      if (!user.stripe_id) {
-        this.setStatus(StatusCodes.BAD_REQUEST)
-        return
-      }
-
-      await stripeService.removeCouponForUser(user.stripe_id)
+      await stripeService.removeCouponForUser(stripeId)
       this.setStatus(StatusCodes.OK)
     } catch {
       this.setStatus(StatusCodes.INTERNAL_SERVER_ERROR)
@@ -724,21 +766,14 @@ export class AdminController extends Controller {
     const totalAmount = quantity * DEFAULT_COUPON_VALUE_NZD
 
     try {
-      const userService = new UserDataService()
+      const stripeId = await this.validateUserForCoupon(uid)
+      if (!stripeId) {
+        return
+      }
+
       const stripeService = new StripeService()
-      const user = await userService.getUserData(uid)
-
-      if (!user) {
-        this.setStatus(StatusCodes.NOT_FOUND)
-        return
-      }
-      if (!user.stripe_id) {
-        this.setStatus(StatusCodes.BAD_REQUEST)
-        return
-      }
-
       // Add a single coupon with the total calculated value
-      await stripeService.addCouponToUser(user.stripe_id, totalAmount)
+      await stripeService.addCouponToUser(stripeId, totalAmount)
 
       this.setStatus(StatusCodes.OK)
     } catch {

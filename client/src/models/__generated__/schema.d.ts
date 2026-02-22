@@ -153,13 +153,6 @@ export interface paths {
      * Requires an admin JWT token.
      */
     put: operations["UpdateCoupon"];
-    /**
-     * @description Adds a coupon to a user's stripe id.
-     * Requires an admin JWT token.
-     * Each user can only have one coupon. The coupon value equals quantity * $40.
-     */
-    post: operations["AddCoupon"];
-    delete: operations["DeleteCoupon"];
   };
   "/admin/bookings/history": {
     /** @description Fetches the **latest** booking history events (uses cursor-based pagination) */
@@ -1398,46 +1391,8 @@ export interface operations {
       };
     };
     responses: {
-      /** @description Coupon Updated */
+      /** @description Lodge Credits Updated */
       200: {
-        content: never;
-      };
-    };
-  };
-  /**
-   * @description Adds a coupon to a user's stripe id.
-   * Requires an admin JWT token.
-   * Each user can only have one coupon. The coupon value equals quantity * $40.
-   */
-  AddCoupon: {
-    parameters: {
-      path: {
-        /** @description - The UID of the user to add the coupon to. */
-        uid: string;
-      };
-    };
-    /** @description - The quantity of coupons to add (multiplied by $40 for total value). */
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["AddCouponRequestBody"];
-      };
-    };
-    responses: {
-      /** @description Coupon Added */
-      200: {
-        content: never;
-      };
-    };
-  };
-  DeleteCoupon: {
-    parameters: {
-      path: {
-        uid: string;
-      };
-    };
-    responses: {
-      /** @description No content */
-      204: {
         content: never;
       };
     };

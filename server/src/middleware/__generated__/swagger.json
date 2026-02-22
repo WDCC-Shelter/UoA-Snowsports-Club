@@ -1747,6 +1747,31 @@
 				"parameters": []
 			}
 		},
+		"/users/self/lodge-credits": {
+			"get": {
+				"operationId": "GetCurrentLodgeCredits",
+				"responses": {
+					"200": {
+						"description": "Fetched lodge credits for user data",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "number",
+									"format": "double"
+								}
+							}
+						}
+					}
+				},
+				"description": "Fetches how many lodge the user has based on uid",
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": []
+			}
+		},
 		"/users/edit-self": {
 			"patch": {
 				"operationId": "EditSelf",

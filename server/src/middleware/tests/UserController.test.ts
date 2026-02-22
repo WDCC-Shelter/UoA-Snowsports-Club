@@ -3,6 +3,7 @@ import UserDataService from "data-layer/services/UserDataService"
 import { ADMIN_USER_UID, GUEST_USER_UID, MEMBER_USER_UID } from "../routes.mock"
 import { request, adminToken, memberToken } from "../routes.setup"
 import { StatusCodes } from "http-status-codes"
+import StripeService from "../../business-layer/services/StripeService"
 
 describe("UserController endpoint tests", () => {
   describe("/users/self", () => {
@@ -13,6 +14,26 @@ describe("UserController endpoint tests", () => {
         .send({})
 
       expect(res.body.stripe_id).toBe(undefined)
+    })
+    describe("/users/self/lodge-credits", () => {
+      it("should return the users current lodge credits", async () => {
+        jest
+          .spyOn(StripeService.prototype, "createCustomerIfNotExist")
+          .mockResolvedValue({
+            stripeCustomerId: "fake_stripe_id",
+            newUser: true
+          })
+        jest
+          .spyOn(StripeService.prototype, "getLodgeCreditsForUser")
+          .mockResolvedValue(69)
+        const res = await request
+          .get("/users/self/lodge-credits")
+          .set("Authorization", `Bearer ${memberToken}`)
+          .send({})
+
+        expect(res.status).toEqual(StatusCodes.OK)
+        expect(res.body).toEqual(69)
+      })
     })
   })
   describe("/users/edit-self", () => {

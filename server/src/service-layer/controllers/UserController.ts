@@ -20,6 +20,7 @@ import {
   Security,
   SuccessResponse
 } from "tsoa"
+import StripeService from "../../business-layer/services/StripeService"
 
 @Route("users")
 export class UsersController extends Controller {
@@ -44,6 +45,37 @@ export class UsersController extends Controller {
     }
 
     return data
+  }
+
+  /**
+   * Fetches how many lodge the user has based on uid
+   *
+   * @param request - Takes a UserRecord and uses the UID to fetch the user's additional info.
+   * @returns The quantity of lodge credits the user has.
+   */
+  @SuccessResponse("200", "Fetched lodge credits for user data")
+  @Security("jwt")
+  @Get("self/lodge-credits")
+  public async getCurrentLodgeCredits(@Request() request: SelfRequestModel) {
+    const { uid } = request.user
+    const userDataService = new UserDataService()
+    const userData = await userDataService.getUserData(uid)
+    const stripeService = new StripeService()
+
+    let stripeId: string
+    if (!userData.stripe_id) {
+      const { stripeCustomerId } = await stripeService.createCustomerIfNotExist(
+        request.user,
+        userData,
+        userDataService
+      )
+      stripeId = stripeCustomerId
+      return 0
+    } else {
+      stripeId = userData.stripe_id
+    }
+
+    return await stripeService.getLodgeCreditsForUser(stripeId)
   }
 
   /**

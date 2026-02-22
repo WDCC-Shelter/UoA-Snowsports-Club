@@ -9,3 +9,10 @@ export function useSelfDataQuery() {
     queryFn: UserService.getSelfData
   })
 }
+
+export function useCurrentSelfLodgeCreditsQuery() {
+  return useQuery({
+    queryKey: ["get-self-lodge-credits"],
+    queryFn: UserService.getSelfLodgeCredits
+  })
+}

@@ -9,6 +9,10 @@ export interface paths {
     /** @description Fetches users additional info based on their uid. */
     get: operations["GetSelf"];
   };
+  "/users/self/lodge-credits": {
+    /** @description Fetches how many lodge the user has based on uid */
+    get: operations["GetCurrentLodgeCredits"];
+  };
   "/users/edit-self": {
     /** @description Edits the user's additional info based on their uid. */
     patch: operations["EditSelf"];
@@ -925,6 +929,17 @@ export interface operations {
             date_of_birth: components["schemas"]["FirebaseFirestore.Timestamp"];
             uid: string;
           };
+        };
+      };
+    };
+  };
+  /** @description Fetches how many lodge the user has based on uid */
+  GetCurrentLodgeCredits: {
+    responses: {
+      /** @description Fetched lodge credits for user data */
+      200: {
+        content: {
+          "application/json": number;
         };
       };
     };

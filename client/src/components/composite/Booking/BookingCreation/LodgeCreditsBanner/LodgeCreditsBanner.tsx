@@ -13,7 +13,7 @@ const LodgeCreditsBanner = ({ availableCredits }: ILodgeCreditsBanner) => {
   const nightText = availableCredits === 1 ? "night" : "nights"
 
   return (
-    <div className="border-light-blue-100 bg-light-blue-10 flex flex-col gap-2 rounded border p-3">
+    <div className="border-light-blue-100 bg-white flex flex-col gap-2 rounded border p-3">
       <h5 className="text-light-blue-100 font-bold uppercase">
         🎉 You have free nights available!
       </h5>

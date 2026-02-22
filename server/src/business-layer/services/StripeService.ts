@@ -548,7 +548,6 @@ export default class StripeService {
       name: couponName,
       redeem_by: Math.floor(Date.now() / 1000) + durationMinutes * ONE_MINUTE_S
     })
-    console.log(coupon)
 
     return coupon.id
   }

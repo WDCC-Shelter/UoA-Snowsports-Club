@@ -146,8 +146,13 @@ export interface paths {
      */
     patch: operations["DemoteAllUsers"];
   };
-  "/admin/users/{uid}/coupon": {
+  "/admin/users/{uid}/lodge-credits": {
     get: operations["GetCoupon"];
+    /**
+     * @description Updates a user's coupon by deleting the existing one and creating a new one with the specified quantity.
+     * Requires an admin JWT token.
+     */
+    put: operations["UpdateCoupon"];
     /**
      * @description Adds a coupon to a user's stripe id.
      * Requires an admin JWT token.
@@ -1372,6 +1377,30 @@ export interface operations {
             quantity: number;
           };
         };
+      };
+    };
+  };
+  /**
+   * @description Updates a user's coupon by deleting the existing one and creating a new one with the specified quantity.
+   * Requires an admin JWT token.
+   */
+  UpdateCoupon: {
+    parameters: {
+      path: {
+        /** @description - The UID of the user to update the coupon for. */
+        uid: string;
+      };
+    };
+    /** @description - The new quantity of coupons (multiplied by $40 for total value). */
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AddCouponRequestBody"];
+      };
+    };
+    responses: {
+      /** @description Coupon Updated */
+      200: {
+        content: never;
       };
     };
   };

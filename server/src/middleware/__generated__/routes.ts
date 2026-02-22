@@ -1480,7 +1480,7 @@ export function RegisterRoutes(app: Router) {
         const argsAdminController_getCoupon: Record<string, TsoaRoute.ParameterSchema> = {
                 uid: {"in":"path","name":"uid","required":true,"dataType":"string"},
         };
-        app.get('/admin/users/:uid/coupon',
+        app.get('/admin/users/:uid/lodge-credits',
             authenticateMiddleware([{"jwt":["admin"]}]),
             ...(fetchMiddlewares<RequestHandler>(AdminController)),
             ...(fetchMiddlewares<RequestHandler>(AdminController.prototype.getCoupon)),
@@ -1512,7 +1512,7 @@ export function RegisterRoutes(app: Router) {
                 uid: {"in":"path","name":"uid","required":true,"dataType":"string"},
                 requestBody: {"in":"body","name":"requestBody","required":true,"ref":"AddCouponRequestBody"},
         };
-        app.put('/admin/users/:uid/coupon',
+        app.put('/admin/users/:uid/lodge-credits',
             authenticateMiddleware([{"jwt":["admin"]}]),
             ...(fetchMiddlewares<RequestHandler>(AdminController)),
             ...(fetchMiddlewares<RequestHandler>(AdminController.prototype.updateCoupon)),
@@ -1543,7 +1543,7 @@ export function RegisterRoutes(app: Router) {
         const argsAdminController_deleteCoupon: Record<string, TsoaRoute.ParameterSchema> = {
                 uid: {"in":"path","name":"uid","required":true,"dataType":"string"},
         };
-        app.delete('/admin/users/:uid/coupon',
+        app.delete('/admin/users/:uid/lodge-credits',
             authenticateMiddleware([{"jwt":["admin"]}]),
             ...(fetchMiddlewares<RequestHandler>(AdminController)),
             ...(fetchMiddlewares<RequestHandler>(AdminController.prototype.deleteCoupon)),
@@ -1575,7 +1575,7 @@ export function RegisterRoutes(app: Router) {
                 uid: {"in":"path","name":"uid","required":true,"dataType":"string"},
                 requestBody: {"in":"body","name":"requestBody","required":true,"ref":"AddCouponRequestBody"},
         };
-        app.post('/admin/users/:uid/coupon',
+        app.post('/admin/users/:uid/lodge-credits',
             authenticateMiddleware([{"jwt":["admin"]}]),
             ...(fetchMiddlewares<RequestHandler>(AdminController)),
             ...(fetchMiddlewares<RequestHandler>(AdminController.prototype.addCoupon)),

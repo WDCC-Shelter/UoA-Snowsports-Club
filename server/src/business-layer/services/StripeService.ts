@@ -60,18 +60,27 @@ export default class StripeService {
     return result.data
   }
 
-  public async getCouponForUser(customer_id: string) {
-    const filteredCouponsResponse = await stripe.promotionCodes.list({
-      customer: customer_id
-    })
+  public async getBalanceForUser(customer_id: string) {
+    const userData = await stripe.customers.retrieve(customer_id)
     /**
      * Assume there will only be one coupon per user as that's how the coupons are created in `addCouponToUser`. If there are multiple coupons for a user, this will just return the first one which is not ideal but also not expected to happen.
      */
-    return filteredCouponsResponse.data[0]?.coupon || null
+    if (userData.deleted === true) {
+      return 0
+    }
+
+    return userData.balance
   }
 
-  public async removeCouponForUser(customer_id: string) {
-    await stripe.customers.deleteDiscount(customer_id)
+  /**
+   * @param customer_id Stripe customer id of the user to remove balance from
+   * @param amount Amount in NZD to remove from the user's balance (in cents)
+   */
+  public async removeBalanceForUser(customer_id: string, amount: number) {
+    await stripe.customers.createBalanceTransaction(customer_id, {
+      amount: -amount,
+      currency: "NZD"
+    })
   }
 
   /**
@@ -522,22 +531,14 @@ export default class StripeService {
    * @param stripeId The Stripe ID of the user to whom the coupon will be added.
    * @param amount The amount **(in NZD)** for the coupon to be created.
    */
-  public async addCouponToUser(
-    stripeId: string,
-    amount: number
-  ): Promise<void> {
+  public async addBalanceToUser(stripeId: string, amount: number) {
     try {
-      const coupon = await stripe.coupons.create({
-        amount_off: amount * 100, // to cents
-        currency: "nzd"
-      })
-
-      await stripe.promotionCodes.create({
-        coupon: coupon.id,
-        customer: stripeId
+      return await stripe.customers.createBalanceTransaction(stripeId, {
+        amount: amount * 100,
+        currency: "NZD"
       })
     } catch {
-      throw new Error("Failed to add coupon to user")
+      throw new Error("Failed to add balance to user")
     }
   }
 }

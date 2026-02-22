@@ -667,7 +667,7 @@ export class AdminController extends Controller {
     }
   }
 
-  @Get("/users/{uid}/coupon")
+  @Get("/users/{uid}/lodge-credits")
   public async getCoupon(@Path() uid: string): Promise<{ quantity: number }> {
     try {
       const stripeId = await this.validateUserForCoupon(uid)
@@ -676,21 +676,15 @@ export class AdminController extends Controller {
       }
 
       const stripeService = new StripeService()
-      const coupon = await stripeService.getCouponForUser(stripeId)
-
-      if (!coupon) {
-        this.setStatus(StatusCodes.OK)
-        return { quantity: 0 }
-      }
+      const balance = await stripeService.getBalanceForUser(stripeId)
 
       // Stripe stores the discount amount in cents, so we need to convert it back to dollars before calculating the quantity
-      const quantity = Math.floor(
-        coupon.amount_off / (DEFAULT_COUPON_VALUE_NZD * 100)
-      )
+      const quantity = Math.floor(balance / (DEFAULT_COUPON_VALUE_NZD * 100))
 
       this.setStatus(StatusCodes.OK)
       return { quantity }
-    } catch {
+    } catch (e) {
+      console.error("Failed to fetch coupon", e)
       this.setStatus(StatusCodes.INTERNAL_SERVER_ERROR)
       return { quantity: 0 }
     }
@@ -704,7 +698,7 @@ export class AdminController extends Controller {
    * @returns void.
    */
   @SuccessResponse("200", "Coupon Updated")
-  @Put("/users/{uid}/coupon")
+  @Put("/users/{uid}/lodge-credits")
   public async updateCoupon(
     @Path() uid: string,
     @Body() requestBody: AddCouponRequestBody
@@ -717,13 +711,14 @@ export class AdminController extends Controller {
 
       const stripeService = new StripeService()
 
+      const currentBalance = await stripeService.getBalanceForUser(stripeId)
       // Delete existing coupon first (user can only have one coupon, so we remove it before adding the new one with updated quantity)
-      await stripeService.removeCouponForUser(stripeId)
+      await stripeService.removeBalanceForUser(stripeId, currentBalance)
 
       // Add new coupon with updated quantity
       const couponValueInCents =
         requestBody.quantity * DEFAULT_COUPON_VALUE_NZD * 100
-      await stripeService.addCouponToUser(stripeId, couponValueInCents)
+      await stripeService.addBalanceToUser(stripeId, couponValueInCents)
 
       this.setStatus(StatusCodes.OK)
     } catch (e) {
@@ -732,7 +727,7 @@ export class AdminController extends Controller {
     }
   }
 
-  @Delete("/users/{uid}/coupon")
+  @Delete("/users/{uid}/lodge-credits")
   public async deleteCoupon(@Path() uid: string): Promise<void> {
     try {
       const stripeId = await this.validateUserForCoupon(uid)
@@ -741,9 +736,14 @@ export class AdminController extends Controller {
       }
 
       const stripeService = new StripeService()
-      await stripeService.removeCouponForUser(stripeId)
+      const currentBalance = await stripeService.getBalanceForUser(stripeId)
+      /**
+       * Remove all existing coupons by removing the entire balance for the user, as each coupon is represented as a balance in Stripe and users can only have one coupon at a time.
+       */
+      await stripeService.removeBalanceForUser(stripeId, currentBalance)
       this.setStatus(StatusCodes.OK)
-    } catch {
+    } catch (e) {
+      console.error("Failed to update coupon", e)
       this.setStatus(StatusCodes.INTERNAL_SERVER_ERROR)
     }
   }
@@ -757,7 +757,7 @@ export class AdminController extends Controller {
    * @returns void.
    */
   @SuccessResponse("200", "Coupon Added")
-  @Post("users/{uid}/coupon")
+  @Post("users/{uid}/lodge-credits")
   public async addCoupon(
     @Path() uid: string,
     @Body() requestBody: AddCouponRequestBody
@@ -772,8 +772,8 @@ export class AdminController extends Controller {
       }
 
       const stripeService = new StripeService()
-      // Add a single coupon with the total calculated value
-      await stripeService.addCouponToUser(stripeId, totalAmount)
+      // Add a single balance with the total calculated value
+      await stripeService.addBalanceToUser(stripeId, totalAmount)
 
       this.setStatus(StatusCodes.OK)
     } catch {

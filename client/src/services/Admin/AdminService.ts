@@ -282,7 +282,7 @@ const AdminService = {
   },
   getLodgeCreditsForUser: async (userId: string) => {
     const { response, data } = await fetchClient.GET(
-      "/admin/users/{uid}/coupon",
+      "/admin/users/{uid}/lodge-credits",
       {
         params: {
           path: {
@@ -304,20 +304,41 @@ const AdminService = {
     userId: string
     amount: number
   }) => {
-    const { response } = await fetchClient.POST("/admin/users/{uid}/coupon", {
-      params: {
-        path: {
-          uid: userId
+    const { response } = await fetchClient.POST(
+      "/admin/users/{uid}/lodge-credits",
+      {
+        params: {
+          path: {
+            uid: userId
+          }
+        },
+        body: {
+          quantity: amount
         }
-      },
-      body: {
-        quantity: amount
       }
-    })
+    )
 
     if (!response.ok) {
       throw new Error(
-        `Failed to add ${amount} coupons for user with id ${userId}`
+        `Failed to add ${amount} lodge credits for user with id ${userId}`
+      )
+    }
+  },
+  deleteLodgeCreditsForUser: async ({ userId }: { userId: string }) => {
+    const { response } = await fetchClient.DELETE(
+      "/admin/users/{uid}/lodge-credits",
+      {
+        params: {
+          path: {
+            uid: userId
+          }
+        }
+      }
+    )
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to delete lodge credits for user with id ${userId}`
       )
     }
   }

@@ -2596,7 +2596,7 @@
 				"parameters": []
 			}
 		},
-		"/admin/users/{uid}/coupon": {
+		"/admin/users/{uid}/lodge-credits": {
 			"get": {
 				"operationId": "GetCoupon",
 				"responses": {

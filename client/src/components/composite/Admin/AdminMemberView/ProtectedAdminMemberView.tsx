@@ -6,6 +6,7 @@ import {
 import { AdminMemberView, type MemberColumnFormat } from "./AdminMemberView"
 import {
   useAddLodgeCreditMutation,
+  useDeleteLodgeCreditMutation,
   useDeleteUserMutation,
   useDemoteUserMutation,
   usePromoteUserMutation,
@@ -144,6 +145,7 @@ const WrappedAdminMemberView = () => {
   const { mutateAsync: demoteUser } = useDemoteUserMutation()
   const { mutateAsync: deleteUser, isPending } = useDeleteUserMutation()
   const { mutateAsync: addLodgeCredits } = useAddLodgeCreditMutation()
+  const { mutateAsync: deleteLodgeCredits } = useDeleteLodgeCreditMutation()
   const { data: memberGoogleSheetData } = useMemberGoogleSheetUrlQuery()
 
   const handleAddLodgeCredits = useCallback(
@@ -160,6 +162,22 @@ const WrappedAdminMemberView = () => {
         }
       ),
     [addLodgeCredits]
+  )
+
+  const handleDeleteLodgeCredits = useCallback(
+    (userId: string) =>
+      deleteLodgeCredits(
+        { userId },
+        {
+          onSuccess() {
+            alert(`Successfully deleted lodge credits for ${userId}`)
+          },
+          onError(err) {
+            alert(`Failed to delete lodge credits: ${err.message}`)
+          }
+        }
+      ),
+    [deleteLodgeCredits]
   )
 
   const handleExportUsers = useCallback(() => {
@@ -283,11 +301,12 @@ const WrappedAdminMemberView = () => {
                   alert("Editing lodge credits is not implemented yet")
                   break
                 case "delete":
-                  alert("Deleting lodge credits is not implemented yet")
+                  await handleDeleteLodgeCredits(userId)
                   break
               }
             }}
-            currentAmount={couponCount}
+            isLoading={couponCount === undefined}
+            currentAmount={couponCount || 0}
           />
         )}
       </ModalContainer>

@@ -234,3 +234,16 @@ export function useAddLodgeCreditMutation() {
     }
   })
 }
+
+export function useDeleteLodgeCreditMutation() {
+  return useMutation({
+    mutationKey: ["delete-lodge-credit"],
+    retry: false,
+    mutationFn: AdminService.deleteLodgeCreditsForUser,
+    onSuccess: () => {
+      queryClient.removeQueries({
+        queryKey: [LODGE_CREDITS_FOR_USER_QUERY]
+      })
+    }
+  })
+}

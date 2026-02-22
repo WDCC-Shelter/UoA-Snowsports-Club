@@ -26,7 +26,6 @@ import {
 } from "../routes.mock"
 import { adminToken, guestToken, memberToken, request } from "../routes.setup"
 import StripeService from "../../business-layer/services/StripeService"
-import { couponMock } from "../../test-config/mocks/Stripe.mock"
 
 describe("AdminController endpoint tests", () => {
   describe("/admin/users", () => {
@@ -654,16 +653,16 @@ describe("AdminController endpoint tests", () => {
     })
   })
 
-  describe("/admin/users/{uid}/coupon", () => {
+  describe("/admin/users/{uid}/lodge-credits", () => {
     it("Should allow admins to get a coupon for a user", async () => {
       const stripeId = "test_stripe_id_get"
       await createUserDataWithStripeId(ADMIN_USER_UID, { stripe_id: stripeId })
       jest
-        .spyOn(StripeService.prototype, "getCouponForUser")
-        .mockResolvedValue(couponMock)
+        .spyOn(StripeService.prototype, "getBalanceForUser")
+        .mockResolvedValue(69)
 
       const response = await request
-        .get(`/admin/users/${ADMIN_USER_UID}/coupon`)
+        .get(`/admin/users/${ADMIN_USER_UID}/lodge-credits`)
         .set("Authorization", `Bearer ${adminToken}`)
         .send()
 
@@ -673,7 +672,7 @@ describe("AdminController endpoint tests", () => {
 
     it("Should return 404 when getting coupon for non-existent user", async () => {
       const response = await request
-        .get(`/admin/users/non_existent_user/coupon`)
+        .get(`/admin/users/non_existent_user/lodge-credits`)
         .set("Authorization", `Bearer ${adminToken}`)
         .send()
 
@@ -682,7 +681,7 @@ describe("AdminController endpoint tests", () => {
 
     it("Should return 400 when getting coupon for user without stripe_id", async () => {
       const response = await request
-        .get(`/admin/users/${MEMBER_USER_UID}/coupon`)
+        .get(`/admin/users/${MEMBER_USER_UID}/lodge-credits`)
         .set("Authorization", `Bearer ${adminToken}`)
         .send()
 
@@ -691,7 +690,7 @@ describe("AdminController endpoint tests", () => {
 
     it("Should not allow members to get a coupon", async () => {
       const response = await request
-        .get(`/admin/users/${MEMBER_USER_UID}/coupon`)
+        .get(`/admin/users/${MEMBER_USER_UID}/lodge-credits`)
         .set("Authorization", `Bearer ${memberToken}`)
         .send()
 
@@ -700,7 +699,7 @@ describe("AdminController endpoint tests", () => {
 
     it("Should not allow guests to get a coupon", async () => {
       const response = await request
-        .get(`/admin/users/${MEMBER_USER_UID}/coupon`)
+        .get(`/admin/users/${MEMBER_USER_UID}/lodge-credits`)
         .set("Authorization", `Bearer ${guestToken}`)
         .send()
 
@@ -712,8 +711,12 @@ describe("AdminController endpoint tests", () => {
       const stripeId = "test_stripe_id"
       await createUserDataWithStripeId(ADMIN_USER_UID, { stripe_id: stripeId })
 
+      jest
+        .spyOn(StripeService.prototype, "addBalanceToUser")
+        .mockResolvedValue(undefined)
+
       const response = await request
-        .post(`/admin/users/${ADMIN_USER_UID}/coupon`)
+        .post(`/admin/users/${ADMIN_USER_UID}/lodge-credits`)
         .set("Authorization", `Bearer ${adminToken}`)
         .send({ quantity: 5 }) // Should create a single coupon worth 5 * $40 = $200
 
@@ -722,7 +725,7 @@ describe("AdminController endpoint tests", () => {
 
     it("Should not allow adding a coupon to a user without stripe_id", async () => {
       const response = await request
-        .post(`/admin/users/${MEMBER_USER_UID}/coupon`)
+        .post(`/admin/users/${MEMBER_USER_UID}/lodge-credits`)
         .set("Authorization", `Bearer ${adminToken}`)
         .send({ quantity: 5 })
 
@@ -731,7 +734,7 @@ describe("AdminController endpoint tests", () => {
 
     it("Should return 404 if user is not found", async () => {
       const response = await request
-        .post(`/admin/users/non_existent_user/coupon`)
+        .post(`/admin/users/non_existent_user/lodge-credits`)
         .set("Authorization", `Bearer ${adminToken}`)
         .send({ quantity: 5 })
 
@@ -740,7 +743,7 @@ describe("AdminController endpoint tests", () => {
 
     it("Should not allow members to add a coupon", async () => {
       const response = await request
-        .post(`/admin/users/${MEMBER_USER_UID}/coupon`)
+        .post(`/admin/users/${MEMBER_USER_UID}/lodge-credits`)
         .set("Authorization", `Bearer ${memberToken}`)
         .send({ quantity: 5 })
 
@@ -749,7 +752,7 @@ describe("AdminController endpoint tests", () => {
 
     it("Should not allow guests to add a coupon", async () => {
       const response = await request
-        .post(`/admin/users/${MEMBER_USER_UID}/coupon`)
+        .post(`/admin/users/${MEMBER_USER_UID}/lodge-credits`)
         .set("Authorization", `Bearer ${guestToken}`)
         .send({ quantity: 5 })
 
@@ -760,11 +763,14 @@ describe("AdminController endpoint tests", () => {
       const stripeId = "test_stripe_id_delete"
       await createUserDataWithStripeId(ADMIN_USER_UID, { stripe_id: stripeId })
       jest
-        .spyOn(StripeService.prototype, "removeCouponForUser")
+        .spyOn(StripeService.prototype, "getBalanceForUser")
+        .mockResolvedValue(69)
+      jest
+        .spyOn(StripeService.prototype, "removeBalanceForUser")
         .mockResolvedValue(null)
 
       const response = await request
-        .delete(`/admin/users/${ADMIN_USER_UID}/coupon`)
+        .delete(`/admin/users/${ADMIN_USER_UID}/lodge-credits`)
         .set("Authorization", `Bearer ${adminToken}`)
         .send()
 
@@ -773,7 +779,7 @@ describe("AdminController endpoint tests", () => {
 
     it("Should return 404 when deleting coupon for non-existent user", async () => {
       const response = await request
-        .delete(`/admin/users/non_existent_user/coupon`)
+        .delete(`/admin/users/non_existent_user/lodge-credits`)
         .set("Authorization", `Bearer ${adminToken}`)
         .send()
 
@@ -782,7 +788,7 @@ describe("AdminController endpoint tests", () => {
 
     it("Should return 400 when deleting coupon for user without stripe_id", async () => {
       const response = await request
-        .delete(`/admin/users/${MEMBER_USER_UID}/coupon`)
+        .delete(`/admin/users/${MEMBER_USER_UID}/lodge-credits`)
         .set("Authorization", `Bearer ${adminToken}`)
         .send()
 
@@ -791,7 +797,7 @@ describe("AdminController endpoint tests", () => {
 
     it("Should not allow members to delete a coupon", async () => {
       const response = await request
-        .delete(`/admin/users/${MEMBER_USER_UID}/coupon`)
+        .delete(`/admin/users/${MEMBER_USER_UID}/lodge-credits`)
         .set("Authorization", `Bearer ${memberToken}`)
         .send()
 
@@ -800,7 +806,7 @@ describe("AdminController endpoint tests", () => {
 
     it("Should not allow guests to delete a coupon", async () => {
       const response = await request
-        .delete(`/admin/users/${MEMBER_USER_UID}/coupon`)
+        .delete(`/admin/users/${MEMBER_USER_UID}/lodge-credits`)
         .set("Authorization", `Bearer ${guestToken}`)
         .send({ quantity: 5 })
 
@@ -811,14 +817,17 @@ describe("AdminController endpoint tests", () => {
       const stripeId = "test_stripe_id_update"
       await createUserDataWithStripeId(ADMIN_USER_UID, { stripe_id: stripeId })
       jest
-        .spyOn(StripeService.prototype, "removeCouponForUser")
+        .spyOn(StripeService.prototype, "getBalanceForUser")
+        .mockResolvedValue(69)
+      jest
+        .spyOn(StripeService.prototype, "removeBalanceForUser")
         .mockResolvedValue(null)
       jest
-        .spyOn(StripeService.prototype, "addCouponToUser")
+        .spyOn(StripeService.prototype, "addBalanceToUser")
         .mockResolvedValue(undefined)
 
       const response = await request
-        .put(`/admin/users/${ADMIN_USER_UID}/coupon`)
+        .put(`/admin/users/${ADMIN_USER_UID}/lodge-credits`)
         .set("Authorization", `Bearer ${adminToken}`)
         .send({ quantity: 3 })
 
@@ -827,7 +836,7 @@ describe("AdminController endpoint tests", () => {
 
     it("Should return 404 when updating coupon for non-existent user", async () => {
       const response = await request
-        .put(`/admin/users/non_existent_user/coupon`)
+        .put(`/admin/users/non_existent_user/lodge-credits`)
         .set("Authorization", `Bearer ${adminToken}`)
         .send({ quantity: 3 })
 
@@ -836,7 +845,7 @@ describe("AdminController endpoint tests", () => {
 
     it("Should return 400 when updating coupon for user without stripe_id", async () => {
       const response = await request
-        .put(`/admin/users/${MEMBER_USER_UID}/coupon`)
+        .put(`/admin/users/${MEMBER_USER_UID}/lodge-credits`)
         .set("Authorization", `Bearer ${adminToken}`)
         .send({ quantity: 3 })
 
@@ -845,7 +854,7 @@ describe("AdminController endpoint tests", () => {
 
     it("Should not allow members to update a coupon", async () => {
       const response = await request
-        .put(`/admin/users/${MEMBER_USER_UID}/coupon`)
+        .put(`/admin/users/${MEMBER_USER_UID}/lodge-credits`)
         .set("Authorization", `Bearer ${memberToken}`)
         .send({ quantity: 3 })
 
@@ -854,7 +863,7 @@ describe("AdminController endpoint tests", () => {
 
     it("Should not allow guests to update a coupon", async () => {
       const response = await request
-        .put(`/admin/users/${MEMBER_USER_UID}/coupon`)
+        .put(`/admin/users/${MEMBER_USER_UID}/lodge-credits`)
         .set("Authorization", `Bearer ${guestToken}`)
         .send({ quantity: 3 })
 

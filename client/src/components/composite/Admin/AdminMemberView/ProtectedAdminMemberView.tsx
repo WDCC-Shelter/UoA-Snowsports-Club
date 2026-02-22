@@ -1,17 +1,13 @@
 import { sendPasswordResetEmail } from "firebase/auth"
 import { useCallback, useMemo, useRef, useState } from "react"
 import { CSVLink } from "react-csv"
-import AdminLodgeCreditManagementModal, {
-  type LodgeCreditOperation
-} from "@/components/composite/Admin/AdminMemberView/AdminLodgeCreditManagement/AdminLodgeCreditManagementModal"
+import AdminLodgeCreditManagementModal from "@/components/composite/Admin/AdminMemberView/AdminLodgeCreditManagement/AdminLodgeCreditManagementModal"
 import ModalContainer from "@/components/generic/ModalContainer/ModalContainer"
 import type { TableRowOperation } from "@/components/generic/ReusableTable/TableUtils"
 import { DateUtils } from "@/components/utils/DateUtils"
 import { auth } from "@/firebase"
 import type { ReducedUserAdditionalInfo } from "@/models/User"
 import {
-  useAddLodgeCreditMutation,
-  useDeleteLodgeCreditMutation,
   useDeleteUserMutation,
   useDemoteUserMutation,
   usePromoteUserMutation,
@@ -147,42 +143,8 @@ const WrappedAdminMemberView = () => {
   const { mutateAsync: promoteUser } = usePromoteUserMutation()
   const { mutateAsync: demoteUser } = useDemoteUserMutation()
   const { mutateAsync: deleteUser, isPending } = useDeleteUserMutation()
-  const { mutateAsync: addLodgeCredits } = useAddLodgeCreditMutation()
-  const { mutateAsync: deleteLodgeCredits } = useDeleteLodgeCreditMutation()
   const { mutateAsync: updateLodgeCredits } = useUpdateLodgeCreditMutation()
   const { data: memberGoogleSheetData } = useMemberGoogleSheetUrlQuery()
-
-  const handleAddLodgeCredits = useCallback(
-    (userId: string, amount: number) =>
-      addLodgeCredits(
-        { userId, amount },
-        {
-          onSuccess() {
-            alert(`Successfully added ${amount} lodge credits for ${userId}`)
-          },
-          onError(err) {
-            alert(`Failed to add lodge credits: ${err.message}`)
-          }
-        }
-      ),
-    [addLodgeCredits]
-  )
-
-  const handleDeleteLodgeCredits = useCallback(
-    (userId: string) =>
-      deleteLodgeCredits(
-        { userId },
-        {
-          onSuccess() {
-            alert(`Successfully deleted lodge credits for ${userId}`)
-          },
-          onError(err) {
-            alert(`Failed to delete lodge credits: ${err.message}`)
-          }
-        }
-      ),
-    [deleteLodgeCredits]
-  )
 
   const handleUpdateLodgeCredits = useCallback(
     (userId: string, amount: number) =>
@@ -190,9 +152,7 @@ const WrappedAdminMemberView = () => {
         { userId, amount },
         {
           onSuccess() {
-            alert(
-              `Successfully updated lodge credits to ${amount} for ${userId}`
-            )
+            alert(`Successfully set lodge credits to ${amount}`)
           },
           onError(err) {
             alert(`Failed to update lodge credits: ${err.message}`)
@@ -200,23 +160,6 @@ const WrappedAdminMemberView = () => {
         }
       ),
     [updateLodgeCredits]
-  )
-
-  const handleLodgeCreditOperation = useCallback(
-    async (userId: string, operation: LodgeCreditOperation) => {
-      switch (operation.type) {
-        case "add":
-          await handleAddLodgeCredits(userId, operation.amount)
-          break
-        case "edit":
-          await handleUpdateLodgeCredits(userId, operation.amount)
-          break
-        case "delete":
-          await handleDeleteLodgeCredits(userId)
-          break
-      }
-    },
-    [handleAddLodgeCredits, handleUpdateLodgeCredits, handleDeleteLodgeCredits]
   )
 
   const handleExportUsers = useCallback(() => {
@@ -331,7 +274,7 @@ const WrappedAdminMemberView = () => {
             handleClose={() => setSelectedLodgeCreditUser(undefined)}
             userId={selectedLodgeCreditUser.userId}
             userName={selectedLodgeCreditUser.userDisplayName}
-            couponUpdateHandler={handleLodgeCreditOperation}
+            onUpdateCredits={handleUpdateLodgeCredits}
             isLoading={couponCount === undefined}
             currentAmount={couponCount || 0}
           />

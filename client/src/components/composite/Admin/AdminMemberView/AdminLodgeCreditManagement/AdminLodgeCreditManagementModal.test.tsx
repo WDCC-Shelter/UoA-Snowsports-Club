@@ -4,29 +4,15 @@ import AdminLodgeCreditManagementModal, {
 } from "@/components/composite/Admin/AdminMemberView/AdminLodgeCreditManagement/AdminLodgeCreditManagementModal"
 
 describe("AdminLodgeCreditManagementModal", () => {
-  let confirmSpy: any
+  let confirmSpy: jest.SpyInstance
   beforeAll(() => {
     confirmSpy = jest.spyOn(window, "confirm")
     confirmSpy.mockImplementation(jest.fn(() => true))
   })
   afterAll(() => confirmSpy.mockRestore())
 
-  it("shows only add button when currentAmount is 0", () => {
-    const { getByTestId, queryByTestId } = render(
-      <AdminLodgeCreditManagementModal
-        userId="user-123"
-        userName="John Doe"
-        currentAmount={0}
-      />
-    )
-
-    expect(getByTestId("add-lodge-credit-button")).toBeInTheDocument()
-    expect(queryByTestId("update-lodge-credit-button")).not.toBeInTheDocument()
-    expect(queryByTestId("delete-lodge-credit-button")).not.toBeInTheDocument()
-  })
-
-  it("shows edit and delete buttons when currentAmount is greater than 0", () => {
-    const { getByTestId, queryByTestId } = render(
+  it("displays current balance prominently", () => {
+    const { getByText } = render(
       <AdminLodgeCreditManagementModal
         userId="user-123"
         userName="John Doe"
@@ -34,75 +20,50 @@ describe("AdminLodgeCreditManagementModal", () => {
       />
     )
 
-    expect(queryByTestId("add-lodge-credit-button")).not.toBeInTheDocument()
-    expect(getByTestId("update-lodge-credit-button")).toBeInTheDocument()
-    expect(getByTestId("delete-lodge-credit-button")).toBeInTheDocument()
+    expect(getByText("Current Balance")).toBeInTheDocument()
+    expect(getByText("5")).toBeInTheDocument()
   })
 
-  it("calls couponUpdateHandler with correct parameters for add operation", () => {
+  it("calls onUpdateCredits with userId and new amount", () => {
     const mockHandler = jest.fn()
     const { getByTestId } = render(
       <AdminLodgeCreditManagementModal
         userId="user-123"
         userName="John Doe"
-        currentAmount={0}
-        couponUpdateHandler={mockHandler}
+        currentAmount={5}
+        onUpdateCredits={mockHandler}
       />
     )
 
     fireEvent.change(getByTestId(AdminLodgeCreditFormKeys.AMOUNT), {
-      target: { value: "3" }
+      target: { value: "10" }
     })
-    fireEvent.click(getByTestId("add-lodge-credit-button"))
+    fireEvent.click(getByTestId("set-credits-button"))
 
-    expect(mockHandler).toHaveBeenCalledWith("user-123", {
-      type: "add",
-      amount: 3
-    })
+    expect(mockHandler).toHaveBeenCalledWith("user-123", 10)
   })
 
-  it("calls couponUpdateHandler with correct parameters for delete operation", () => {
+  it("can set credits to 0", () => {
     const mockHandler = jest.fn()
     const { getByTestId } = render(
       <AdminLodgeCreditManagementModal
         userId="user-123"
         userName="John Doe"
         currentAmount={5}
-        couponUpdateHandler={mockHandler}
-      />
-    )
-
-    fireEvent.click(getByTestId("delete-lodge-credit-button"))
-
-    expect(mockHandler).toHaveBeenCalledWith("user-123", {
-      type: "delete"
-    })
-  })
-
-  it("calls couponUpdateHandler with correct parameters for update operation", () => {
-    const mockHandler = jest.fn()
-    const { getByTestId } = render(
-      <AdminLodgeCreditManagementModal
-        userId="user-123"
-        userName="John Doe"
-        currentAmount={5}
-        couponUpdateHandler={mockHandler}
+        onUpdateCredits={mockHandler}
       />
     )
 
     fireEvent.change(getByTestId(AdminLodgeCreditFormKeys.AMOUNT), {
-      target: { value: "2" }
+      target: { value: "0" }
     })
-    fireEvent.click(getByTestId("update-lodge-credit-button"))
+    fireEvent.click(getByTestId("set-credits-button"))
 
-    expect(mockHandler).toHaveBeenCalledWith("user-123", {
-      type: "edit",
-      amount: 2
-    })
+    expect(mockHandler).toHaveBeenCalledWith("user-123", 0)
   })
 
   it("disables input when isLoading is true", () => {
-    const { getByTestId } = render(
+    const { queryByTestId, getByText } = render(
       <AdminLodgeCreditManagementModal
         userId="user-123"
         userName="John Doe"
@@ -111,10 +72,13 @@ describe("AdminLodgeCreditManagementModal", () => {
       />
     )
 
-    expect(getByTestId(AdminLodgeCreditFormKeys.AMOUNT)).toBeDisabled()
+    expect(
+      queryByTestId(AdminLodgeCreditFormKeys.AMOUNT)
+    ).not.toBeInTheDocument()
+    expect(getByText("Loading...")).toBeInTheDocument()
   })
 
-  it("shows loading text when isLoading is true", () => {
+  it("shows loading indicator for balance when isLoading is true", () => {
     const { getByText } = render(
       <AdminLodgeCreditManagementModal
         userId="user-123"
@@ -124,7 +88,6 @@ describe("AdminLodgeCreditManagementModal", () => {
       />
     )
 
-    expect(getByText("Loading credit information...")).toBeInTheDocument()
-    expect(getByText("Current Balance: Loading...")).toBeInTheDocument()
+    expect(getByText("...")).toBeInTheDocument()
   })
 })

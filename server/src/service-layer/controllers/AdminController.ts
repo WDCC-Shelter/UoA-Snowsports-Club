@@ -85,7 +85,6 @@ import StripeService from "../../business-layer/services/StripeService"
 import type { UserAccountTypes } from "../../business-layer/utils/AuthServiceClaims"
 import { RedirectKeys } from "../../business-layer/utils/RedirectKeys"
 
-const DEFAULT_COUPON_VALUE_NZD = 40 as const
 @Route("admin")
 @Security("jwt", ["admin"])
 export class AdminController extends Controller {
@@ -102,8 +101,15 @@ export class AdminController extends Controller {
       return null
     }
     if (!user.stripe_id) {
-      this.setStatus(StatusCodes.BAD_REQUEST)
-      return null
+      const stripeService = new StripeService()
+      const authService = new AuthService()
+      const userRecord = await authService.retrieveUserByUid(uid)
+      const { stripeCustomerId } = await stripeService.createCustomerIfNotExist(
+        userRecord,
+        user,
+        userService
+      )
+      return stripeCustomerId
     }
 
     return user.stripe_id
@@ -676,10 +682,7 @@ export class AdminController extends Controller {
       }
 
       const stripeService = new StripeService()
-      const balance = await stripeService.getLodgeCreditsForUser(stripeId)
-
-      // Stripe stores the discount amount in cents, so we need to convert it back to dollars before calculating the quantity
-      const quantity = Math.floor(balance / (DEFAULT_COUPON_VALUE_NZD * 100))
+      const quantity = await stripeService.getLodgeCreditsForUser(stripeId)
 
       this.setStatus(StatusCodes.OK)
       return { quantity }
@@ -697,7 +700,7 @@ export class AdminController extends Controller {
    * @param requestBody - The new quantity of coupons (multiplied by $40 for total value).
    * @returns void.
    */
-  @SuccessResponse("200", "Coupon Updated")
+  @SuccessResponse("200", "Lodge Credits Updated")
   @Put("/users/{uid}/lodge-credits")
   public async updateCoupon(
     @Path() uid: string,

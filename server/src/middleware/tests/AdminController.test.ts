@@ -679,15 +679,6 @@ describe("AdminController endpoint tests", () => {
       expect(response.status).toEqual(StatusCodes.NOT_FOUND)
     })
 
-    it("Should return 400 when getting coupon for user without stripe_id", async () => {
-      const response = await request
-        .get(`/admin/users/${MEMBER_USER_UID}/lodge-credits`)
-        .set("Authorization", `Bearer ${adminToken}`)
-        .send()
-
-      expect(response.status).toEqual(StatusCodes.BAD_REQUEST)
-    })
-
     it("Should not allow members to get a coupon", async () => {
       const response = await request
         .get(`/admin/users/${MEMBER_USER_UID}/lodge-credits`)
@@ -731,15 +722,6 @@ describe("AdminController endpoint tests", () => {
         .send({ quantity: 3 })
 
       expect(response.status).toEqual(StatusCodes.NOT_FOUND)
-    })
-
-    it("Should return 400 when updating coupon for user without stripe_id", async () => {
-      const response = await request
-        .put(`/admin/users/${MEMBER_USER_UID}/lodge-credits`)
-        .set("Authorization", `Bearer ${adminToken}`)
-        .send({ quantity: 3 })
-
-      expect(response.status).toEqual(StatusCodes.BAD_REQUEST)
     })
 
     it("Should not allow members to update a coupon", async () => {

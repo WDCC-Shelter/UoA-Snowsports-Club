@@ -222,32 +222,6 @@ export function useResetMembershipsMutation() {
   })
 }
 
-export function useAddLodgeCreditMutation() {
-  return useMutation({
-    mutationKey: ["add-lodge-credit"],
-    retry: false,
-    mutationFn: AdminService.addLodgeCreditsForUser,
-    onSuccess: () => {
-      queryClient.removeQueries({
-        queryKey: [LODGE_CREDITS_FOR_USER_QUERY]
-      })
-    }
-  })
-}
-
-export function useDeleteLodgeCreditMutation() {
-  return useMutation({
-    mutationKey: ["delete-lodge-credit"],
-    retry: false,
-    mutationFn: AdminService.deleteLodgeCreditsForUser,
-    onSuccess: () => {
-      queryClient.removeQueries({
-        queryKey: [LODGE_CREDITS_FOR_USER_QUERY]
-      })
-    }
-  })
-}
-
 export function useUpdateLodgeCreditMutation() {
   return useMutation({
     mutationKey: ["edit-lodge-credit"],

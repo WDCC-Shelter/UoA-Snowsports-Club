@@ -297,51 +297,6 @@ const AdminService = {
 
     return data?.quantity
   },
-  addLodgeCreditsForUser: async ({
-    userId,
-    amount
-  }: {
-    userId: string
-    amount: number
-  }) => {
-    const { response } = await fetchClient.POST(
-      "/admin/users/{uid}/lodge-credits",
-      {
-        params: {
-          path: {
-            uid: userId
-          }
-        },
-        body: {
-          quantity: amount
-        }
-      }
-    )
-
-    if (!response.ok) {
-      throw new Error(
-        `Failed to add ${amount} lodge credits for user with id ${userId}`
-      )
-    }
-  },
-  deleteLodgeCreditsForUser: async ({ userId }: { userId: string }) => {
-    const { response } = await fetchClient.DELETE(
-      "/admin/users/{uid}/lodge-credits",
-      {
-        params: {
-          path: {
-            uid: userId
-          }
-        }
-      }
-    )
-
-    if (!response.ok) {
-      throw new Error(
-        `Failed to delete lodge credits for user with id ${userId}`
-      )
-    }
-  },
   editLodgeCreditsForUser: async ({
     userId,
     amount

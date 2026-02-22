@@ -2642,7 +2642,7 @@
 				"operationId": "UpdateCoupon",
 				"responses": {
 					"200": {
-						"description": "Coupon Updated"
+						"description": "Lodge Credits Updated"
 					}
 				},
 				"description": "Updates a user's coupon by deleting the existing one and creating a new one with the specified quantity.\nRequires an admin JWT token.",

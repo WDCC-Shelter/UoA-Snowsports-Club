@@ -676,7 +676,7 @@ export class AdminController extends Controller {
       }
 
       const stripeService = new StripeService()
-      const balance = await stripeService.getBalanceForUser(stripeId)
+      const balance = await stripeService.getLodgeCreditsForUser(stripeId)
 
       // Stripe stores the discount amount in cents, so we need to convert it back to dollars before calculating the quantity
       const quantity = Math.floor(balance / (DEFAULT_COUPON_VALUE_NZD * 100))
@@ -711,72 +711,12 @@ export class AdminController extends Controller {
 
       const stripeService = new StripeService()
 
-      const currentBalance = await stripeService.getBalanceForUser(stripeId)
-      // Delete existing coupon first (user can only have one coupon, so we remove it before adding the new one with updated quantity)
-      await stripeService.removeBalanceForUser(stripeId, currentBalance)
-
-      // Add new coupon with updated quantity
-      const couponValueInCents =
-        requestBody.quantity * DEFAULT_COUPON_VALUE_NZD * 100
-      await stripeService.addBalanceToUser(stripeId, couponValueInCents)
+      const { quantity } = requestBody
+      await stripeService.editUserLodgeCredits(stripeId, quantity)
 
       this.setStatus(StatusCodes.OK)
     } catch (e) {
       console.error("Failed to update coupon", e)
-      this.setStatus(StatusCodes.INTERNAL_SERVER_ERROR)
-    }
-  }
-
-  @Delete("/users/{uid}/lodge-credits")
-  public async deleteCoupon(@Path() uid: string): Promise<void> {
-    try {
-      const stripeId = await this.validateUserForCoupon(uid)
-      if (!stripeId) {
-        return
-      }
-
-      const stripeService = new StripeService()
-      const currentBalance = await stripeService.getBalanceForUser(stripeId)
-      /**
-       * Remove all existing coupons by removing the entire balance for the user, as each coupon is represented as a balance in Stripe and users can only have one coupon at a time.
-       */
-      await stripeService.removeBalanceForUser(stripeId, currentBalance)
-      this.setStatus(StatusCodes.OK)
-    } catch (e) {
-      console.error("Failed to update coupon", e)
-      this.setStatus(StatusCodes.INTERNAL_SERVER_ERROR)
-    }
-  }
-
-  /**
-   * Adds a coupon to a user's stripe id.
-   * Requires an admin JWT token.
-   * Each user can only have one coupon. The coupon value equals quantity * $40.
-   * @param uid - The UID of the user to add the coupon to.
-   * @param requestBody - The quantity of coupons to add (multiplied by $40 for total value).
-   * @returns void.
-   */
-  @SuccessResponse("200", "Coupon Added")
-  @Post("users/{uid}/lodge-credits")
-  public async addCoupon(
-    @Path() uid: string,
-    @Body() requestBody: AddCouponRequestBody
-  ): Promise<void> {
-    const { quantity } = requestBody
-    const totalAmount = quantity * DEFAULT_COUPON_VALUE_NZD
-
-    try {
-      const stripeId = await this.validateUserForCoupon(uid)
-      if (!stripeId) {
-        return
-      }
-
-      const stripeService = new StripeService()
-      // Add a single balance with the total calculated value
-      await stripeService.addBalanceToUser(stripeId, totalAmount)
-
-      this.setStatus(StatusCodes.OK)
-    } catch {
       this.setStatus(StatusCodes.INTERNAL_SERVER_ERROR)
     }
   }

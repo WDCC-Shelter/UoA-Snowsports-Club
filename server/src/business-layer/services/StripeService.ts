@@ -24,6 +24,7 @@ import BookingUtils, {
 } from "../utils/BookingUtils"
 import AuthService from "./AuthService"
 import MailService from "./MailService"
+import { LODGE_CREDIT_KEY } from "../utils/CustomerMetadata"
 
 const stripe = new Stripe(process.env.STRIPE_API_KEY)
 
@@ -60,7 +61,7 @@ export default class StripeService {
     return result.data
   }
 
-  public async getBalanceForUser(customer_id: string) {
+  public async getLodgeCreditsForUser(customer_id: string) {
     const userData = await stripe.customers.retrieve(customer_id)
     /**
      * Assume there will only be one coupon per user as that's how the coupons are created in `addCouponToUser`. If there are multiple coupons for a user, this will just return the first one which is not ideal but also not expected to happen.
@@ -69,18 +70,7 @@ export default class StripeService {
       return 0
     }
 
-    return userData.balance
-  }
-
-  /**
-   * @param customer_id Stripe customer id of the user to remove balance from
-   * @param amount Amount in NZD to remove from the user's balance (in cents)
-   */
-  public async removeBalanceForUser(customer_id: string, amount: number) {
-    await stripe.customers.createBalanceTransaction(customer_id, {
-      amount: -amount,
-      currency: "NZD"
-    })
+    return Math.floor(Number(userData.metadata[LODGE_CREDIT_KEY]))
   }
 
   /**
@@ -527,18 +517,12 @@ export default class StripeService {
   }
 
   /**
-   * Creates a coupon for the specified amount and adds it to the user with the given Stripe ID.
-   * @param stripeId The Stripe ID of the user to whom the coupon will be added.
-   * @param amount The amount **(in NZD cents)** for the coupon to be created.
    */
-  public async addBalanceToUser(stripeId: string, amount: number) {
-    try {
-      return await stripe.customers.createBalanceTransaction(stripeId, {
-        amount: amount,
-        currency: "NZD"
-      })
-    } catch {
-      throw new Error("Failed to add balance to user")
-    }
+  public async editUserLodgeCredits(stripeId: string, amount: number) {
+    await stripe.customers.update(stripeId, {
+      metadata: {
+        [LODGE_CREDIT_KEY]: amount
+      }
+    })
   }
 }

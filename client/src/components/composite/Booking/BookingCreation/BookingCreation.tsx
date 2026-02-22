@@ -20,6 +20,7 @@ import type { LodgePricingProps } from "@/services/AppData/AppDataService"
 import EmergencyContactAlert, {
   isValidEmergencyContact
 } from "./EmergencyContactAlert/EmergencyContactAlert"
+import LodgeCreditsBanner from "@/components/composite/Booking/BookingCreation/LodgeCreditsBanner/LodgeCreditsBanner"
 
 /*
  * Swaps around dates if invalid
@@ -75,6 +76,11 @@ export interface ICreateBookingSection {
   userEmergencyContact?: string
 
   lodgePrices: LodgePricingProps
+
+  /**
+   * The number of free night credits the user has available, used to show the {@link LodgeCreditsBanner}
+   */
+  availableCredits?: number
 }
 
 /**
@@ -117,7 +123,8 @@ export const CreateBookingSection = ({
   hasExistingSession,
   isPending,
   lodgePrices,
-  userEmergencyContact
+  userEmergencyContact,
+  availableCredits = 0
 }: ICreateBookingSection) => {
   const validEmergencyContact = isValidEmergencyContact(userEmergencyContact)
 
@@ -243,6 +250,10 @@ export const CreateBookingSection = ({
   return (
     <>
       <EmergencyContactAlert userEmergencyContact={userEmergencyContact} />
+      <div className="py-1" />
+      {availableCredits > 0 && (
+        <LodgeCreditsBanner availableCredits={availableCredits} />
+      )}
       <div
         className="mt-2 grid w-full max-w-[900px] grid-cols-1 items-center justify-items-center gap-2
                       px-1 sm:px-0 md:grid-cols-2"

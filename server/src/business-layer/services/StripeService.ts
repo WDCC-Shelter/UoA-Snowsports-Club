@@ -54,18 +54,20 @@ export default class StripeService {
     return await stripe.products.retrieve(id)
   }
 
-  public async getProductByMetadata(key: string, value: string) {
+  public async getProductByMetadata(
+    key: string,
+    value: string,
+    expand: string[] = []
+  ) {
     const result = await stripe.products.search({
-      query: `metadata['${key}']:'${value}'`
+      query: `metadata['${key}']:'${value}'`,
+      expand
     })
     return result.data
   }
 
   public async getLodgeCreditsForUser(customer_id: string) {
     const userData = await stripe.customers.retrieve(customer_id)
-    /**
-     * Assume there will only be one coupon per user as that's how the coupons are created in `addCouponToUser`. If there are multiple coupons for a user, this will just return the first one which is not ideal but also not expected to happen.
-     */
     if (userData.deleted === true) {
       return 0
     }
@@ -284,7 +286,8 @@ export default class StripeService {
     customer_id: string,
     expires_after_mins: number = 31,
     custom_text?: Stripe.Checkout.SessionCreateParams.CustomText,
-    allow_promotion_codes: boolean = false
+    allow_promotion_codes: boolean = false,
+    coupon: string | undefined = undefined
   ) {
     const session = await stripe.checkout.sessions.create({
       // consumer changeable
@@ -296,10 +299,11 @@ export default class StripeService {
       // configured internally and should not change
       ui_mode: "embedded",
       mode: "payment",
-      currency: "NZD",
+      currency: "nzd",
       expires_at: dateNowSecs() + expires_after_mins * ONE_MINUTE_S,
       custom_text,
-      allow_promotion_codes
+      ...(allow_promotion_codes && { allow_promotion_codes }),
+      ...(coupon && { discounts: [{ coupon }] })
     })
     return session.client_secret
   }
@@ -524,5 +528,28 @@ export default class StripeService {
         [LODGE_CREDIT_KEY]: amount
       }
     })
+  }
+
+  /**
+   * Creates a coupon that can only be used by the user with the specified Stripe ID, and gives them a discount of the specified amount in NZD (cents).
+   * @param amountCents The amount in NZD (cents) that the coupon should be worth.
+   * @param couponName The displayName of the coupon to show.
+   * @param durationMinutes The duration in minutes that the coupon should be valid for.
+   */
+  public async createCoupon(
+    amountCents: number,
+    couponName: string,
+    durationMinutes: number
+  ): Promise<string> {
+    const coupon = await stripe.coupons.create({
+      amount_off: amountCents,
+      currency: "nzd",
+      duration: "once",
+      name: couponName,
+      redeem_by: Math.floor(Date.now() / 1000) + durationMinutes * ONE_MINUTE_S
+    })
+    console.log(coupon)
+
+    return coupon.id
   }
 }

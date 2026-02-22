@@ -1,17 +1,17 @@
 import { useMutation } from "@tanstack/react-query"
-import AdminService from "./AdminService"
 import type { Timestamp } from "firebase/firestore"
-import queryClient from "@/services/QueryClient"
+import type { CombinedUserData } from "@/models/User"
 import { BOOKING_AVAILABLITY_KEY } from "@/services/Booking/BookingQueries"
+import queryClient from "@/services/QueryClient"
+import { ALL_EVENTS_QUERY_KEY } from "../Event/EventQueries"
 import {
   ALL_BOOKINGS_BETWEEN_RANGE_QUERY,
   ALL_USERS_QUERY,
   BOOKING_HISTORY_QUERY,
   LODGE_CREDITS_FOR_USER_QUERY
 } from "./AdminQueries"
-import type { CombinedUserData } from "@/models/User"
+import AdminService from "./AdminService"
 import { replaceUserInPage } from "./AdminUtils"
-import { ALL_EVENTS_QUERY_KEY } from "../Event/EventQueries"
 
 export function usePromoteUserMutation() {
   return useMutation({
@@ -240,6 +240,19 @@ export function useDeleteLodgeCreditMutation() {
     mutationKey: ["delete-lodge-credit"],
     retry: false,
     mutationFn: AdminService.deleteLodgeCreditsForUser,
+    onSuccess: () => {
+      queryClient.removeQueries({
+        queryKey: [LODGE_CREDITS_FOR_USER_QUERY]
+      })
+    }
+  })
+}
+
+export function useUpdateLodgeCreditMutation() {
+  return useMutation({
+    mutationKey: ["edit-lodge-credit"],
+    retry: false,
+    mutationFn: AdminService.editLodgeCreditsForUser,
     onSuccess: () => {
       queryClient.removeQueries({
         queryKey: [LODGE_CREDITS_FOR_USER_QUERY]

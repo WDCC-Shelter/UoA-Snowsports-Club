@@ -1,34 +1,34 @@
+import { type FormEvent, useRef, useState } from "react"
+import CloseIcon from "@/assets/icons/x.svg"
 import Button from "@/components/generic/FigmaButtons/FigmaButton"
 import TextInput from "@/components/generic/TextInputComponent/TextInput"
-import CloseIcon from "@/assets/icons/x.svg"
 import { useClickOutside } from "@/components/utils/Utils"
-import { type FormEvent, useRef, useState } from "react"
 
 const ADD_OPERATION = "add" as const
 const EDIT_OPERATION = "edit" as const
 const DELETE_OPERATION = "delete" as const
 
-export type CouponOperationType =
+export type LodgeCreditOperationType =
   | typeof ADD_OPERATION
   | typeof EDIT_OPERATION
   | typeof DELETE_OPERATION
 
-interface CouponAddOperation {
+interface LodgeCreditAddOperation {
   type: typeof ADD_OPERATION
   amount: number
 }
-interface CouponEditOperation {
+interface LodgeCreditEditOperation {
   type: typeof EDIT_OPERATION
   amount: number
 }
-interface CouponDeleteOperation {
+interface LodgeCreditDeleteOperation {
   type: typeof DELETE_OPERATION
 }
 
-export type CouponOperation =
-  | CouponAddOperation
-  | CouponEditOperation
-  | CouponDeleteOperation
+export type LodgeCreditOperation =
+  | LodgeCreditAddOperation
+  | LodgeCreditEditOperation
+  | LodgeCreditDeleteOperation
 
 interface IAdminLodgeCreditManagementModal {
   /**
@@ -52,7 +52,10 @@ interface IAdminLodgeCreditManagementModal {
   /**
    * Callback when a coupon operation is submitted
    */
-  couponUpdateHandler?: (userId: string, operation: CouponOperation) => void
+  couponUpdateHandler?: (
+    userId: string,
+    operation: LodgeCreditOperation
+  ) => void
   /**
    * Callback for when a 'close' event is triggered with the modal open
    */
@@ -91,11 +94,11 @@ export const AdminLodgeCreditManagementModal = ({
 
   const handleSubmit = (
     e: FormEvent<HTMLFormElement>,
-    operationType: CouponOperationType
+    operationType: LodgeCreditOperationType
   ) => {
     const data = new FormData(e.currentTarget)
 
-    let operation: CouponOperation
+    let operation: LodgeCreditOperation
     const amount = Number.parseFloat(
       data.get(AdminLodgeCreditFormKeys.AMOUNT) as string
     )

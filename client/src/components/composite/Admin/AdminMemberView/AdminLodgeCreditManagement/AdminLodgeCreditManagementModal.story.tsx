@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react"
 import { useState } from "react"
-import ModalContainer from "@/components/generic/ModalContainer/ModalContainer"
 import {
   AdminLodgeCreditManagementModal,
-  type CouponOperation
+  type LodgeCreditOperation
 } from "@/components/composite/Admin/AdminMemberView/AdminLodgeCreditManagement/AdminLodgeCreditManagementModal"
+import ModalContainer from "@/components/generic/ModalContainer/ModalContainer"
 
 const meta: Meta<typeof AdminLodgeCreditManagementModal> = {
   component: AdminLodgeCreditManagementModal,
@@ -117,7 +117,10 @@ export const OpenAndCloseExample = () => {
     }, 1000)
   }
 
-  const handleCouponUpdate = (userId: string, operation: CouponOperation) => {
+  const handleCouponUpdate = (
+    userId: string,
+    operation: LodgeCreditOperation
+  ) => {
     console.log("Coupon update:", { userId, operation })
     if (operation.type === "add" || operation.type === "edit") {
       setCurrentAmount(operation.amount)

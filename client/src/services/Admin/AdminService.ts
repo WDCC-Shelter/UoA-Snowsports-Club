@@ -341,6 +341,32 @@ const AdminService = {
         `Failed to delete lodge credits for user with id ${userId}`
       )
     }
+  },
+  editLodgeCreditsForUser: async ({
+    userId,
+    amount
+  }: {
+    userId: string
+    amount: number
+  }) => {
+    const { response } = await fetchClient.PUT(
+      "/admin/users/{uid}/lodge-credits",
+      {
+        params: {
+          path: {
+            uid: userId
+          }
+        },
+        body: {
+          quantity: amount
+        }
+      }
+    )
+    if (!response.ok) {
+      throw new Error(
+        `Failed to edit lodge credits to ${amount} for user with id ${userId}`
+      )
+    }
   }
 } as const
 

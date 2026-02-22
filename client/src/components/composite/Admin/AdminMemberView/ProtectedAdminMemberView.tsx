@@ -1,31 +1,34 @@
-import {
-  useMemberGoogleSheetUrlQuery,
-  useAdminUserLodgeCreditsQuery,
-  useUsersQuery
-} from "@/services/Admin/AdminQueries"
-import { AdminMemberView, type MemberColumnFormat } from "./AdminMemberView"
+import { sendPasswordResetEmail } from "firebase/auth"
+import { useCallback, useMemo, useRef, useState } from "react"
+import { CSVLink } from "react-csv"
+import AdminLodgeCreditManagementModal, {
+  type LodgeCreditOperation
+} from "@/components/composite/Admin/AdminMemberView/AdminLodgeCreditManagement/AdminLodgeCreditManagementModal"
+import ModalContainer from "@/components/generic/ModalContainer/ModalContainer"
+import type { TableRowOperation } from "@/components/generic/ReusableTable/TableUtils"
+import { DateUtils } from "@/components/utils/DateUtils"
+import { auth } from "@/firebase"
+import type { ReducedUserAdditionalInfo } from "@/models/User"
 import {
   useAddLodgeCreditMutation,
   useDeleteLodgeCreditMutation,
   useDeleteUserMutation,
   useDemoteUserMutation,
   usePromoteUserMutation,
-  useResetMembershipsMutation
+  useResetMembershipsMutation,
+  useUpdateLodgeCreditMutation
 } from "@/services/Admin/AdminMutations"
-import type { TableRowOperation } from "@/components/generic/ReusableTable/TableUtils"
+import {
+  useAdminUserLodgeCreditsQuery,
+  useMemberGoogleSheetUrlQuery,
+  useUsersQuery
+} from "@/services/Admin/AdminQueries"
+import queryClient from "@/services/QueryClient"
+import { useSignUpUserMutation } from "@/services/User/UserMutations"
+import { AdminMemberView, type MemberColumnFormat } from "./AdminMemberView"
 import AdminUserCreationModal, {
   type AccountType
 } from "./AdminUserCreation/AdminUserCreationModal"
-import ModalContainer from "@/components/generic/ModalContainer/ModalContainer"
-import { useState, useMemo, useRef, useCallback } from "react"
-import { useSignUpUserMutation } from "@/services/User/UserMutations"
-import queryClient from "@/services/QueryClient"
-import { sendPasswordResetEmail } from "firebase/auth"
-import { auth } from "@/firebase"
-import type { ReducedUserAdditionalInfo } from "@/models/User"
-import { CSVLink } from "react-csv"
-import { DateUtils } from "@/components/utils/DateUtils"
-import AdminLodgeCreditManagementModal from "@/components/composite/Admin/AdminMemberView/AdminLodgeCreditManagement/AdminLodgeCreditManagementModal"
 
 /**
  * Component that handles all the network requests for `AdminMemberView`
@@ -146,6 +149,7 @@ const WrappedAdminMemberView = () => {
   const { mutateAsync: deleteUser, isPending } = useDeleteUserMutation()
   const { mutateAsync: addLodgeCredits } = useAddLodgeCreditMutation()
   const { mutateAsync: deleteLodgeCredits } = useDeleteLodgeCreditMutation()
+  const { mutateAsync: updateLodgeCredits } = useUpdateLodgeCreditMutation()
   const { data: memberGoogleSheetData } = useMemberGoogleSheetUrlQuery()
 
   const handleAddLodgeCredits = useCallback(
@@ -178,6 +182,41 @@ const WrappedAdminMemberView = () => {
         }
       ),
     [deleteLodgeCredits]
+  )
+
+  const handleUpdateLodgeCredits = useCallback(
+    (userId: string, amount: number) =>
+      updateLodgeCredits(
+        { userId, amount },
+        {
+          onSuccess() {
+            alert(
+              `Successfully updated lodge credits to ${amount} for ${userId}`
+            )
+          },
+          onError(err) {
+            alert(`Failed to update lodge credits: ${err.message}`)
+          }
+        }
+      ),
+    [updateLodgeCredits]
+  )
+
+  const handleLodgeCreditOperation = useCallback(
+    async (userId: string, operation: LodgeCreditOperation) => {
+      switch (operation.type) {
+        case "add":
+          await handleAddLodgeCredits(userId, operation.amount)
+          break
+        case "edit":
+          await handleUpdateLodgeCredits(userId, operation.amount)
+          break
+        case "delete":
+          await handleDeleteLodgeCredits(userId)
+          break
+      }
+    },
+    [handleAddLodgeCredits, handleUpdateLodgeCredits, handleDeleteLodgeCredits]
   )
 
   const handleExportUsers = useCallback(() => {
@@ -292,19 +331,7 @@ const WrappedAdminMemberView = () => {
             handleClose={() => setSelectedLodgeCreditUser(undefined)}
             userId={selectedLodgeCreditUser.userId}
             userName={selectedLodgeCreditUser.userDisplayName}
-            couponUpdateHandler={async (userId, operation) => {
-              switch (operation.type) {
-                case "add":
-                  await handleAddLodgeCredits(userId, operation.amount)
-                  break
-                case "edit":
-                  alert("Editing lodge credits is not implemented yet")
-                  break
-                case "delete":
-                  await handleDeleteLodgeCredits(userId)
-                  break
-              }
-            }}
+            couponUpdateHandler={handleLodgeCreditOperation}
             isLoading={couponCount === undefined}
             currentAmount={couponCount || 0}
           />

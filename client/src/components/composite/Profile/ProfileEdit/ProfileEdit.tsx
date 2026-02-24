@@ -79,6 +79,10 @@ const nameTransformer = (
       return "University Year"
     case "has_whakapapa_season_pass":
       return "Has Whakapapa Season Pass?"
+    case "instagram_handle":
+      return "Instagram Handle"
+    case "student_id_long":
+      return "Student University ID"
   }
 }
 

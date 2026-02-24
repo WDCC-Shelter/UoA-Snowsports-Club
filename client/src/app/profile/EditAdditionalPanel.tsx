@@ -37,6 +37,10 @@ const EditAdditionalPanel = ({ isOpen, handleClose }: IGeneralProfileEdit) => {
         {
           fieldName: "has_whakapapa_season_pass",
           defaultFieldValue: currentUserData?.has_whakapapa_season_pass
+        },
+        {
+          fieldName: "instagram_handle",
+          defaultFieldValue: currentUserData?.instagram_handle
         }
       ]}
     ></WrappedProfileEdit>

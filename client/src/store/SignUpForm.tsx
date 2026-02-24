@@ -31,7 +31,9 @@ const initialState: State = {
   has_whakapapa_season_pass: false,
   formValidity: {
     success: false
-  }
+  },
+  student_id_long: undefined,
+  instagram_handle: undefined
 }
 
 const actions = {

@@ -56,6 +56,17 @@ export interface UserAdditionalInfo {
    * For identification DO NOT RETURN to users in exposed endpoints
    */
   stripe_id?: string
+
+  /**
+   * The user's university ID i.e NOT the abc123 format but the longer student id
+   *@isString Please enter your student long ID
+   */
+  student_id_long?: string
+
+  /**
+   * The user's Instagram handle, this is optional
+   */
+  instagram_handle?: string
 }
 
 export interface BookingSlot {

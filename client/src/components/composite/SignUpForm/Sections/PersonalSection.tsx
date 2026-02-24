@@ -107,10 +107,19 @@ export const PersonalSectionSecond = () => {
         type="text"
         label="UoA UPI"
         description="Put NA if not a UoA Student"
-        id="FirstName"
         defaultValue={student_id}
         placeholder="e.g. jdoe696"
         onChange={(e) => updateFormData({ student_id: e.target.value })}
+        required
+      />
+      <TextInput
+        type="text"
+        label="University Student ID"
+        description="Put NA if not a student"
+        defaultValue={student_id}
+        placeholder="e.g. 123456789"
+        onChange={(e) => updateFormData({ student_id_long: e.target.value })}
+        maxLength={12}
         required
       />
       <Dropdown

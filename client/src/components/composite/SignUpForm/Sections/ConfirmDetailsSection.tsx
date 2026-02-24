@@ -33,6 +33,7 @@ export const ConfirmDetailsSection = () => {
       date_of_birth,
       gender,
       student_id,
+      student_id_long,
       university_year,
       faculty,
       email,
@@ -41,7 +42,9 @@ export const ConfirmDetailsSection = () => {
       does_ski,
       does_snowboarding,
       does_racing,
-      dietary_requirements
+      dietary_requirements,
+      has_whakapapa_season_pass,
+      instagram_handle
     }
   ] = useSignUpFormData()
 
@@ -78,6 +81,8 @@ export const ConfirmDetailsSection = () => {
           {gender ? <MyText text={gender} /> : <MyText text="N/A" />}{" "}
           <Field text="Student ID Number" />
           <MyText text={student_id} />
+          <Field text="Student ID (Long)" />
+          <MyText text={student_id_long} />
           <Field text="University Year" />
           {university_year ? (
             <MyText text={university_year} />
@@ -117,6 +122,14 @@ export const ConfirmDetailsSection = () => {
           <Field text="Dietary Requirements" />
           {dietary_requirements ? (
             <MyText text={dietary_requirements} />
+          ) : (
+            <MyText text="N/A" />
+          )}{" "}
+          <Field text="Whakapapa Season Pass?" />
+          <MyText text={has_whakapapa_season_pass ? "Yes" : "No"} />
+          <Field text="Instagram Handle" />
+          {instagram_handle ? (
+            <MyText text={instagram_handle} />
           ) : (
             <MyText text="N/A" />
           )}{" "}

@@ -201,6 +201,10 @@ function ProfileInner() {
                     description={`${currentUserData?.student_id}`}
                   />
                   <Field
+                    subtitle={"Student University ID"}
+                    description={`${currentUserData?.student_id_long}`}
+                  />
+                  <Field
                     subtitle="Date of birth"
                     description={
                       currentUserData?.date_of_birth &&
@@ -219,8 +223,7 @@ function ProfileInner() {
                     subtitle="Emergency contact info"
                     description={`${currentUserData?.emergency_contact}`}
                   />
-                  <div></div>
-                  <h5 className="text-dark-blue-100 mt-4 font-bold">
+                  <h5 className="text-dark-blue-100 mr-auto mt-4 font-bold">
                     <Link href={"/register"}>CHANGE PASSWORD</Link>
                   </h5>
                 </div>
@@ -269,6 +272,10 @@ function ProfileInner() {
                   <Field
                     subtitle="Has Whakapapa Season Pass?"
                     description={`${currentUserData?.has_whakapapa_season_pass ? "Yes" : "No"}`}
+                  />
+                  <Field
+                    subtitle={"Instagram Handle"}
+                    description={`${currentUserData?.instagram_handle}`}
                   />
                 </ProfileInformationPanel>
                 <ProfileBookingsTable />

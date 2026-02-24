@@ -80,6 +80,14 @@
 					"has_whakapapa_season_pass": {
 						"type": "boolean",
 						"description": "If the user has a Whakapapa season pass, this should be set to `true`."
+					},
+					"student_id_long": {
+						"type": "string",
+						"description": "The user's university ID i.e NOT the abc123 format but the longer student id"
+					},
+					"instagram_handle": {
+						"type": "string",
+						"description": "The user's Instagram handle, this is optional"
 					}
 				},
 				"type": "object",
@@ -195,6 +203,14 @@
 					"has_whakapapa_season_pass": {
 						"type": "boolean",
 						"description": "If the user has a Whakapapa season pass, this should be set to `true`."
+					},
+					"student_id_long": {
+						"type": "string",
+						"description": "The user's university ID i.e NOT the abc123 format but the longer student id"
+					},
+					"instagram_handle": {
+						"type": "string",
+						"description": "The user's Instagram handle, this is optional"
 					}
 				},
 				"required": [
@@ -643,6 +659,14 @@
 						"type": "string",
 						"description": "For identification DO NOT RETURN to users in exposed endpoints"
 					},
+					"student_id_long": {
+						"type": "string",
+						"description": "The user's university ID i.e NOT the abc123 format but the longer student id"
+					},
+					"instagram_handle": {
+						"type": "string",
+						"description": "The user's Instagram handle, this is optional"
+					},
 					"uid": {
 						"type": "string",
 						"description": "Firebase identifier of the user *data* based on the firestore document"
@@ -941,6 +965,14 @@
 						"type": "string",
 						"description": "For identification DO NOT RETURN to users in exposed endpoints"
 					},
+					"student_id_long": {
+						"type": "string",
+						"description": "The user's university ID i.e NOT the abc123 format but the longer student id"
+					},
+					"instagram_handle": {
+						"type": "string",
+						"description": "The user's Instagram handle, this is optional"
+					},
 					"uid": {
 						"type": "string",
 						"description": "Firebase identifier of the user *data* based on the firestore document"
@@ -1064,6 +1096,14 @@
 					"stripe_id": {
 						"type": "string",
 						"description": "For identification DO NOT RETURN to users in exposed endpoints"
+					},
+					"student_id_long": {
+						"type": "string",
+						"description": "The user's university ID i.e NOT the abc123 format but the longer student id"
+					},
+					"instagram_handle": {
+						"type": "string",
+						"description": "The user's Instagram handle, this is optional"
 					}
 				},
 				"required": [
@@ -1148,6 +1188,14 @@
 					"stripe_id": {
 						"type": "string",
 						"description": "For identification DO NOT RETURN to users in exposed endpoints"
+					},
+					"student_id_long": {
+						"type": "string",
+						"description": "The user's university ID i.e NOT the abc123 format but the longer student id"
+					},
+					"instagram_handle": {
+						"type": "string",
+						"description": "The user's Instagram handle, this is optional"
 					}
 				},
 				"type": "object",
@@ -1673,6 +1721,12 @@
 							"application/json": {
 								"schema": {
 									"properties": {
+										"instagram_handle": {
+											"type": "string"
+										},
+										"student_id_long": {
+											"type": "string"
+										},
 										"stripe_id": {
 											"type": "string"
 										},

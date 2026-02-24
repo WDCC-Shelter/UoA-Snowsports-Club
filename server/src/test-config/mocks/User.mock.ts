@@ -16,7 +16,9 @@ export const userInfoMock: UserAdditionalInfo = {
   university: "uoa",
   student_id: "11299211",
   university_year: "2nd",
-  stripe_id: "default"
+  stripe_id: "default",
+  student_id_long: "12345678901234567890",
+  instagram_handle: "@straightzhao"
 }
 export const userInfoMock2: UserAdditionalInfo = {
   date_of_birth: dateToFirestoreTimeStamp(new Date(1000000000)),

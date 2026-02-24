@@ -58,7 +58,8 @@ export const AdditionalSection = () => {
       does_snowboarding,
       does_racing,
       dietary_requirements,
-      has_whakapapa_season_pass
+      has_whakapapa_season_pass,
+      instagram_handle
     },
     { updateFormData }
   ] = useSignUpFormData()
@@ -152,7 +153,16 @@ export const AdditionalSection = () => {
         required
       />
 
-      <div className="flex flex-col">
+      <TextInput
+        type="text"
+        label="Instagram Handle"
+        defaultValue={instagram_handle}
+        onChange={(e) => {
+          updateFormData({ instagram_handle: e.target.value })
+        }}
+      />
+
+      <div className="flex flex-col mb-3">
         <label htmlFor="hypeLevel">
           How f#&@g excited are you to SEND IT IN {new Date().getFullYear()}!!!!
         </label>

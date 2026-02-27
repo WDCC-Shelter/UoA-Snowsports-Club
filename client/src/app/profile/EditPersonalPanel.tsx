@@ -55,6 +55,10 @@ const EditPersonalPanel = ({ isOpen, handleClose }: IGeneralProfileEdit) => {
         {
           fieldName: "student_id",
           defaultFieldValue: currentUserData?.student_id
+        },
+        {
+          fieldName: "student_id_long",
+          defaultFieldValue: currentUserData?.student_id_long
         }
       ]}
     ></WrappedProfileEdit>

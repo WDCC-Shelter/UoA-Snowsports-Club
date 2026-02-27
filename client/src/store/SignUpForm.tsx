@@ -31,7 +31,9 @@ const initialState: State = {
   has_whakapapa_season_pass: false,
   formValidity: {
     success: false
-  }
+  },
+  student_id_long: undefined,
+  instagram_handle: undefined
 }
 
 const actions = {
@@ -55,9 +57,12 @@ const actions = {
       }
 
       const validateSecondSection = (invalidFields: string[]) => {
-        const { student_id } = getState()
+        const { student_id, student_id_long } = getState()
         if (!student_id || student_id.length < 2) {
           invalidFields.push("UoA UPI")
+        }
+        if (!student_id_long || student_id_long.length < 2) {
+          invalidFields.push("Student ID")
         }
       }
 

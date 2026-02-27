@@ -32,7 +32,7 @@ const Shop = async () => {
   }
 
   return (
-    <main className="min-h-screen py-8">
+    <main className="min-h-screen py-8 overflow-y-auto">
       <ShopView items={shopItems} error={error} />
     </main>
   )

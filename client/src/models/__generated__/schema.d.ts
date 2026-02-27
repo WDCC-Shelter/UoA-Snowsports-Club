@@ -240,6 +240,10 @@ export interface components {
       university_year?: string;
       /** @description If the user has a Whakapapa season pass, this should be set to `true`. */
       has_whakapapa_season_pass?: boolean;
+      /** @description The user's university ID i.e NOT the abc123 format but the longer student id */
+      student_id_long?: string;
+      /** @description The user's Instagram handle, this is optional */
+      instagram_handle?: string;
     };
     /** @description Construct a type with the properties of T except for those in type K. */
     "Omit_Partial_UserAdditionalInfo_.stripe_id_": components["schemas"]["Pick_Partial_UserAdditionalInfo_.Exclude_keyofPartial_UserAdditionalInfo_.stripe_id__"];
@@ -280,6 +284,10 @@ export interface components {
       university_year?: string;
       /** @description If the user has a Whakapapa season pass, this should be set to `true`. */
       has_whakapapa_season_pass?: boolean;
+      /** @description The user's university ID i.e NOT the abc123 format but the longer student id */
+      student_id_long?: string;
+      /** @description The user's Instagram handle, this is optional */
+      instagram_handle?: string;
     };
     /** @description Construct a type with the properties of T except for those in type K. */
     "Omit_UserAdditionalInfo.stripe_id_": components["schemas"]["Pick_UserAdditionalInfo.Exclude_keyofUserAdditionalInfo.stripe_id__"];
@@ -454,6 +462,10 @@ export interface components {
       has_whakapapa_season_pass?: boolean;
       /** @description For identification DO NOT RETURN to users in exposed endpoints */
       stripe_id?: string;
+      /** @description The user's university ID i.e NOT the abc123 format but the longer student id */
+      student_id_long?: string;
+      /** @description The user's Instagram handle, this is optional */
+      instagram_handle?: string;
       /** @description Firebase identifier of the user *data* based on the firestore document */
       uid: string;
       /** @description Formatted UTC date string of when the account was created */
@@ -550,6 +562,10 @@ export interface components {
       has_whakapapa_season_pass?: boolean;
       /** @description For identification DO NOT RETURN to users in exposed endpoints */
       stripe_id?: string;
+      /** @description The user's university ID i.e NOT the abc123 format but the longer student id */
+      student_id_long?: string;
+      /** @description The user's Instagram handle, this is optional */
+      instagram_handle?: string;
       /** @description Firebase identifier of the user *data* based on the firestore document */
       uid: string;
       /** @description Formatted UTC date string of when the account was created */
@@ -598,6 +614,10 @@ export interface components {
       has_whakapapa_season_pass?: boolean;
       /** @description For identification DO NOT RETURN to users in exposed endpoints */
       stripe_id?: string;
+      /** @description The user's university ID i.e NOT the abc123 format but the longer student id */
+      student_id_long?: string;
+      /** @description The user's Instagram handle, this is optional */
+      instagram_handle?: string;
     };
     CreateUserRequestBody: {
       uid: string;
@@ -626,6 +646,10 @@ export interface components {
       has_whakapapa_season_pass?: boolean;
       /** @description For identification DO NOT RETURN to users in exposed endpoints */
       stripe_id?: string;
+      /** @description The user's university ID i.e NOT the abc123 format but the longer student id */
+      student_id_long?: string;
+      /** @description The user's Instagram handle, this is optional */
+      instagram_handle?: string;
     };
     EditUsersRequestBody: {
       users: {
@@ -909,6 +933,8 @@ export interface operations {
       200: {
         content: {
           "application/json": {
+            instagram_handle?: string;
+            student_id_long?: string;
             stripe_id?: string;
             has_whakapapa_season_pass?: boolean;
             university_year?: string;

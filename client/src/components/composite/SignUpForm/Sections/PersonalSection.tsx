@@ -98,8 +98,10 @@ export const PersonalSectionFirst = () => {
 }
 
 export const PersonalSectionSecond = () => {
-  const [{ student_id, university_year, faculty }, { updateFormData }] =
-    useSignUpFormData()
+  const [
+    { student_id, student_id_long, university_year, faculty },
+    { updateFormData }
+  ] = useSignUpFormData()
 
   return (
     <div className="flex max-w-sm flex-col gap-5">
@@ -107,10 +109,21 @@ export const PersonalSectionSecond = () => {
         type="text"
         label="UoA UPI"
         description="Put NA if not a UoA Student"
-        id="FirstName"
         defaultValue={student_id}
         placeholder="e.g. jdoe696"
+        minLength={2}
         onChange={(e) => updateFormData({ student_id: e.target.value })}
+        required
+      />
+      <TextInput
+        type="text"
+        label="University Student ID"
+        description="Put NA if not a student"
+        defaultValue={student_id_long}
+        placeholder="e.g. 123456789"
+        onChange={(e) => updateFormData({ student_id_long: e.target.value })}
+        minLength={2}
+        maxLength={12}
         required
       />
       <Dropdown

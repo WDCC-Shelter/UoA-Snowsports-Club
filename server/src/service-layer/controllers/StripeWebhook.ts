@@ -12,6 +12,78 @@ import { Controller, Post, Request, Route, SuccessResponse } from "tsoa"
 @Route("webhook")
 export class StripeWebhook extends Controller {
   /**
+   * Constructs and verifies a Stripe event from the raw request.
+   */
+  private constructStripeEvent(
+    stripe: Stripe,
+    request: any
+  ): Stripe.Event | null {
+    try {
+      console.log(process.env.STRIPE_WEBHOOK_SECRET)
+      return stripe.webhooks.constructEvent(
+        request.rawBody,
+        request.headers["stripe-signature"],
+        process.env.STRIPE_WEBHOOK_SECRET
+      )
+    } catch (err) {
+      console.error(err)
+      return null
+    }
+  }
+
+  /**
+   * Validates that the session has a valid user ID and that the user exists.
+   * Returns the uid if valid, or null otherwise.
+   */
+  private async validateSessionUser(
+    session: Stripe.Checkout.Session,
+    userService: UserDataService,
+    context: string
+  ): Promise<string | null> {
+    const uid = session.client_reference_id
+    if (uid === undefined || !(await userService.getUserData(uid))) {
+      console.log(
+        `[WEBHOOK] internal error: failed to fetch uid from stripe session '${session.id}' (${context})`
+      )
+      return null
+    }
+    return uid
+  }
+
+  /**
+   * Extracts and validates the checkout type from session metadata.
+   * Returns the checkout type if found, or undefined otherwise.
+   */
+  private getCheckoutType(
+    session: Stripe.Checkout.Session
+  ): CheckoutTypeValues | undefined {
+    return Object.values(CheckoutTypeValues).find(
+      (c) => c === session.metadata[CHECKOUT_TYPE_KEY]
+    )
+  }
+
+  /**
+   * Handles booking payment processing with standard error handling.
+   * Returns the appropriate status code.
+   */
+  private async processBookingPayment(
+    stripeService: StripeService,
+    uid: string,
+    session: Stripe.Checkout.Session,
+    label: string
+  ): Promise<StatusCodes> {
+    try {
+      await stripeService.handleBookingPaymentSession(uid, session)
+    } catch (e) {
+      console.error(
+        `[WEBHOOK] Failed to handle ${label} session '${session.id}': ${e}`
+      )
+      return StatusCodes.INTERNAL_SERVER_ERROR
+    }
+    return StatusCodes.OK
+  }
+
+  /**
    * Webhook endpoint for Stripe events.
    * This single endpoint is setup in the Stripe developer config to handle various events.
    * @param request - The raw request that's passed from Stripe.
@@ -22,48 +94,37 @@ export class StripeWebhook extends Controller {
   public async receiveWebhook(@Request() request: any): Promise<void> {
     const stripe = new Stripe(process.env.STRIPE_API_KEY)
 
-    // Ensure security of the endpoint by constructing an event
-    let event: Stripe.Event
-    try {
-      console.log(process.env.STRIPE_WEBHOOK_SECRET)
-      event = stripe.webhooks.constructEvent(
-        request.rawBody,
-        request.headers["stripe-signature"],
-        process.env.STRIPE_WEBHOOK_SECRET
-      )
-    } catch (err) {
-      console.error(err)
-      return this.setStatus(StatusCodes.UNAUTHORIZED) // unauthorized request
+    const event = this.constructStripeEvent(stripe, request)
+    if (!event) {
+      return this.setStatus(StatusCodes.UNAUTHORIZED)
     }
 
-    // Create services
     const userService = new UserDataService()
     const stripeService = new StripeService()
 
     switch (event.type) {
       case "payment_intent.succeeded": {
         console.log("[WEBHOOK] received payment_intent.succeeded")
-        // Stripe PaymentIntent
         const { id: payment_intent_id } = event.data.object
         console.log(
           `[WEBHOOK] received payment intent succeeded for payment intent '${payment_intent_id}'`
         )
-        // Fetch the checkout session from the PaymentIntent ID
+
         const session =
           await stripeService.retrieveCheckoutSessionFromPaymentIntent(
             payment_intent_id
           )
-        const uid = session.client_reference_id
-        if (uid === undefined || !(await userService.getUserData(uid))) {
-          console.log(
-            `[WEBHOOK] internal error: failed to fetch uid from stripe session '${session.id}' (payment intent '${payment_intent_id}')`
-          )
+
+        const uid = await this.validateSessionUser(
+          session,
+          userService,
+          `payment intent '${payment_intent_id}'`
+        )
+        if (!uid) {
           return this.setStatus(StatusCodes.BAD_REQUEST)
         }
 
-        const checkoutType = Object.values(CheckoutTypeValues).find(
-          (c) => c === session.metadata[CHECKOUT_TYPE_KEY]
-        )
+        const checkoutType = this.getCheckoutType(session)
         if (checkoutType === undefined) {
           console.log(
             `[WEBHOOK] internal error: session '${session.id}' had no checkout type metadata (payment intent '${payment_intent_id}')`
@@ -73,15 +134,13 @@ export class StripeWebhook extends Controller {
 
         switch (checkoutType) {
           case CheckoutTypeValues.BOOKING: {
-            try {
-              await stripeService.handleBookingPaymentSession(uid, session)
-            } catch (e) {
-              console.error(
-                `[WEBHOOK] Failed to handle booking payment session '${session.id}': ${e}`
-              )
-              return this.setStatus(StatusCodes.INTERNAL_SERVER_ERROR)
-            }
-            return this.setStatus(StatusCodes.OK)
+            const status = await this.processBookingPayment(
+              stripeService,
+              uid,
+              session,
+              "booking payment"
+            )
+            return this.setStatus(status)
           }
           case CheckoutTypeValues.MEMBERSHIP: {
             try {
@@ -105,19 +164,13 @@ export class StripeWebhook extends Controller {
 
       case "checkout.session.completed": {
         const session: Stripe.Checkout.Session & {
-          /**
-           * This is a hack, but the typescript types for Stripe are wrong and
-           * don't include discounts on the session object, even though they are present in the actual API response.
-           */
           discounts?: ReadonlyArray<Record<string, string>>
         } = event.data.object
         console.log(
           `[WEBHOOK] received checkout.session.completed for session '${session.id}'`
         )
 
-        const checkoutType = Object.values(CheckoutTypeValues).find(
-          (c) => c === session.metadata[CHECKOUT_TYPE_KEY]
-        )
+        const checkoutType = this.getCheckoutType(session)
         if (checkoutType !== CheckoutTypeValues.BOOKING) {
           console.log(
             `[WEBHOOK] checkout.session.completed for session '${session.id}' is not a booking, skipping`
@@ -136,27 +189,27 @@ export class StripeWebhook extends Controller {
           return this.setStatus(StatusCodes.OK)
         }
 
-        const uid = session.client_reference_id
-        if (uid === undefined || !(await userService.getUserData(uid))) {
-          console.log(
-            `[WEBHOOK] internal error: failed to fetch uid from stripe session '${session.id}'`
-          )
+        const uid = await this.validateSessionUser(
+          session,
+          userService,
+          `checkout.session.completed`
+        )
+        if (!uid) {
           return this.setStatus(StatusCodes.BAD_REQUEST)
         }
 
-        try {
-          await stripeService.handleBookingPaymentSession(uid, session)
-        } catch (e) {
-          console.error(
-            `[WEBHOOK] Failed to handle coupon booking session '${session.id}': ${e}`
-          )
-          return this.setStatus(StatusCodes.INTERNAL_SERVER_ERROR)
-        }
-
-        console.log(
-          `[WEBHOOK] handled fully discounted booking for user '${uid}' from session '${session.id}'`
+        const status = await this.processBookingPayment(
+          stripeService,
+          uid,
+          session,
+          "coupon booking"
         )
-        return this.setStatus(StatusCodes.OK)
+        if (status === StatusCodes.OK) {
+          console.log(
+            `[WEBHOOK] handled fully discounted booking for user '${uid}' from session '${session.id}'`
+          )
+        }
+        return this.setStatus(status)
       }
     }
 

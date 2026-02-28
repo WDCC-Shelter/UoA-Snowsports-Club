@@ -72,7 +72,7 @@ runs:
         cp -r ./server/. app/server
 
     - name: Upload combined directory to E2
-      uses: burnett01/rsync-deployments@7.0.2
+      uses: burnett01/rsync-deployments@8.0.4
       with:
         switches: -avz --delete
         path: ./app

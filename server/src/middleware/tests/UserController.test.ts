@@ -25,14 +25,14 @@ describe("UserController endpoint tests", () => {
           })
         jest
           .spyOn(StripeService.prototype, "getLodgeCreditsForUser")
-          .mockResolvedValue(69)
+          .mockResolvedValue({ weekNightsOnly: 69, anyNight: 420 })
         const res = await request
           .get("/users/self/lodge-credits")
           .set("Authorization", `Bearer ${memberToken}`)
           .send({})
 
         expect(res.status).toEqual(StatusCodes.OK)
-        expect(res.body).toEqual(69)
+        expect(res.body).toEqual({ weekNightsOnly: 69, anyNight: 420 })
       })
     })
   })

@@ -659,7 +659,7 @@ describe("AdminController endpoint tests", () => {
       await createUserDataWithStripeId(ADMIN_USER_UID, { stripe_id: stripeId })
       jest
         .spyOn(StripeService.prototype, "getLodgeCreditsForUser")
-        .mockResolvedValue(69)
+        .mockResolvedValue({ weekNightsOnly: 69, anyNight: 420 })
 
       const response = await request
         .get(`/admin/users/${ADMIN_USER_UID}/lodge-credits`)
@@ -667,7 +667,10 @@ describe("AdminController endpoint tests", () => {
         .send()
 
       expect(response.status).toEqual(StatusCodes.OK)
-      expect(response.body).toHaveProperty("quantity")
+      expect(response.body).toEqual({
+        weekNightsOnly: 69,
+        anyNight: 420
+      })
     })
 
     it("Should return 404 when getting coupon for non-existent user", async () => {
@@ -702,7 +705,7 @@ describe("AdminController endpoint tests", () => {
       await createUserDataWithStripeId(ADMIN_USER_UID, { stripe_id: stripeId })
       jest
         .spyOn(StripeService.prototype, "getLodgeCreditsForUser")
-        .mockResolvedValue(69)
+        .mockResolvedValue({ weekNightsOnly: 69, anyNight: 420 })
       jest
         .spyOn(StripeService.prototype, "editUserLodgeCredits")
         .mockResolvedValue(undefined)
@@ -710,7 +713,7 @@ describe("AdminController endpoint tests", () => {
       const response = await request
         .put(`/admin/users/${ADMIN_USER_UID}/lodge-credits`)
         .set("Authorization", `Bearer ${adminToken}`)
-        .send({ quantity: 3 })
+        .send({ credits: { weekNightsOnly: 69, anyNight: 420 } })
 
       expect(response.status).toEqual(StatusCodes.OK)
     })
@@ -719,7 +722,7 @@ describe("AdminController endpoint tests", () => {
       const response = await request
         .put(`/admin/users/non_existent_user/lodge-credits`)
         .set("Authorization", `Bearer ${adminToken}`)
-        .send({ quantity: 3 })
+        .send({ credits: { weekNightsOnly: 69, anyNight: 420 } })
 
       expect(response.status).toEqual(StatusCodes.NOT_FOUND)
     })
@@ -728,7 +731,7 @@ describe("AdminController endpoint tests", () => {
       const response = await request
         .put(`/admin/users/${MEMBER_USER_UID}/lodge-credits`)
         .set("Authorization", `Bearer ${memberToken}`)
-        .send({ quantity: 3 })
+        .send({ credits: { weekNightsOnly: 69, anyNight: 420 } })
 
       expect(response.status).toEqual(StatusCodes.UNAUTHORIZED)
     })

@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react"
 import { useState } from "react"
 import { AdminLodgeCreditManagementModal } from "@/components/composite/Admin/AdminMemberView/AdminLodgeCreditManagement/AdminLodgeCreditManagementModal"
 import ModalContainer from "@/components/generic/ModalContainer/ModalContainer"
+import type { LodgeCreditState } from "@/models/Booking"
 
 const meta: Meta<typeof AdminLodgeCreditManagementModal> = {
   component: AdminLodgeCreditManagementModal,
@@ -16,8 +17,8 @@ const meta: Meta<typeof AdminLodgeCreditManagementModal> = {
       control: "text"
     },
     currentAmount: {
-      description: "Current credit amount",
-      control: "number"
+      description: "Current credit amounts (anyNight and weekNightsOnly)",
+      control: "object"
     },
     isLoading: {
       description: "Whether the current amount is being loaded",
@@ -41,15 +42,31 @@ export const NoCredits: Story = {
   args: {
     userId: "user-456",
     userName: "Jane Smith",
-    currentAmount: 0
+    currentAmount: { anyNight: 0, weekNightsOnly: 0 }
   }
 }
 
-export const WithCredits: Story = {
+export const WithAnyNightCredits: Story = {
   args: {
     userId: "user-789",
     userName: "Bob Wilson",
-    currentAmount: 10
+    currentAmount: { anyNight: 10, weekNightsOnly: 0 }
+  }
+}
+
+export const WithWeekNightCredits: Story = {
+  args: {
+    userId: "user-790",
+    userName: "Alice Johnson",
+    currentAmount: { anyNight: 0, weekNightsOnly: 5 }
+  }
+}
+
+export const WithMixedCredits: Story = {
+  args: {
+    userId: "user-791",
+    userName: "Charlie Brown",
+    currentAmount: { anyNight: 3, weekNightsOnly: 7 }
   }
 }
 
@@ -57,14 +74,17 @@ export const LoadingState: Story = {
   args: {
     userId: "user-loading",
     userName: "Loading User",
-    currentAmount: 0,
+    currentAmount: { anyNight: 0, weekNightsOnly: 0 },
     isLoading: true
   }
 }
 
 export const InteractiveExample = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false)
-  const [currentAmount, setCurrentAmount] = useState<number>(5)
+  const [currentAmount, setCurrentAmount] = useState<LodgeCreditState>({
+    anyNight: 5,
+    weekNightsOnly: 2
+  })
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
   const handleOpen = () => {
@@ -73,16 +93,23 @@ export const InteractiveExample = () => {
     setTimeout(() => setIsLoading(false), 1000)
   }
 
-  const handleUpdate = (userId: string, newAmount: number) => {
+  const handleUpdate = (
+    userId: string,
+    newAmount: Partial<LodgeCreditState>
+  ) => {
     console.log("Update credits:", { userId, newAmount })
-    setCurrentAmount(newAmount)
+    setCurrentAmount((prev) => ({ ...prev, ...newAmount }))
     setIsOpen(false)
   }
 
   return (
     <>
       <div className="flex flex-col gap-2">
-        <p>Current credits: {currentAmount}</p>
+        <p>Current credits:</p>
+        <ul className="list-inside list-disc">
+          <li>Any Night: {currentAmount.anyNight}</li>
+          <li>Week Nights Only: {currentAmount.weekNightsOnly}</li>
+        </ul>
         <button
           type="button"
           onClick={handleOpen}

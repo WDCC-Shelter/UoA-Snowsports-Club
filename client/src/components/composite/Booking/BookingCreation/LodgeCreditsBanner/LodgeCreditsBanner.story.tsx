@@ -9,20 +9,38 @@ const meta: Meta<typeof LodgeCreditsBanner> = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-export const SingleCredit: Story = {
+export const SingleAnyNightCredit: Story = {
   args: {
-    availableCredits: 1
+    availableCredits: { anyNight: 1, weekNightsOnly: 0 }
   }
 }
 
-export const MultipleCredits: Story = {
+export const SingleWeekNightCredit: Story = {
   args: {
-    availableCredits: 5
+    availableCredits: { anyNight: 0, weekNightsOnly: 1 }
+  }
+}
+
+export const MultipleAnyNightCredits: Story = {
+  args: {
+    availableCredits: { anyNight: 5, weekNightsOnly: 0 }
+  }
+}
+
+export const MultipleWeekNightCredits: Story = {
+  args: {
+    availableCredits: { anyNight: 0, weekNightsOnly: 3 }
+  }
+}
+
+export const MixedCredits: Story = {
+  args: {
+    availableCredits: { anyNight: 2, weekNightsOnly: 3 }
   }
 }
 
 export const NoCredits: Story = {
   args: {
-    availableCredits: 0
+    availableCredits: { anyNight: 0, weekNightsOnly: 0 }
   }
 }

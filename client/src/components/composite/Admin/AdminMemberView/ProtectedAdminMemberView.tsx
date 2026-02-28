@@ -1,27 +1,31 @@
-import {
-  useMemberGoogleSheetUrlQuery,
-  useUsersQuery
-} from "@/services/Admin/AdminQueries"
-import { AdminMemberView, type MemberColumnFormat } from "./AdminMemberView"
+import { sendPasswordResetEmail } from "firebase/auth"
+import { useCallback, useMemo, useRef, useState } from "react"
+import { CSVLink } from "react-csv"
+import AdminLodgeCreditManagementModal from "@/components/composite/Admin/AdminMemberView/AdminLodgeCreditManagement/AdminLodgeCreditManagementModal"
+import ModalContainer from "@/components/generic/ModalContainer/ModalContainer"
+import type { TableRowOperation } from "@/components/generic/ReusableTable/TableUtils"
+import { DateUtils } from "@/components/utils/DateUtils"
+import { auth } from "@/firebase"
+import type { ReducedUserAdditionalInfo } from "@/models/User"
 import {
   useDeleteUserMutation,
   useDemoteUserMutation,
   usePromoteUserMutation,
-  useResetMembershipsMutation
+  useResetMembershipsMutation,
+  useUpdateLodgeCreditMutation
 } from "@/services/Admin/AdminMutations"
-import type { TableRowOperation } from "@/components/generic/ReusableTable/TableUtils"
+import {
+  useAdminUserLodgeCreditsQuery,
+  useMemberGoogleSheetUrlQuery,
+  useUsersQuery
+} from "@/services/Admin/AdminQueries"
+import queryClient from "@/services/QueryClient"
+import { useSignUpUserMutation } from "@/services/User/UserMutations"
+import { AdminMemberView, type MemberColumnFormat } from "./AdminMemberView"
 import AdminUserCreationModal, {
   type AccountType
 } from "./AdminUserCreation/AdminUserCreationModal"
-import ModalContainer from "@/components/generic/ModalContainer/ModalContainer"
-import { useState, useMemo, useRef, useCallback } from "react"
-import { useSignUpUserMutation } from "@/services/User/UserMutations"
-import queryClient from "@/services/QueryClient"
-import { sendPasswordResetEmail } from "firebase/auth"
-import { auth } from "@/firebase"
-import type { ReducedUserAdditionalInfo } from "@/models/User"
-import { CSVLink } from "react-csv"
-import { DateUtils } from "@/components/utils/DateUtils"
+import { LodgeCreditState } from "@/models/Booking"
 
 /**
  * Component that handles all the network requests for `AdminMemberView`
@@ -92,6 +96,16 @@ const WrappedAdminMemberView = () => {
    * Controls if the *Add new user* modal should be shown
    */
   const [showAddUserModal, setShowAddUserModal] = useState<boolean>(false)
+  /**
+   * Controls if the *manage lodge credits* modal should be shown
+   */
+  const [selectedLodgeCreditUser, setSelectedLodgeCreditUser] = useState<
+    { userDisplayName: string; userId: string } | undefined
+  >()
+
+  const { data: lodgeCreditState } = useAdminUserLodgeCreditsQuery(
+    selectedLodgeCreditUser?.userId
+  )
 
   /**
    * Kept
@@ -130,7 +144,39 @@ const WrappedAdminMemberView = () => {
   const { mutateAsync: promoteUser } = usePromoteUserMutation()
   const { mutateAsync: demoteUser } = useDemoteUserMutation()
   const { mutateAsync: deleteUser, isPending } = useDeleteUserMutation()
+  const { mutateAsync: updateLodgeCredits } = useUpdateLodgeCreditMutation()
   const { data: memberGoogleSheetData } = useMemberGoogleSheetUrlQuery()
+
+  const handleUpdateLodgeCredits = useCallback(
+    (userId: string, newState: Partial<LodgeCreditState>) =>
+      updateLodgeCredits(
+        { userId, newState },
+        {
+          onSuccess() {
+            let message: string
+
+            if (
+              newState.weekNightsOnly !== undefined &&
+              newState.anyNight !== undefined
+            ) {
+              message = `Successfully set lodge credits to ${newState.weekNightsOnly} week night only credits and ${newState.anyNight} any night credits`
+            } else if (newState.anyNight !== undefined) {
+              message = `Successfully set lodge credits to ${newState.anyNight} any night credits`
+            } else if (newState.weekNightsOnly !== undefined) {
+              message = `Successfully set lodge credits to ${newState.weekNightsOnly} week night only credits`
+            } else {
+              message = `Successfully updated lodge credits`
+            }
+
+            alert(message)
+          },
+          onError(err) {
+            alert(`Failed to update lodge credits: ${err.message}`)
+          }
+        }
+      ),
+    [updateLodgeCredits]
+  )
 
   const handleExportUsers = useCallback(() => {
     if (hasNextPage) {
@@ -142,48 +188,60 @@ const WrappedAdminMemberView = () => {
   /**
    * You should optimistically handle the mutations in `AdminMutations`
    */
-  const rowOperations: TableRowOperation[] = [
-    {
-      name: "promote",
-      handler: (uid: string) => {
-        promoteUser(uid)
-      }
-    },
-    {
-      name: "demote",
-      handler: (uid: string) => {
-        demoteUser(uid)
-      }
-    },
-    {
-      name: "delete",
-      handler: (uid: string) => {
-        const matchingUser = transformedDataList?.find(
-          (user) => user.uid === uid
-        )
-        /**
-         * This should be enforced in the endpoint anyway, exists for UX
-         */
-        if (matchingUser?.Status === "admin") {
-          alert("You may not delete admins")
-          return
+  const rowOperations: TableRowOperation[] = useMemo(
+    () => [
+      {
+        name: "promote",
+        handler: (uid: string) => {
+          promoteUser(uid)
         }
-        if (
-          confirm(
-            `Are you SURE you want to delete the user ${matchingUser?.Name} (${matchingUser?.Email}). This action can NOT be undone!!!`
+      },
+      {
+        name: "demote",
+        handler: (uid: string) => {
+          demoteUser(uid)
+        }
+      },
+      {
+        name: "delete",
+        handler: (uid: string) => {
+          const matchingUser = transformedDataList?.find(
+            (user) => user.uid === uid
           )
-        )
-          deleteUser({ uid })
+          /**
+           * This should be enforced in the endpoint anyway, exists for UX
+           */
+          if (matchingUser?.Status === "admin") {
+            alert("You may not delete admins")
+            return
+          }
+          if (
+            confirm(
+              `Are you SURE you want to delete the user ${matchingUser?.Name} (${matchingUser?.Email}). This action can NOT be undone!!!`
+            )
+          )
+            deleteUser({ uid })
+        }
+      },
+      {
+        name: "lodge credits",
+        handler: (uid: string) => {
+          const matchingUser = transformedDataList?.find(
+            (user) => user.uid === uid
+          )
+          setSelectedLodgeCreditUser(
+            matchingUser
+              ? {
+                  userDisplayName: matchingUser.Name || matchingUser.uid,
+                  userId: matchingUser.uid
+                }
+              : undefined
+          )
+        }
       }
-    },
-    {
-      name: "edit",
-      handler: () => {
-        // TODO
-        alert("Not Implemented")
-      }
-    }
-  ]
+    ],
+    [deleteUser, promoteUser, demoteUser, transformedDataList]
+  )
 
   return (
     <>
@@ -225,6 +283,20 @@ const WrappedAdminMemberView = () => {
             await userCreationHandler(email, user, accountType)
           }}
         />
+      </ModalContainer>
+      <ModalContainer isOpen={!!selectedLodgeCreditUser}>
+        {selectedLodgeCreditUser && (
+          <AdminLodgeCreditManagementModal
+            handleClose={() => setSelectedLodgeCreditUser(undefined)}
+            userId={selectedLodgeCreditUser.userId}
+            userName={selectedLodgeCreditUser.userDisplayName}
+            onUpdateCredits={handleUpdateLodgeCredits}
+            isLoading={lodgeCreditState === undefined}
+            currentAmount={
+              lodgeCreditState || { anyNight: 0, weekNightsOnly: 0 }
+            }
+          />
+        )}
       </ModalContainer>
     </>
   )

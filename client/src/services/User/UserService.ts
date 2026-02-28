@@ -18,6 +18,17 @@ const UserService = {
 
     return data
   },
+  getSelfLodgeCredits: async () => {
+    const { data: lodgeCredits, response } = await fetchClient.GET(
+      "/users/self/lodge-credits"
+    )
+    if (!response.ok) {
+      throw new Error(
+        "There was a problem fetching the lodge credits for the current user"
+      )
+    }
+    return lodgeCredits
+  },
   signUpUser: async (userData: SignUpUserBody) => {
     // gets data from signup and returns data (all data needed after signing up)
     const { data, response } = await fetchClient.POST("/signup", {

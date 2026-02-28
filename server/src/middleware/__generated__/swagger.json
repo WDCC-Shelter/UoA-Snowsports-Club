@@ -28,6 +28,27 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"LodgeCreditState": {
+				"description": "Used to describe what lodge credits a user has, and how many of those credits are for weekdays only",
+				"properties": {
+					"anyNight": {
+						"type": "number",
+						"format": "double",
+						"description": "Credits that can be used for any booking, including those that start on a Friday or Saturday."
+					},
+					"weekNightsOnly": {
+						"type": "number",
+						"format": "double",
+						"description": "Credits that can only be used for bookings that start on a weekday (Monday to Friday)"
+					}
+				},
+				"required": [
+					"anyNight",
+					"weekNightsOnly"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"Pick_Partial_UserAdditionalInfo_.Exclude_keyofPartial_UserAdditionalInfo_.stripe_id__": {
 				"properties": {
 					"date_of_birth": {
@@ -1252,21 +1273,31 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"AddCouponRequestBody": {
+			"Partial_LodgeCreditState_": {
 				"properties": {
-					"uid": {
-						"type": "string",
-						"description": "The UID of the user to whom the coupon will be added."
-					},
-					"quantity": {
+					"anyNight": {
 						"type": "number",
 						"format": "double",
+						"description": "Credits that can be used for any booking, including those that start on a Friday or Saturday."
+					},
+					"weekNightsOnly": {
+						"type": "number",
+						"format": "double",
+						"description": "Credits that can only be used for bookings that start on a weekday (Monday to Friday)"
+					}
+				},
+				"type": "object",
+				"description": "Make all properties in T optional"
+			},
+			"UpdateLodgeCreditsRequestBody": {
+				"properties": {
+					"credits": {
+						"$ref": "#/components/schemas/Partial_LodgeCreditState_",
 						"description": "The number of the coupon to be added."
 					}
 				},
 				"required": [
-					"uid",
-					"quantity"
+					"credits"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -1798,6 +1829,30 @@
 					}
 				},
 				"description": "Fetches users additional info based on their uid.",
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": []
+			}
+		},
+		"/users/self/lodge-credits": {
+			"get": {
+				"operationId": "GetCurrentLodgeCredits",
+				"responses": {
+					"200": {
+						"description": "Fetched lodge credits for user data",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/LodgeCreditState"
+								}
+							}
+						}
+					}
+				},
+				"description": "Fetches how many lodge credits the user has based on uid",
 				"security": [
 					{
 						"jwt": []
@@ -2655,15 +2710,21 @@
 				"parameters": []
 			}
 		},
-		"/admin/users/add-coupon": {
-			"post": {
-				"operationId": "AddCoupon",
+		"/admin/users/{uid}/lodge-credits": {
+			"get": {
+				"operationId": "GetCoupon",
 				"responses": {
 					"200": {
-						"description": "Coupon Added"
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/LodgeCreditState"
+								}
+							}
+						}
 					}
 				},
-				"description": "Adds a coupon to a user's stripe id.\nRequires an admin JWT token.",
 				"security": [
 					{
 						"jwt": [
@@ -2671,15 +2732,51 @@
 						]
 					}
 				],
-				"parameters": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "uid",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
+			"put": {
+				"operationId": "UpdateCoupon",
+				"responses": {
+					"200": {
+						"description": "Lodge Credits Updated"
+					}
+				},
+				"description": "Updates a user's coupon by deleting the existing one and creating a new one with the specified quantity.\nRequires an admin JWT token.",
+				"security": [
+					{
+						"jwt": [
+							"admin"
+						]
+					}
+				],
+				"parameters": [
+					{
+						"description": "- The UID of the user to update the coupon for.",
+						"in": "path",
+						"name": "uid",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
 				"requestBody": {
-					"description": "- The UID of the user to add the coupon to and the quantity of coupons to add.",
+					"description": "- The new quantity of coupons (multiplied by $40 for total value).",
 					"required": true,
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/AddCouponRequestBody",
-								"description": "- The UID of the user to add the coupon to and the quantity of coupons to add."
+								"$ref": "#/components/schemas/UpdateLodgeCreditsRequestBody",
+								"description": "- The new quantity of coupons (multiplied by $40 for total value)."
 							}
 						}
 					}

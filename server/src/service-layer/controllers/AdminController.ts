@@ -30,7 +30,7 @@ import { type DocumentSnapshot, Timestamp } from "firebase-admin/firestore"
 import { getReasonPhrase, StatusCodes } from "http-status-codes"
 import { compile as pugCompile } from "pug"
 import type {
-  AddCouponRequestBody,
+  UpdateLodgeCreditsRequestBody,
   DeleteBookingRequest,
   FetchLatestBookingEventRequest,
   MakeDatesAvailableRequestBody
@@ -84,10 +84,38 @@ import {
 import StripeService from "../../business-layer/services/StripeService"
 import type { UserAccountTypes } from "../../business-layer/utils/AuthServiceClaims"
 import { RedirectKeys } from "../../business-layer/utils/RedirectKeys"
+import { LodgeCreditState } from "../../business-layer/utils/CustomerMetadata"
 
 @Route("admin")
 @Security("jwt", ["admin"])
 export class AdminController extends Controller {
+  /**
+   * Helper method to validate user exists and has a stripe_id
+   * @returns The user's stripe_id or null if validation fails (status is set accordingly)
+   */
+  private async validateUserForCoupon(uid: string): Promise<string | null> {
+    const userService = new UserDataService()
+    const user = await userService.getUserData(uid)
+
+    if (!user) {
+      this.setStatus(StatusCodes.NOT_FOUND)
+      return null
+    }
+    if (!user.stripe_id) {
+      const stripeService = new StripeService()
+      const authService = new AuthService()
+      const userRecord = await authService.retrieveUserByUid(uid)
+      const { stripeCustomerId } = await stripeService.createCustomerIfNotExist(
+        userRecord,
+        user,
+        userService
+      )
+      return stripeCustomerId
+    }
+
+    return user.stripe_id
+  }
+
   /**
    * Booking Operations
    */
@@ -646,42 +674,54 @@ export class AdminController extends Controller {
     }
   }
 
-  /**
-   * Adds a coupon to a user's stripe id.
-   * Requires an admin JWT token.
-   * @param requestBody - The UID of the user to add the coupon to and the quantity of coupons to add.
-   * @returns void.
-   */
-  @SuccessResponse("200", "Coupon Added")
-  @Post("users/add-coupon")
-  public async addCoupon(
-    @Body() requestBody: AddCouponRequestBody
-  ): Promise<void> {
-    const { uid, quantity } = requestBody
-    const amount = 40 // Hardcoded amount
+  @Get("/users/{uid}/lodge-credits")
+  public async getCoupon(@Path() uid: string): Promise<LodgeCreditState> {
     try {
-      const userService = new UserDataService()
+      const stripeId = await this.validateUserForCoupon(uid)
+      if (!stripeId) {
+        return { weekNightsOnly: 0, anyNight: 0 }
+      }
+
       const stripeService = new StripeService()
-      const user = await userService.getUserData(uid)
-
-      if (!user) {
-        this.setStatus(StatusCodes.NOT_FOUND)
-        return
-      }
-      if (!user.stripe_id) {
-        this.setStatus(StatusCodes.BAD_REQUEST)
-        return
-      }
-
-      // Add coupon to the user using Stripe ID
-      const couponPromises = Array.from(
-        { length: quantity },
-        async () => await stripeService.addCouponToUser(user.stripe_id, amount)
-      )
-      await Promise.all(couponPromises)
+      const lodgeCreditState =
+        await stripeService.getLodgeCreditsForUser(stripeId)
 
       this.setStatus(StatusCodes.OK)
-    } catch {
+      return lodgeCreditState
+    } catch (e) {
+      console.error("Failed to fetch lodge credits", e)
+      this.setStatus(StatusCodes.INTERNAL_SERVER_ERROR)
+      return { weekNightsOnly: 0, anyNight: 0 }
+    }
+  }
+
+  /**
+   * Updates a user's coupon by deleting the existing one and creating a new one with the specified quantity.
+   * Requires an admin JWT token.
+   * @param uid - The UID of the user to update the coupon for.
+   * @param requestBody - The new quantity of coupons (multiplied by $40 for total value).
+   * @returns void.
+   */
+  @SuccessResponse("200", "Lodge Credits Updated")
+  @Put("/users/{uid}/lodge-credits")
+  public async updateCoupon(
+    @Path() uid: string,
+    @Body() requestBody: UpdateLodgeCreditsRequestBody
+  ): Promise<void> {
+    try {
+      const stripeId = await this.validateUserForCoupon(uid)
+      if (!stripeId) {
+        return
+      }
+
+      const stripeService = new StripeService()
+
+      const { credits } = requestBody
+      await stripeService.editUserLodgeCredits(stripeId, credits)
+
+      this.setStatus(StatusCodes.OK)
+    } catch (e) {
+      console.error("Failed to update lodge credits", e)
       this.setStatus(StatusCodes.INTERNAL_SERVER_ERROR)
     }
   }

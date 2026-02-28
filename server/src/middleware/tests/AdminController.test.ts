@@ -25,6 +25,7 @@ import {
   MEMBER_USER_UID
 } from "../routes.mock"
 import { adminToken, guestToken, memberToken, request } from "../routes.setup"
+import StripeService from "../../business-layer/services/StripeService"
 
 describe("AdminController endpoint tests", () => {
   describe("/admin/users", () => {
@@ -652,52 +653,94 @@ describe("AdminController endpoint tests", () => {
     })
   })
 
-  describe("/admin/users/add-coupon", () => {
-    it("Should allow admins to add a coupon to a user", async () => {
-      // Create a user with a stripe_id
-      const stripeId = "test_stripe_id"
+  describe("/admin/users/{uid}/lodge-credits", () => {
+    it("Should allow admins to get a coupon for a user", async () => {
+      const stripeId = "test_stripe_id_get"
       await createUserDataWithStripeId(ADMIN_USER_UID, { stripe_id: stripeId })
+      jest
+        .spyOn(StripeService.prototype, "getLodgeCreditsForUser")
+        .mockResolvedValue({ weekNightsOnly: 69, anyNight: 420 })
 
       const response = await request
-        .post("/admin/users/add-coupon")
+        .get(`/admin/users/${ADMIN_USER_UID}/lodge-credits`)
         .set("Authorization", `Bearer ${adminToken}`)
-        .send({ uid: ADMIN_USER_UID, quantity: 5 })
+        .send()
 
       expect(response.status).toEqual(StatusCodes.OK)
+      expect(response.body).toEqual({
+        weekNightsOnly: 69,
+        anyNight: 420
+      })
     })
 
-    it("Should not allow adding a coupon to a user without stripe_id", async () => {
+    it("Should return 404 when getting coupon for non-existent user", async () => {
       const response = await request
-        .post("/admin/users/add-coupon")
+        .get(`/admin/users/non_existent_user/lodge-credits`)
         .set("Authorization", `Bearer ${adminToken}`)
-        .send({ uid: MEMBER_USER_UID, quantity: 5 })
-
-      expect(response.status).toEqual(StatusCodes.BAD_REQUEST)
-    })
-
-    it("Should return 404 if user is not found", async () => {
-      const response = await request
-        .post("/admin/users/add-coupon")
-        .set("Authorization", `Bearer ${adminToken}`)
-        .send({ uid: "non_existent_user", quantity: 5 })
+        .send()
 
       expect(response.status).toEqual(StatusCodes.NOT_FOUND)
     })
 
-    it("Should not allow members to add a coupon", async () => {
+    it("Should not allow members to get a coupon", async () => {
       const response = await request
-        .post("/admin/users/add-coupon")
+        .get(`/admin/users/${MEMBER_USER_UID}/lodge-credits`)
         .set("Authorization", `Bearer ${memberToken}`)
-        .send({ uid: MEMBER_USER_UID, quantity: 5 })
+        .send()
 
       expect(response.status).toEqual(StatusCodes.UNAUTHORIZED)
     })
 
-    it("Should not allow guests to add a coupon", async () => {
+    it("Should not allow guests to get a coupon", async () => {
       const response = await request
-        .post("/admin/users/add-coupon")
+        .get(`/admin/users/${MEMBER_USER_UID}/lodge-credits`)
         .set("Authorization", `Bearer ${guestToken}`)
-        .send({ uid: MEMBER_USER_UID, quantity: 5 })
+        .send()
+
+      expect(response.status).toEqual(StatusCodes.UNAUTHORIZED)
+    })
+
+    it("Should allow admins to update a coupon for a user", async () => {
+      const stripeId = "test_stripe_id_update"
+      await createUserDataWithStripeId(ADMIN_USER_UID, { stripe_id: stripeId })
+      jest
+        .spyOn(StripeService.prototype, "getLodgeCreditsForUser")
+        .mockResolvedValue({ weekNightsOnly: 69, anyNight: 420 })
+      jest
+        .spyOn(StripeService.prototype, "editUserLodgeCredits")
+        .mockResolvedValue(undefined)
+
+      const response = await request
+        .put(`/admin/users/${ADMIN_USER_UID}/lodge-credits`)
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send({ credits: { weekNightsOnly: 69, anyNight: 420 } })
+
+      expect(response.status).toEqual(StatusCodes.OK)
+    })
+
+    it("Should return 404 when updating coupon for non-existent user", async () => {
+      const response = await request
+        .put(`/admin/users/non_existent_user/lodge-credits`)
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send({ credits: { weekNightsOnly: 69, anyNight: 420 } })
+
+      expect(response.status).toEqual(StatusCodes.NOT_FOUND)
+    })
+
+    it("Should not allow members to update a coupon", async () => {
+      const response = await request
+        .put(`/admin/users/${MEMBER_USER_UID}/lodge-credits`)
+        .set("Authorization", `Bearer ${memberToken}`)
+        .send({ credits: { weekNightsOnly: 69, anyNight: 420 } })
+
+      expect(response.status).toEqual(StatusCodes.UNAUTHORIZED)
+    })
+
+    it("Should not allow guests to update a coupon", async () => {
+      const response = await request
+        .put(`/admin/users/${MEMBER_USER_UID}/lodge-credits`)
+        .set("Authorization", `Bearer ${guestToken}`)
+        .send({ quantity: 3 })
 
       expect(response.status).toEqual(StatusCodes.UNAUTHORIZED)
     })

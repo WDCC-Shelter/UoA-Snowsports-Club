@@ -9,6 +9,10 @@ export interface paths {
     /** @description Fetches users additional info based on their uid. */
     get: operations["GetSelf"];
   };
+  "/users/self/lodge-credits": {
+    /** @description Fetches how many lodge credits the user has based on uid */
+    get: operations["GetCurrentLodgeCredits"];
+  };
   "/users/edit-self": {
     /** @description Edits the user's additional info based on their uid. */
     patch: operations["EditSelf"];
@@ -146,12 +150,13 @@ export interface paths {
      */
     patch: operations["DemoteAllUsers"];
   };
-  "/admin/users/add-coupon": {
+  "/admin/users/{uid}/lodge-credits": {
+    get: operations["GetCoupon"];
     /**
-     * @description Adds a coupon to a user's stripe id.
+     * @description Updates a user's coupon by deleting the existing one and creating a new one with the specified quantity.
      * Requires an admin JWT token.
      */
-    post: operations["AddCoupon"];
+    put: operations["UpdateCoupon"];
   };
   "/admin/bookings/history": {
     /** @description Fetches the **latest** booking history events (uses cursor-based pagination) */
@@ -213,6 +218,19 @@ export interface components {
        * @description The non-negative fractions of a second at nanosecond resolution.
        */
       nanoseconds: number;
+    };
+    /** @description Used to describe what lodge credits a user has, and how many of those credits are for weekdays only */
+    LodgeCreditState: {
+      /**
+       * Format: double
+       * @description Credits that can be used for any booking, including those that start on a Friday or Saturday.
+       */
+      anyNight: number;
+      /**
+       * Format: double
+       * @description Credits that can only be used for bookings that start on a weekday (Monday to Friday)
+       */
+      weekNightsOnly: number;
     };
     /** @description From T, pick a set of properties whose keys are in the union K */
     "Pick_Partial_UserAdditionalInfo_.Exclude_keyofPartial_UserAdditionalInfo_.stripe_id__": {
@@ -658,14 +676,22 @@ export interface components {
     DemoteUserRequestBody: {
       uid: string;
     };
-    AddCouponRequestBody: {
-      /** @description The UID of the user to whom the coupon will be added. */
-      uid: string;
+    /** @description Make all properties in T optional */
+    Partial_LodgeCreditState_: {
       /**
        * Format: double
-       * @description The number of the coupon to be added.
+       * @description Credits that can be used for any booking, including those that start on a Friday or Saturday.
        */
-      quantity: number;
+      anyNight?: number;
+      /**
+       * Format: double
+       * @description Credits that can only be used for bookings that start on a weekday (Monday to Friday)
+       */
+      weekNightsOnly?: number;
+    };
+    UpdateLodgeCreditsRequestBody: {
+      /** @description The number of the coupon to be added. */
+      credits: components["schemas"]["Partial_LodgeCreditState_"];
     };
     /** @description Event used to track a user being **manually** added to a booking (only possible via admin view) */
     BookingAddedEvent: {
@@ -952,6 +978,17 @@ export interface operations {
             date_of_birth: components["schemas"]["FirebaseFirestore.Timestamp"];
             uid: string;
           };
+        };
+      };
+    };
+  };
+  /** @description Fetches how many lodge credits the user has based on uid */
+  GetCurrentLodgeCredits: {
+    responses: {
+      /** @description Fetched lodge credits for user data */
+      200: {
+        content: {
+          "application/json": components["schemas"]["LodgeCreditState"];
         };
       };
     };
@@ -1382,19 +1419,40 @@ export interface operations {
       };
     };
   };
-  /**
-   * @description Adds a coupon to a user's stripe id.
-   * Requires an admin JWT token.
-   */
-  AddCoupon: {
-    /** @description - The UID of the user to add the coupon to and the quantity of coupons to add. */
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["AddCouponRequestBody"];
+  GetCoupon: {
+    parameters: {
+      path: {
+        uid: string;
       };
     };
     responses: {
-      /** @description Coupon Added */
+      /** @description Ok */
+      200: {
+        content: {
+          "application/json": components["schemas"]["LodgeCreditState"];
+        };
+      };
+    };
+  };
+  /**
+   * @description Updates a user's coupon by deleting the existing one and creating a new one with the specified quantity.
+   * Requires an admin JWT token.
+   */
+  UpdateCoupon: {
+    parameters: {
+      path: {
+        /** @description - The UID of the user to update the coupon for. */
+        uid: string;
+      };
+    };
+    /** @description - The new quantity of coupons (multiplied by $40 for total value). */
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateLodgeCreditsRequestBody"];
+      };
+    };
+    responses: {
+      /** @description Lodge Credits Updated */
       200: {
         content: never;
       };

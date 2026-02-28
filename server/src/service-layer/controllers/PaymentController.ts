@@ -34,7 +34,7 @@ import type {
   MembershipPaymentResponse,
   MembershipStripeProductResponse
 } from "service-layer/response-models/PaymentResponse"
-import type Stripe from "stripe"
+import Stripe from "stripe"
 import {
   Body,
   Controller,
@@ -486,19 +486,60 @@ export class PaymentController extends Controller {
 
       const requiredBookingProducts = await stripeService.getProductByMetadata(
         LODGE_PRICING_TYPE_KEY,
-        requiredBookingType
+        requiredBookingType,
+        ["data.default_price"]
       )
       const requiredBookingProduct = requiredBookingProducts.find(
         (product) => product.active
       )
       const { default_price } = requiredBookingProduct
+      /**
+       * We'd reach here if the expand failed. This should never happen
+       */
+      if (typeof default_price !== "object") {
+        this.setStatus(StatusCodes.INTERNAL_SERVER_ERROR)
+        return {
+          error:
+            "Something went wrong when fetching the price for the booking, please try again later"
+        }
+      }
+
+      // Calculate lodge credits for discount
+      const userLodgeCredits =
+        await stripeService.getLodgeCreditsForUser(stripeCustomerId)
+      /**
+       * Consume the weeknight credits first for weeknight bookings, then "any night" credits.
+       */
+      const creditsToApply = BookingUtils.getDiscountableNights(
+        dateTimestampsInBooking,
+        userLodgeCredits
+      )
+      const newLodgeCreditBalance = BookingUtils.deductLodgeCreditBalance(
+        userLodgeCredits,
+        creditsToApply
+      )
+      await stripeService.editUserLodgeCredits(
+        stripeCustomerId,
+        newLodgeCreditBalance
+      )
+      const totalLodgeCreditsApplied =
+        creditsToApply.anyNight + creditsToApply.weekNightsOnly
+
+      let coupon: string | undefined
+      if (totalLodgeCreditsApplied > 0) {
+        coupon = await stripeService.createCoupon(
+          totalLodgeCreditsApplied * default_price.unit_amount,
+          `${totalLodgeCreditsApplied} lodge credit(s) applied`,
+          MINUTES_AGO
+        )
+      }
 
       const clientSecret = await stripeService.createCheckoutSession(
         uid,
         `${process.env.FRONTEND_URL}/bookings/success?session_id={CHECKOUT_SESSION_ID}&startDate=${BOOKING_START_DATE}&endDate=${BOOKING_END_DATE}`,
         [
           {
-            price: default_price as string,
+            price: default_price.id,
             quantity: totalDays
           }
         ],
@@ -518,7 +559,11 @@ export class PaymentController extends Controller {
             message: `By clicking Pay you agree to booking the nights from ${BOOKING_START_DATE} to ${BOOKING_END_DATE}`
           }
         },
-        true
+        /**
+         * This MUST be false as you can only provide one discount at a time
+         */
+        false,
+        coupon
       )
       this.setStatus(StatusCodes.OK)
       return {

@@ -5,6 +5,7 @@ import BookingDataService from "../../data-layer/services/BookingDataService"
 import { cleanFirestore } from "../../test-config/TestUtils"
 import type { BookingSlot } from "../../data-layer/models/firebase"
 import BookingSlotsService from "../../data-layer/services/BookingSlotsService"
+import { LodgeCreditState } from "./CustomerMetadata"
 
 describe("BookingUtils", () => {
   describe("hasInvalidStartAndEndDates", () => {
@@ -190,6 +191,155 @@ describe("BookingUtils", () => {
       expect(() => BookingUtils.addOneDay("2024/01/01")).toThrow()
       expect(() => BookingUtils.addOneDay("01-01-2024")).toThrow()
       expect(() => BookingUtils.addOneDay("invalid-date")).toThrow()
+    })
+  })
+  describe("BookingUtils.getDiscountableNights", () => {
+    it("should return correct discount credits for week nights and any night", () => {
+      const remainingDates = [
+        Timestamp.fromDate(new Date("2024-06-17")), // Monday
+        Timestamp.fromDate(new Date("2024-06-18")), // Tuesday
+        Timestamp.fromDate(new Date("2024-06-19")), // Wednesday
+        Timestamp.fromDate(new Date("2024-06-20")), // Thursday
+        Timestamp.fromDate(new Date("2024-06-22")) // Saturday
+      ]
+
+      const startingLodgeCredits: LodgeCreditState = {
+        weekNightsOnly: 4,
+        anyNight: 2
+      }
+
+      const result = BookingUtils.getDiscountableNights(
+        remainingDates,
+        startingLodgeCredits
+      )
+
+      expect(result.weekNightsOnly).toEqual(4)
+      expect(result.anyNight).toEqual(1)
+    })
+
+    it("should not apply week night credits to weekend nights", () => {
+      const remainingDates = [
+        Timestamp.fromDate(new Date("2024-06-22")), // Saturday
+        Timestamp.fromDate(new Date("2024-06-23")) // Sunday
+      ]
+
+      const startingLodgeCredits: LodgeCreditState = {
+        weekNightsOnly: 5,
+        anyNight: 1
+      }
+
+      const result = BookingUtils.getDiscountableNights(
+        remainingDates,
+        startingLodgeCredits
+      )
+
+      expect(result.weekNightsOnly).toEqual(0)
+      expect(result.anyNight).toEqual(1)
+    })
+
+    it("should spend week night credits first", () => {
+      const remainingDates = [
+        Timestamp.fromDate(new Date("2024-06-17")), // Monday
+        Timestamp.fromDate(new Date("2024-06-18")), // Tuesday
+        Timestamp.fromDate(new Date("2024-06-19")), // Wednesday
+        Timestamp.fromDate(new Date("2024-06-20")) // Thursday
+      ]
+
+      const startingLodgeCredits: LodgeCreditState = {
+        weekNightsOnly: 2,
+        anyNight: 5
+      }
+
+      const result = BookingUtils.getDiscountableNights(
+        remainingDates,
+        startingLodgeCredits
+      )
+
+      expect(result.weekNightsOnly).toEqual(2)
+      expect(result.anyNight).toEqual(2)
+    })
+
+    it("should spend any night credits regardless of date", () => {
+      const remainingDates = [
+        Timestamp.fromDate(new Date("2024-06-21")), // Friday
+        Timestamp.fromDate(new Date("2024-06-22")), // Saturday
+        Timestamp.fromDate(new Date("2024-06-23")) // Sunday
+      ]
+
+      const startingLodgeCredits: LodgeCreditState = {
+        weekNightsOnly: 0,
+        anyNight: 2
+      }
+
+      const result = BookingUtils.getDiscountableNights(
+        remainingDates,
+        startingLodgeCredits
+      )
+
+      expect(result.weekNightsOnly).toEqual(0)
+      expect(result.anyNight).toEqual(2)
+    })
+    it("should only use weeknight credits if they are sufficient to cover all weeknights", () => {
+      const remainingDates = [
+        Timestamp.fromDate(new Date("2024-06-17")), // Monday
+        Timestamp.fromDate(new Date("2024-06-18")), // Tuesday
+        Timestamp.fromDate(new Date("2024-06-19")), // Wednesday
+        Timestamp.fromDate(new Date("2024-06-20")) // Thursday
+      ]
+
+      const startingLodgeCredits: LodgeCreditState = {
+        weekNightsOnly: 5,
+        anyNight: 3
+      }
+
+      const result = BookingUtils.getDiscountableNights(
+        remainingDates,
+        startingLodgeCredits
+      )
+
+      expect(result.weekNightsOnly).toEqual(4)
+      expect(result.anyNight).toEqual(0)
+    })
+  })
+  describe("BookingUtils.deductLodgeCreditBalance", () => {
+    it("should correctly deduct credits without going negative", () => {
+      const startingLodgeCredits: LodgeCreditState = {
+        weekNightsOnly: 3,
+        anyNight: 2
+      }
+
+      const lodgeCreditsToDeduct: LodgeCreditState = {
+        weekNightsOnly: 4,
+        anyNight: 3
+      }
+
+      const result = BookingUtils.deductLodgeCreditBalance(
+        startingLodgeCredits,
+        lodgeCreditsToDeduct
+      )
+
+      expect(result.weekNightsOnly).toEqual(0)
+      expect(result.anyNight).toEqual(0)
+    })
+
+    it("should correctly deduct credits when sufficient balance is available", () => {
+      const startingLodgeCredits: LodgeCreditState = {
+        weekNightsOnly: 5,
+        anyNight: 4
+      }
+
+      const lodgeCreditsToDeduct: LodgeCreditState = {
+        weekNightsOnly: 2,
+        anyNight: 1
+      }
+
+      const result = BookingUtils.deductLodgeCreditBalance(
+        startingLodgeCredits,
+        lodgeCreditsToDeduct
+      )
+
+      expect(result.weekNightsOnly).toEqual(3)
+      expect(result.anyNight).toEqual(3)
     })
   })
 })

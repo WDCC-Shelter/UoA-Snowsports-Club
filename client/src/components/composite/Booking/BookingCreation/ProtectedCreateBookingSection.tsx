@@ -3,7 +3,10 @@
 import { useContext, useEffect } from "react"
 import { SignUpNotif } from "@/components/generic/SignUpNotif/SignUpNotif"
 import { useAvailableBookingsQuery } from "@/services/Booking/BookingQueries"
-import { useSelfDataQuery } from "@/services/User/UserQueries"
+import {
+  useCurrentSelfLodgeCreditsQuery,
+  useSelfDataQuery
+} from "@/services/User/UserQueries"
 import { useAppData } from "@/store/Store"
 import { BookingContext } from "../BookingContext"
 import {
@@ -22,6 +25,7 @@ export const ProtectedCreateBookingSection = ({
   const { data } = useAvailableBookingsQuery()
 
   const { data: currentUserData } = useSelfDataQuery()
+  const { data: lodgeCredits } = useCurrentSelfLodgeCreditsQuery()
 
   const {
     handleBookingCreation,
@@ -48,6 +52,7 @@ export const ProtectedCreateBookingSection = ({
       hasExistingSession={!!clientSecret}
       isPending={isPending}
       lodgePrices={lodgePrices}
+      availableCredits={lodgeCredits}
     />
   )
 }

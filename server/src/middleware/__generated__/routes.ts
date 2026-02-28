@@ -36,6 +36,15 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "LodgeCreditState": {
+        "dataType": "refObject",
+        "properties": {
+            "anyNight": {"dataType":"double","required":true},
+            "weekNightsOnly": {"dataType":"double","required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "Pick_Partial_UserAdditionalInfo_.Exclude_keyofPartial_UserAdditionalInfo_.stripe_id__": {
         "dataType": "refAlias",
         "type": {"dataType":"nestedObjectLiteral","nestedProperties":{"date_of_birth":{"ref":"FirebaseFirestore.Timestamp"},"does_snowboarding":{"dataType":"boolean"},"does_racing":{"dataType":"boolean"},"does_ski":{"dataType":"boolean"},"phone_number":{"dataType":"double"},"gender":{"dataType":"string"},"emergency_contact":{"dataType":"string","validators":{"isString":{"errorMsg":"Please enter a name"}}},"first_name":{"dataType":"string","validators":{"isString":{"errorMsg":"Please enter your First Name"}}},"last_name":{"dataType":"string","validators":{"isString":{"errorMsg":"Please enter your Second Name"}}},"dietary_requirements":{"dataType":"string","validators":{"isString":{"errorMsg":"Please write your dietary requirements"}}},"ethnicity":{"dataType":"string"},"faculty":{"dataType":"string","validators":{"isString":{"errorMsg":"Please enter your faculty"}}},"university":{"dataType":"string","validators":{"isString":{"errorMsg":"Please enter your university"}}},"student_id":{"dataType":"string","validators":{"isString":{"errorMsg":"Please enter your student ID"}}},"university_year":{"dataType":"string","validators":{"isString":{"errorMsg":"Please enter your year of study"}}},"has_whakapapa_season_pass":{"dataType":"boolean"},"student_id_long":{"dataType":"string","validators":{"isString":{"errorMsg":"Please enter your student long ID"}}},"instagram_handle":{"dataType":"string"}},"validators":{}},
@@ -485,11 +494,15 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "AddCouponRequestBody": {
+    "Partial_LodgeCreditState_": {
+        "dataType": "refAlias",
+        "type": {"dataType":"nestedObjectLiteral","nestedProperties":{"anyNight":{"dataType":"double"},"weekNightsOnly":{"dataType":"double"}},"validators":{}},
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "UpdateLodgeCreditsRequestBody": {
         "dataType": "refObject",
         "properties": {
-            "uid": {"dataType":"string","required":true},
-            "quantity": {"dataType":"double","required":true},
+            "credits": {"ref":"Partial_LodgeCreditState_","required":true},
         },
         "additionalProperties": false,
     },
@@ -700,6 +713,37 @@ export function RegisterRoutes(app: Router) {
 
               await templateService.apiHandler({
                 methodName: 'getSelf',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: 200,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        const argsUsersController_getCurrentLodgeCredits: Record<string, TsoaRoute.ParameterSchema> = {
+                request: {"in":"request","name":"request","required":true,"dataType":"object"},
+        };
+        app.get('/users/self/lodge-credits',
+            authenticateMiddleware([{"jwt":[]}]),
+            ...(fetchMiddlewares<RequestHandler>(UsersController)),
+            ...(fetchMiddlewares<RequestHandler>(UsersController.prototype.getCurrentLodgeCredits)),
+
+            async function UsersController_getCurrentLodgeCredits(request: ExRequest, response: ExResponse, next: any) {
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args: argsUsersController_getCurrentLodgeCredits, request, response });
+
+                const controller = new UsersController();
+
+              await templateService.apiHandler({
+                methodName: 'getCurrentLodgeCredits',
                 controller,
                 response,
                 next,
@@ -1484,26 +1528,58 @@ export function RegisterRoutes(app: Router) {
             }
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-        const argsAdminController_addCoupon: Record<string, TsoaRoute.ParameterSchema> = {
-                requestBody: {"in":"body","name":"requestBody","required":true,"ref":"AddCouponRequestBody"},
+        const argsAdminController_getCoupon: Record<string, TsoaRoute.ParameterSchema> = {
+                uid: {"in":"path","name":"uid","required":true,"dataType":"string"},
         };
-        app.post('/admin/users/add-coupon',
+        app.get('/admin/users/:uid/lodge-credits',
             authenticateMiddleware([{"jwt":["admin"]}]),
             ...(fetchMiddlewares<RequestHandler>(AdminController)),
-            ...(fetchMiddlewares<RequestHandler>(AdminController.prototype.addCoupon)),
+            ...(fetchMiddlewares<RequestHandler>(AdminController.prototype.getCoupon)),
 
-            async function AdminController_addCoupon(request: ExRequest, response: ExResponse, next: any) {
+            async function AdminController_getCoupon(request: ExRequest, response: ExResponse, next: any) {
 
             // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
             let validatedArgs: any[] = [];
             try {
-                validatedArgs = templateService.getValidatedArgs({ args: argsAdminController_addCoupon, request, response });
+                validatedArgs = templateService.getValidatedArgs({ args: argsAdminController_getCoupon, request, response });
 
                 const controller = new AdminController();
 
               await templateService.apiHandler({
-                methodName: 'addCoupon',
+                methodName: 'getCoupon',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: undefined,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        const argsAdminController_updateCoupon: Record<string, TsoaRoute.ParameterSchema> = {
+                uid: {"in":"path","name":"uid","required":true,"dataType":"string"},
+                requestBody: {"in":"body","name":"requestBody","required":true,"ref":"UpdateLodgeCreditsRequestBody"},
+        };
+        app.put('/admin/users/:uid/lodge-credits',
+            authenticateMiddleware([{"jwt":["admin"]}]),
+            ...(fetchMiddlewares<RequestHandler>(AdminController)),
+            ...(fetchMiddlewares<RequestHandler>(AdminController.prototype.updateCoupon)),
+
+            async function AdminController_updateCoupon(request: ExRequest, response: ExResponse, next: any) {
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args: argsAdminController_updateCoupon, request, response });
+
+                const controller = new AdminController();
+
+              await templateService.apiHandler({
+                methodName: 'updateCoupon',
                 controller,
                 response,
                 next,

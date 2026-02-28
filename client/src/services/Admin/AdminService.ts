@@ -3,6 +3,7 @@ import type { CreateEventBody, EditEventBody } from "@/models/Events"
 import type { UserAdditionalInfo } from "@/models/User"
 import fetchClient from "@/services/OpenApiFetchClient"
 import { MEMBER_TABLE_MAX_DATA } from "@/utils/Constants"
+import type { LodgeCreditState } from "@/models/Booking"
 
 export type EditUsersBody = {
   uid: string
@@ -280,7 +281,7 @@ const AdminService = {
 
     return data?.url
   },
-  getLodgeCreditsForUser: async (userId: string) => {
+  getLodgeCreditsForUser: async (userId: string): Promise<LodgeCreditState> => {
     const { response, data } = await fetchClient.GET(
       "/admin/users/{uid}/lodge-credits",
       {
@@ -295,14 +296,14 @@ const AdminService = {
       throw new Error(`Failed to fetch coupons for user with id ${userId}`)
     }
 
-    return data?.quantity
+    return data || { anyNight: 0, weekNightsOnly: 0 }
   },
   editLodgeCreditsForUser: async ({
     userId,
-    amount
+    newState
   }: {
     userId: string
-    amount: number
+    newState: Partial<LodgeCreditState>
   }) => {
     const { response } = await fetchClient.PUT(
       "/admin/users/{uid}/lodge-credits",
@@ -313,13 +314,13 @@ const AdminService = {
           }
         },
         body: {
-          quantity: amount
+          credits: newState
         }
       }
     )
     if (!response.ok) {
       throw new Error(
-        `Failed to edit lodge credits to ${amount} for user with id ${userId}`
+        `Failed to edit lodge credits for user with id ${userId} to anyNight: ${newState.anyNight}, weekNightsOnly: ${newState.weekNightsOnly}`
       )
     }
   }

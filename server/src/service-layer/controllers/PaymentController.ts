@@ -34,7 +34,7 @@ import type {
   MembershipPaymentResponse,
   MembershipStripeProductResponse
 } from "service-layer/response-models/PaymentResponse"
-import type Stripe from "stripe"
+import Stripe from "stripe"
 import {
   Body,
   Controller,
@@ -46,7 +46,6 @@ import {
   Security,
   SuccessResponse
 } from "tsoa"
-import { LodgeCreditState } from "../../business-layer/utils/CustomerMetadata"
 
 @Route("payment")
 export class PaymentController extends Controller {
@@ -508,23 +507,29 @@ export class PaymentController extends Controller {
       // Calculate lodge credits for discount
       const userLodgeCredits =
         await stripeService.getLodgeCreditsForUser(stripeCustomerId)
-      let coupon: string | undefined
       /**
        * Consume the weeknight credits first for weeknight bookings, then "any night" credits.
        */
-      if (userLodgeCredits.weekNightsOnly > 0) {
-        const creditsToApply = Math.min(
-          userLodgeCredits.weekNightsOnly,
-          totalDays
-        )
-        await this.deductLodgeCreditsForUser(
-          stripeCustomerId,
-          creditsToApply,
-          "weeknight only"
-        )
+      const creditsToApply = BookingUtils.getDiscountableNights(
+        dateTimestampsInBooking,
+        userLodgeCredits
+      )
+      const newLodgeCreditBalance = BookingUtils.deductLodgeCreditBalance(
+        userLodgeCredits,
+        creditsToApply
+      )
+      await stripeService.editUserLodgeCredits(
+        stripeCustomerId,
+        newLodgeCreditBalance
+      )
+      const totalLodgeCreditsApplied =
+        creditsToApply.anyNight + creditsToApply.weekNightsOnly
+
+      let coupon: string | undefined
+      if (totalLodgeCreditsApplied > 0) {
         coupon = await stripeService.createCoupon(
-          creditsToApply * default_price.unit_amount,
-          `${creditsToApply} lodge credit(s) applied`,
+          totalLodgeCreditsApplied * default_price.unit_amount,
+          `${totalLodgeCreditsApplied} lodge credit(s) applied`,
           MINUTES_AGO
         )
       }
@@ -572,37 +577,5 @@ export class PaymentController extends Controller {
         error: "Something went wrong when creating the booking session"
       }
     }
-  }
-  private async deductLodgeCreditsForUser(
-    stripeId: string,
-    toDeduct: number,
-    creditType: "weeknight only" | "any night"
-  ) {
-    const stripeService = new StripeService()
-    const currentLodgeCredits =
-      await stripeService.getLodgeCreditsForUser(stripeId)
-    let newLodgeCreditAmount: LodgeCreditState
-
-    switch (creditType) {
-      case "weeknight only": {
-        newLodgeCreditAmount = {
-          weekNightsOnly: Math.max(
-            currentLodgeCredits.weekNightsOnly - toDeduct,
-            0
-          ),
-          ...currentLodgeCredits
-        }
-        break
-      }
-      case "any night": {
-        newLodgeCreditAmount = {
-          anyNight: Math.max(currentLodgeCredits.anyNight - toDeduct, 0),
-          ...currentLodgeCredits
-        }
-        break
-      }
-    }
-
-    await stripeService.editUserLodgeCredits(stripeId, newLodgeCreditAmount)
   }
 }

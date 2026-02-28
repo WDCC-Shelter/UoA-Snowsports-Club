@@ -3,6 +3,7 @@ import CloseIcon from "@/assets/icons/x.svg"
 import Button from "@/components/generic/FigmaButtons/FigmaButton"
 import TextInput from "@/components/generic/TextInputComponent/TextInput"
 import { useClickOutside } from "@/components/utils/Utils"
+import { LodgeCreditState } from "@/models/Booking"
 
 interface IAdminLodgeCreditManagementModal {
   /**
@@ -16,7 +17,7 @@ interface IAdminLodgeCreditManagementModal {
   /**
    * Current credit amount
    */
-  currentAmount: number
+  currentAmount: LodgeCreditState
   /**
    * Whether the current amount is being loaded
    */
@@ -24,7 +25,10 @@ interface IAdminLodgeCreditManagementModal {
   /**
    * Callback when credits are updated. Takes the new amount to set.
    */
-  onUpdateCredits?: (userId: string, newAmount: number) => void
+  onUpdateCredits?: (
+    userId: string,
+    newAmount: Partial<LodgeCreditState>
+  ) => void
   /**
    * Callback for when a 'close' event is triggered with the modal open
    */
@@ -35,7 +39,8 @@ interface IAdminLodgeCreditManagementModal {
  * @deprecated Do not use, exported for testing purposes
  */
 export const AdminLodgeCreditFormKeys = {
-  AMOUNT: "amount"
+  ANY_NIGHT: "anyNight",
+  WEEK_NIGHTS_ONLY: "weekNightsOnly"
 } as const
 
 /**
@@ -60,25 +65,53 @@ export const AdminLodgeCreditManagementModal = ({
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const data = new FormData(e.currentTarget)
-    const newAmount = Number.parseInt(
-      data.get(AdminLodgeCreditFormKeys.AMOUNT) as string,
+    const newAnyNight = Number.parseInt(
+      data.get(AdminLodgeCreditFormKeys.ANY_NIGHT) as string,
+      10
+    )
+    const newWeekNightsOnly = Number.parseInt(
+      data.get(AdminLodgeCreditFormKeys.WEEK_NIGHTS_ONLY) as string,
       10
     )
 
-    if (newAmount === currentAmount) {
-      alert("The new amount is the same as the current amount.")
+    // Only include changed values
+    const changedValues: Partial<LodgeCreditState> = {}
+    if (newAnyNight !== currentAmount.anyNight) {
+      changedValues.anyNight = newAnyNight
+    }
+    if (newWeekNightsOnly !== currentAmount.weekNightsOnly) {
+      changedValues.weekNightsOnly = newWeekNightsOnly
+    }
+
+    if (Object.keys(changedValues).length === 0) {
+      alert("The new amounts are the same as the current amounts.")
       return
     }
 
+    // Build confirmation message with only changed values
+    const changeLines = []
+    if (changedValues.anyNight !== undefined) {
+      changeLines.push(
+        `Any Night: ${currentAmount.anyNight} → ${changedValues.anyNight}`
+      )
+    }
+    if (changedValues.weekNightsOnly !== undefined) {
+      changeLines.push(
+        `Week Nights Only: ${currentAmount.weekNightsOnly} → ${changedValues.weekNightsOnly}`
+      )
+    }
+
     if (
-      !confirm(`Set lodge credits to ${newAmount} for ${userName || userId}?`)
+      !confirm(
+        `Set lodge credits for ${userName || userId}?\n${changeLines.join("\n")}`
+      )
     ) {
       return
     }
 
     try {
       setIsSubmitting(true)
-      onUpdateCredits?.(userId, newAmount)
+      onUpdateCredits?.(userId, changedValues)
     } finally {
       setIsSubmitting(false)
     }
@@ -103,14 +136,24 @@ export const AdminLodgeCreditManagementModal = ({
       <h2 className="mb-2 text-xl font-semibold">Lodge Credits</h2>
       {userName && <p className="text-gray-600 text-sm">{userName}</p>}
 
-      {/* Prominent current balance display */}
       <div className="bg-gray-100 my-4 w-full rounded-lg p-4 text-center">
         <p className="text-gray-500 text-sm uppercase tracking-wide">
           Current Balance
         </p>
-        <p className="text-3xl font-bold text-dark-blue-100">
-          {isLoading ? "..." : currentAmount}
-        </p>
+        <div className="mt-2 flex justify-center gap-8">
+          <div>
+            <p className="text-gray-500 text-xs">Any Night</p>
+            <p className="text-2xl font-bold text-dark-blue-100">
+              {isLoading ? "..." : currentAmount.anyNight}
+            </p>
+          </div>
+          <div>
+            <p className="text-gray-500 text-xs">Week Nights Only</p>
+            <p className="text-2xl font-bold text-dark-blue-100">
+              {isLoading ? "..." : currentAmount.weekNightsOnly}
+            </p>
+          </div>
+        </div>
       </div>
 
       {isLoading ? (
@@ -118,13 +161,25 @@ export const AdminLodgeCreditManagementModal = ({
       ) : (
         <form onSubmit={handleSubmit} className="flex w-full flex-col gap-4">
           <TextInput
-            name={AdminLodgeCreditFormKeys.AMOUNT}
-            data-testid={AdminLodgeCreditFormKeys.AMOUNT}
+            name={AdminLodgeCreditFormKeys.ANY_NIGHT}
+            data-testid={AdminLodgeCreditFormKeys.ANY_NIGHT}
             type="number"
-            label="New Credit Amount"
+            label="Any Night Credits"
+            description="Credits usable for any booking (including weekends)"
             min={0}
             step={1}
-            defaultValue={currentAmount}
+            defaultValue={currentAmount.anyNight}
+            required
+          />
+          <TextInput
+            name={AdminLodgeCreditFormKeys.WEEK_NIGHTS_ONLY}
+            data-testid={AdminLodgeCreditFormKeys.WEEK_NIGHTS_ONLY}
+            type="number"
+            label="Week Nights Only Credits"
+            description="Credits only usable for bookings starting Monday–Thursday"
+            min={0}
+            step={1}
+            defaultValue={currentAmount.weekNightsOnly}
             required
           />
           <Button

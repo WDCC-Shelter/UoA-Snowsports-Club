@@ -24,7 +24,7 @@ export interface UpdateLodgeCreditsRequestBody {
   /**
    * The number of the coupon to be added.
    */
-  credits: LodgeCreditState
+  credits: Partial<LodgeCreditState>
 }
 
 export interface DeleteBookingRequest {

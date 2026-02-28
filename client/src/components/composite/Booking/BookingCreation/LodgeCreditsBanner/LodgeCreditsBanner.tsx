@@ -1,16 +1,22 @@
+import type { LodgeCreditState } from "@/models/Booking"
+
 interface ILodgeCreditsBanner {
-  availableCredits: number
+  availableCredits: LodgeCreditState
 }
 
 /**
  * Excited banner to notify user about their available free night credits
  */
 const LodgeCreditsBanner = ({ availableCredits }: ILodgeCreditsBanner) => {
-  if (availableCredits <= 0) {
+  const { anyNight, weekNightsOnly } = availableCredits
+  const totalCredits = anyNight + weekNightsOnly
+
+  if (totalCredits <= 0) {
     return null
   }
 
-  const nightText = availableCredits === 1 ? "night" : "nights"
+  const formatNightText = (count: number) =>
+    count === 1 ? "credit" : "credits"
 
   return (
     <div className="border-light-blue-100 bg-white flex flex-col gap-2 rounded border p-3">
@@ -19,13 +25,27 @@ const LodgeCreditsBanner = ({ availableCredits }: ILodgeCreditsBanner) => {
       </h5>
       <div>
         <p>
-          Great news! You can book up to{" "}
-          <span className="text-light-blue-100 font-bold">
-            {availableCredits} {nightText}
-          </span>{" "}
-          for free using your lodge credits. These will be automatically applied
-          to your booking!
+          Great news! You have lodge credits that will be automatically applied
+          to your booking:
         </p>
+        <ul className="mt-2 list-inside list-disc">
+          {anyNight > 0 && (
+            <li>
+              <span className="text-light-blue-100 font-bold">
+                {anyNight} {formatNightText(anyNight)}
+              </span>{" "}
+              available for any night
+            </li>
+          )}
+          {weekNightsOnly > 0 && (
+            <li>
+              <span className="text-light-blue-100 font-bold">
+                {weekNightsOnly} {formatNightText(weekNightsOnly)}
+              </span>{" "}
+              available for weeknights only
+            </li>
+          )}
+        </ul>
       </div>
     </div>
   )

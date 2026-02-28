@@ -25,6 +25,7 @@ import { AdminMemberView, type MemberColumnFormat } from "./AdminMemberView"
 import AdminUserCreationModal, {
   type AccountType
 } from "./AdminUserCreation/AdminUserCreationModal"
+import { LodgeCreditState } from "@/models/Booking"
 
 /**
  * Component that handles all the network requests for `AdminMemberView`
@@ -102,7 +103,7 @@ const WrappedAdminMemberView = () => {
     { userDisplayName: string; userId: string } | undefined
   >()
 
-  const { data: couponCount } = useAdminUserLodgeCreditsQuery(
+  const { data: lodgeCreditState } = useAdminUserLodgeCreditsQuery(
     selectedLodgeCreditUser?.userId
   )
 
@@ -147,12 +148,27 @@ const WrappedAdminMemberView = () => {
   const { data: memberGoogleSheetData } = useMemberGoogleSheetUrlQuery()
 
   const handleUpdateLodgeCredits = useCallback(
-    (userId: string, amount: number) =>
+    (userId: string, newState: Partial<LodgeCreditState>) =>
       updateLodgeCredits(
-        { userId, amount },
+        { userId, newState },
         {
           onSuccess() {
-            alert(`Successfully set lodge credits to ${amount}`)
+            let message: string
+
+            if (
+              newState.weekNightsOnly !== undefined &&
+              newState.anyNight !== undefined
+            ) {
+              message = `Successfully set lodge credits to ${newState.weekNightsOnly} week night only credits and ${newState.anyNight} any night credits`
+            } else if (newState.anyNight !== undefined) {
+              message = `Successfully set lodge credits to ${newState.anyNight} any night credits`
+            } else if (newState.weekNightsOnly !== undefined) {
+              message = `Successfully set lodge credits to ${newState.weekNightsOnly} week night only credits`
+            } else {
+              message = `Successfully updated lodge credits`
+            }
+
+            alert(message)
           },
           onError(err) {
             alert(`Failed to update lodge credits: ${err.message}`)
@@ -275,8 +291,10 @@ const WrappedAdminMemberView = () => {
             userId={selectedLodgeCreditUser.userId}
             userName={selectedLodgeCreditUser.userDisplayName}
             onUpdateCredits={handleUpdateLodgeCredits}
-            isLoading={couponCount === undefined}
-            currentAmount={couponCount || 0}
+            isLoading={lodgeCreditState === undefined}
+            currentAmount={
+              lodgeCreditState || { anyNight: 0, weekNightsOnly: 0 }
+            }
           />
         )}
       </ModalContainer>

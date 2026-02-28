@@ -83,10 +83,10 @@ export default class StripeService {
 
     return {
       anyNight: Math.floor(
-        Number(userData.metadata[LODGE_CREDIT_ANY_NIGHT_KEY])
+        Number(userData.metadata[LODGE_CREDIT_ANY_NIGHT_KEY] || 0)
       ),
       weekNightsOnly: Math.floor(
-        Number(userData.metadata[LODGE_CREDIT_WEEK_NIGHTS_ONLY_KEY])
+        Number(userData.metadata[LODGE_CREDIT_WEEK_NIGHTS_ONLY_KEY] || 0)
       )
     }
   }
@@ -540,13 +540,20 @@ export default class StripeService {
    */
   public async editUserLodgeCredits(
     stripeId: string,
-    creditState: LodgeCreditState
+    creditState: Partial<LodgeCreditState>
   ) {
+    const metadataUpdate: Record<string, string> = {}
+
+    if (creditState.anyNight !== undefined) {
+      metadataUpdate[LODGE_CREDIT_ANY_NIGHT_KEY] =
+        creditState.anyNight.toString()
+    }
+    if (creditState.weekNightsOnly !== undefined) {
+      metadataUpdate[LODGE_CREDIT_WEEK_NIGHTS_ONLY_KEY] =
+        creditState.weekNightsOnly.toString()
+    }
     await stripe.customers.update(stripeId, {
-      metadata: {
-        [LODGE_CREDIT_ANY_NIGHT_KEY]: creditState.anyNight,
-        [LODGE_CREDIT_WEEK_NIGHTS_ONLY_KEY]: creditState.weekNightsOnly
-      }
+      metadata: metadataUpdate
     })
   }
 

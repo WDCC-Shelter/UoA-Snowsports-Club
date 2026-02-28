@@ -494,10 +494,15 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "Partial_LodgeCreditState_": {
+        "dataType": "refAlias",
+        "type": {"dataType":"nestedObjectLiteral","nestedProperties":{"anyNight":{"dataType":"double"},"weekNightsOnly":{"dataType":"double"}},"validators":{}},
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "UpdateLodgeCreditsRequestBody": {
         "dataType": "refObject",
         "properties": {
-            "credits": {"ref":"LodgeCreditState","required":true},
+            "credits": {"ref":"Partial_LodgeCreditState_","required":true},
         },
         "additionalProperties": false,
     },

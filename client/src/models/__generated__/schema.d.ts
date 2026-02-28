@@ -10,7 +10,7 @@ export interface paths {
     get: operations["GetSelf"];
   };
   "/users/self/lodge-credits": {
-    /** @description Fetches how many lodge the user has based on uid */
+    /** @description Fetches how many lodge credits the user has based on uid */
     get: operations["GetCurrentLodgeCredits"];
   };
   "/users/edit-self": {
@@ -676,9 +676,22 @@ export interface components {
     DemoteUserRequestBody: {
       uid: string;
     };
+    /** @description Make all properties in T optional */
+    Partial_LodgeCreditState_: {
+      /**
+       * Format: double
+       * @description Credits that can be used for any booking, including those that start on a Friday or Saturday.
+       */
+      anyNight?: number;
+      /**
+       * Format: double
+       * @description Credits that can only be used for bookings that start on a weekday (Monday to Friday)
+       */
+      weekNightsOnly?: number;
+    };
     UpdateLodgeCreditsRequestBody: {
       /** @description The number of the coupon to be added. */
-      credits: components["schemas"]["LodgeCreditState"];
+      credits: components["schemas"]["Partial_LodgeCreditState_"];
     };
     /** @description Event used to track a user being **manually** added to a booking (only possible via admin view) */
     BookingAddedEvent: {
@@ -969,13 +982,13 @@ export interface operations {
       };
     };
   };
-  /** @description Fetches how many lodge the user has based on uid */
+  /** @description Fetches how many lodge credits the user has based on uid */
   GetCurrentLodgeCredits: {
     responses: {
       /** @description Fetched lodge credits for user data */
       200: {
         content: {
-          "application/json": components["schemas"]["LodgeCreditState"] | 0;
+          "application/json": components["schemas"]["LodgeCreditState"];
         };
       };
     };

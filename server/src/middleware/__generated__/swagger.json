@@ -1273,10 +1273,26 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"Partial_LodgeCreditState_": {
+				"properties": {
+					"anyNight": {
+						"type": "number",
+						"format": "double",
+						"description": "Credits that can be used for any booking, including those that start on a Friday or Saturday."
+					},
+					"weekNightsOnly": {
+						"type": "number",
+						"format": "double",
+						"description": "Credits that can only be used for bookings that start on a weekday (Monday to Friday)"
+					}
+				},
+				"type": "object",
+				"description": "Make all properties in T optional"
+			},
 			"UpdateLodgeCreditsRequestBody": {
 				"properties": {
 					"credits": {
-						"$ref": "#/components/schemas/LodgeCreditState",
+						"$ref": "#/components/schemas/Partial_LodgeCreditState_",
 						"description": "The number of the coupon to be added."
 					}
 				},
@@ -1830,23 +1846,13 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"anyOf": [
-										{
-											"$ref": "#/components/schemas/LodgeCreditState"
-										},
-										{
-											"type": "number",
-											"enum": [
-												0
-											]
-										}
-									]
+									"$ref": "#/components/schemas/LodgeCreditState"
 								}
 							}
 						}
 					}
 				},
-				"description": "Fetches how many lodge the user has based on uid",
+				"description": "Fetches how many lodge credits the user has based on uid",
 				"security": [
 					{
 						"jwt": []

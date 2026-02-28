@@ -21,6 +21,7 @@ import {
   SuccessResponse
 } from "tsoa"
 import StripeService from "../../business-layer/services/StripeService"
+import { LodgeCreditState } from "../../business-layer/utils/CustomerMetadata"
 
 @Route("users")
 export class UsersController extends Controller {
@@ -48,7 +49,7 @@ export class UsersController extends Controller {
   }
 
   /**
-   * Fetches how many lodge the user has based on uid
+   * Fetches how many lodge credits the user has based on uid
    *
    * @param request - Takes a UserRecord and uses the UID to fetch the user's additional info.
    * @returns The quantity of lodge credits the user has.
@@ -56,7 +57,9 @@ export class UsersController extends Controller {
   @SuccessResponse("200", "Fetched lodge credits for user data")
   @Security("jwt")
   @Get("self/lodge-credits")
-  public async getCurrentLodgeCredits(@Request() request: SelfRequestModel) {
+  public async getCurrentLodgeCredits(
+    @Request() request: SelfRequestModel
+  ): Promise<LodgeCreditState> {
     const { uid } = request.user
     const userDataService = new UserDataService()
     const userData = await userDataService.getUserData(uid)
@@ -64,13 +67,12 @@ export class UsersController extends Controller {
 
     let stripeId: string
     if (!userData.stripe_id) {
-      const { stripeCustomerId } = await stripeService.createCustomerIfNotExist(
+      await stripeService.createCustomerIfNotExist(
         request.user,
         userData,
         userDataService
       )
-      stripeId = stripeCustomerId
-      return 0
+      return { anyNight: 0, weekNightsOnly: 0 }
     } else {
       stripeId = userData.stripe_id
     }

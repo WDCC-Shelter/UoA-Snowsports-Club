@@ -5,7 +5,7 @@ import TextInput from "@/components/generic/TextInputComponent/TextInput"
 import Button from "@/components/generic/FigmaButtons/FigmaButton"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
-import type { BookingAvailability } from "@/models/Booking"
+import type { BookingAvailability, LodgeCreditState } from "@/models/Booking"
 import {
   CHECK_IN_TIME,
   CHECK_OUT_TIME,
@@ -80,7 +80,7 @@ export interface ICreateBookingSection {
   /**
    * The number of free night credits the user has available, used to show the {@link LodgeCreditsBanner}
    */
-  availableCredits?: number
+  availableCredits?: LodgeCreditState
 }
 
 /**
@@ -124,7 +124,7 @@ export const CreateBookingSection = ({
   isPending,
   lodgePrices,
   userEmergencyContact,
-  availableCredits = 0
+  availableCredits = { anyNight: 0, weekNightsOnly: 0 }
 }: ICreateBookingSection) => {
   const validEmergencyContact = isValidEmergencyContact(userEmergencyContact)
 
@@ -251,9 +251,7 @@ export const CreateBookingSection = ({
     <>
       <EmergencyContactAlert userEmergencyContact={userEmergencyContact} />
       <div className="py-1" />
-      {availableCredits > 0 && (
-        <LodgeCreditsBanner availableCredits={availableCredits} />
-      )}
+      <LodgeCreditsBanner availableCredits={availableCredits} />
       <div
         className="mt-2 grid w-full max-w-[900px] grid-cols-1 items-center justify-items-center gap-2
                       px-1 sm:px-0 md:grid-cols-2"

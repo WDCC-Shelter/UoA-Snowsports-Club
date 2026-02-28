@@ -28,6 +28,27 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"LodgeCreditState": {
+				"description": "Used to describe what lodge credits a user has, and how many of those credits are for weekdays only",
+				"properties": {
+					"anyNight": {
+						"type": "number",
+						"format": "double",
+						"description": "Credits that can be used for any booking, including those that start on a Friday or Saturday."
+					},
+					"weekNightsOnly": {
+						"type": "number",
+						"format": "double",
+						"description": "Credits that can only be used for bookings that start on a weekday (Monday to Friday)"
+					}
+				},
+				"required": [
+					"anyNight",
+					"weekNightsOnly"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"Pick_Partial_UserAdditionalInfo_.Exclude_keyofPartial_UserAdditionalInfo_.stripe_id__": {
 				"properties": {
 					"date_of_birth": {
@@ -1252,16 +1273,15 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"AddCouponRequestBody": {
+			"UpdateLodgeCreditsRequestBody": {
 				"properties": {
-					"quantity": {
-						"type": "number",
-						"format": "double",
+					"credits": {
+						"$ref": "#/components/schemas/LodgeCreditState",
 						"description": "The number of the coupon to be added."
 					}
 				},
 				"required": [
-					"quantity"
+					"credits"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -1810,8 +1830,17 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"type": "number",
-									"format": "double"
+									"anyOf": [
+										{
+											"$ref": "#/components/schemas/LodgeCreditState"
+										},
+										{
+											"type": "number",
+											"enum": [
+												0
+											]
+										}
+									]
 								}
 							}
 						}
@@ -2684,16 +2713,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"properties": {
-										"quantity": {
-											"type": "number",
-											"format": "double"
-										}
-									},
-									"required": [
-										"quantity"
-									],
-									"type": "object"
+									"$ref": "#/components/schemas/LodgeCreditState"
 								}
 							}
 						}
@@ -2749,7 +2769,7 @@
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/AddCouponRequestBody",
+								"$ref": "#/components/schemas/UpdateLodgeCreditsRequestBody",
 								"description": "- The new quantity of coupons (multiplied by $40 for total value)."
 							}
 						}

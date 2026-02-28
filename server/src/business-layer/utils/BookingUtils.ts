@@ -3,6 +3,7 @@ import type { Timestamp } from "firebase-admin/firestore"
 import BookingDataService from "../../data-layer/services/BookingDataService"
 import BookingSlotService from "../../data-layer/services/BookingSlotsService"
 import { LodgePricingTypeValues } from "./StripeProductMetadata"
+import { LodgeCreditState } from "./CustomerMetadata"
 
 // Need to validate the booking date through a startDate and endDate range.
 /**
@@ -19,6 +20,9 @@ _latestDate.setFullYear(_earliestDate.getFullYear() + 1)
 
 export const CHECK_IN_TIME = "11:00 am" as const
 export const CHECK_OUT_TIME = "10:00 am" as const
+const FRIDAY = 5 as const
+const SATURDAY = 6 as const
+const SUNDAY = 0 as const
 
 const BookingUtils = {
   /**
@@ -79,19 +83,68 @@ const BookingUtils = {
    */
   getRequiredPricing: (datesInBooking: Timestamp[]): LodgePricingTypeValues => {
     const totalDays = datesInBooking.length
-    const FRIDAY = 5
-    const SATURDAY = 6
+    const SINGLE_DAYS: ReadonlyArray<number> = [FRIDAY, SATURDAY]
     // get requiredBookingType
     if (
       // Single day requested
       totalDays === 1 &&
-      [FRIDAY, SATURDAY].includes(
+      SINGLE_DAYS.includes(
         new Date(firestoreTimestampToDate(datesInBooking[0])).getUTCDay()
       )
     ) {
       return LodgePricingTypeValues.SingleFridayOrSaturday
     } else {
       return LodgePricingTypeValues.Normal
+    }
+  },
+
+  /**
+   * subtracts a {@link LodgeCreditState} representing the credits to be deducted from a starting {@link LodgeCreditState}.
+   * @param startingLodgeCredits The initial lodge credit state before the booking is made.
+   * @param lodgeCreditsToDeduct The lodge credit state representing the credits to be deducted for the booking.
+   * @returns The new lodge credit state after the booking is made, applying deductions, a user may not have negative credits.
+   */
+  deductLodgeCreditBalance: (
+    startingLodgeCredits: LodgeCreditState,
+    lodgeCreditsToDeduct: LodgeCreditState
+  ): LodgeCreditState => {
+    return {
+      weekNightsOnly: Math.max(
+        0,
+        startingLodgeCredits.weekNightsOnly -
+          lodgeCreditsToDeduct.weekNightsOnly
+      ),
+      anyNight: Math.max(
+        0,
+        startingLodgeCredits.anyNight - lodgeCreditsToDeduct.anyNight
+      )
+    }
+  },
+
+  getDiscountableNights: (
+    datesInBooking: Timestamp[],
+    startingLodgeCredits: LodgeCreditState
+  ): LodgeCreditState => {
+    const discountedWeekNights = datesInBooking.filter((date) => {
+      const dayOfWeek = new Date(firestoreTimestampToDate(date)).getUTCDay()
+      return dayOfWeek !== SUNDAY && dayOfWeek !== SATURDAY // Exclude Sundays (0) and Saturdays (6)
+    })
+    const weekNightsToDiscount = Math.min(
+      discountedWeekNights.length,
+      startingLodgeCredits.weekNightsOnly
+    )
+
+    const remainingDates = datesInBooking.length - weekNightsToDiscount
+
+    // Apply wildcard credits to the remaining dates
+    const wildcardCreditsToApply = Math.min(
+      remainingDates,
+      startingLodgeCredits.anyNight
+    )
+
+    return {
+      weekNightsOnly: weekNightsToDiscount,
+      anyNight: wildcardCreditsToApply
     }
   },
 

@@ -1,4 +1,5 @@
 import type { Timestamp } from "firebase-admin/firestore"
+import { LodgeCreditState } from "../../business-layer/utils/CustomerMetadata"
 
 export interface MakeDatesAvailableRequestBody {
   /**
@@ -19,11 +20,11 @@ export interface MakeDatesAvailableRequestBody {
   slots?: number
 }
 
-export interface AddCouponRequestBody {
+export interface UpdateLodgeCreditsRequestBody {
   /**
    * The number of the coupon to be added.
    */
-  quantity: number
+  credits: LodgeCreditState
 }
 
 export interface DeleteBookingRequest {

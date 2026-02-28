@@ -46,6 +46,7 @@ import {
   Security,
   SuccessResponse
 } from "tsoa"
+import { LodgeCreditState } from "../../business-layer/utils/CustomerMetadata"
 
 @Route("payment")
 export class PaymentController extends Controller {
@@ -508,9 +509,19 @@ export class PaymentController extends Controller {
       const userLodgeCredits =
         await stripeService.getLodgeCreditsForUser(stripeCustomerId)
       let coupon: string | undefined
-      if (userLodgeCredits > 0) {
-        const creditsToApply = Math.min(userLodgeCredits, totalDays)
-        await this.deductLodgeCreditsForUser(stripeCustomerId, creditsToApply)
+      /**
+       * Consume the weeknight credits first for weeknight bookings, then "any night" credits.
+       */
+      if (userLodgeCredits.weekNightsOnly > 0) {
+        const creditsToApply = Math.min(
+          userLodgeCredits.weekNightsOnly,
+          totalDays
+        )
+        await this.deductLodgeCreditsForUser(
+          stripeCustomerId,
+          creditsToApply,
+          "weeknight only"
+        )
         coupon = await stripeService.createCoupon(
           creditsToApply * default_price.unit_amount,
           `${creditsToApply} lodge credit(s) applied`,
@@ -562,11 +573,36 @@ export class PaymentController extends Controller {
       }
     }
   }
-  private async deductLodgeCreditsForUser(stripeId: string, toDeduct: number) {
+  private async deductLodgeCreditsForUser(
+    stripeId: string,
+    toDeduct: number,
+    creditType: "weeknight only" | "any night"
+  ) {
     const stripeService = new StripeService()
     const currentLodgeCredits =
       await stripeService.getLodgeCreditsForUser(stripeId)
-    const newLodgeCreditAmount = currentLodgeCredits - toDeduct
+    let newLodgeCreditAmount: LodgeCreditState
+
+    switch (creditType) {
+      case "weeknight only": {
+        newLodgeCreditAmount = {
+          weekNightsOnly: Math.max(
+            currentLodgeCredits.weekNightsOnly - toDeduct,
+            0
+          ),
+          ...currentLodgeCredits
+        }
+        break
+      }
+      case "any night": {
+        newLodgeCreditAmount = {
+          anyNight: Math.max(currentLodgeCredits.anyNight - toDeduct, 0),
+          ...currentLodgeCredits
+        }
+        break
+      }
+    }
+
     await stripeService.editUserLodgeCredits(stripeId, newLodgeCreditAmount)
   }
 }

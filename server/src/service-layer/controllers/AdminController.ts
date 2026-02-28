@@ -30,7 +30,7 @@ import { type DocumentSnapshot, Timestamp } from "firebase-admin/firestore"
 import { getReasonPhrase, StatusCodes } from "http-status-codes"
 import { compile as pugCompile } from "pug"
 import type {
-  AddCouponRequestBody,
+  UpdateLodgeCreditsRequestBody,
   DeleteBookingRequest,
   FetchLatestBookingEventRequest,
   MakeDatesAvailableRequestBody
@@ -84,6 +84,7 @@ import {
 import StripeService from "../../business-layer/services/StripeService"
 import type { UserAccountTypes } from "../../business-layer/utils/AuthServiceClaims"
 import { RedirectKeys } from "../../business-layer/utils/RedirectKeys"
+import { LodgeCreditState } from "../../business-layer/utils/CustomerMetadata"
 
 @Route("admin")
 @Security("jwt", ["admin"])
@@ -674,22 +675,23 @@ export class AdminController extends Controller {
   }
 
   @Get("/users/{uid}/lodge-credits")
-  public async getCoupon(@Path() uid: string): Promise<{ quantity: number }> {
+  public async getCoupon(@Path() uid: string): Promise<LodgeCreditState> {
     try {
       const stripeId = await this.validateUserForCoupon(uid)
       if (!stripeId) {
-        return { quantity: 0 }
+        return { weekNightsOnly: 0, anyNight: 0 }
       }
 
       const stripeService = new StripeService()
-      const quantity = await stripeService.getLodgeCreditsForUser(stripeId)
+      const lodgeCreditState =
+        await stripeService.getLodgeCreditsForUser(stripeId)
 
       this.setStatus(StatusCodes.OK)
-      return { quantity }
+      return lodgeCreditState
     } catch (e) {
-      console.error("Failed to fetch coupon", e)
+      console.error("Failed to fetch lodge credits", e)
       this.setStatus(StatusCodes.INTERNAL_SERVER_ERROR)
-      return { quantity: 0 }
+      return { weekNightsOnly: 0, anyNight: 0 }
     }
   }
 
@@ -704,7 +706,7 @@ export class AdminController extends Controller {
   @Put("/users/{uid}/lodge-credits")
   public async updateCoupon(
     @Path() uid: string,
-    @Body() requestBody: AddCouponRequestBody
+    @Body() requestBody: UpdateLodgeCreditsRequestBody
   ): Promise<void> {
     try {
       const stripeId = await this.validateUserForCoupon(uid)
@@ -714,12 +716,12 @@ export class AdminController extends Controller {
 
       const stripeService = new StripeService()
 
-      const { quantity } = requestBody
-      await stripeService.editUserLodgeCredits(stripeId, quantity)
+      const { credits } = requestBody
+      await stripeService.editUserLodgeCredits(stripeId, credits)
 
       this.setStatus(StatusCodes.OK)
     } catch (e) {
-      console.error("Failed to update coupon", e)
+      console.error("Failed to update lodge credits", e)
       this.setStatus(StatusCodes.INTERNAL_SERVER_ERROR)
     }
   }

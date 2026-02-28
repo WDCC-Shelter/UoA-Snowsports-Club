@@ -36,6 +36,15 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "LodgeCreditState": {
+        "dataType": "refObject",
+        "properties": {
+            "anyNight": {"dataType":"double","required":true},
+            "weekNightsOnly": {"dataType":"double","required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "Pick_Partial_UserAdditionalInfo_.Exclude_keyofPartial_UserAdditionalInfo_.stripe_id__": {
         "dataType": "refAlias",
         "type": {"dataType":"nestedObjectLiteral","nestedProperties":{"date_of_birth":{"ref":"FirebaseFirestore.Timestamp"},"does_snowboarding":{"dataType":"boolean"},"does_racing":{"dataType":"boolean"},"does_ski":{"dataType":"boolean"},"phone_number":{"dataType":"double"},"gender":{"dataType":"string"},"emergency_contact":{"dataType":"string","validators":{"isString":{"errorMsg":"Please enter a name"}}},"first_name":{"dataType":"string","validators":{"isString":{"errorMsg":"Please enter your First Name"}}},"last_name":{"dataType":"string","validators":{"isString":{"errorMsg":"Please enter your Second Name"}}},"dietary_requirements":{"dataType":"string","validators":{"isString":{"errorMsg":"Please write your dietary requirements"}}},"ethnicity":{"dataType":"string"},"faculty":{"dataType":"string","validators":{"isString":{"errorMsg":"Please enter your faculty"}}},"university":{"dataType":"string","validators":{"isString":{"errorMsg":"Please enter your university"}}},"student_id":{"dataType":"string","validators":{"isString":{"errorMsg":"Please enter your student ID"}}},"university_year":{"dataType":"string","validators":{"isString":{"errorMsg":"Please enter your year of study"}}},"has_whakapapa_season_pass":{"dataType":"boolean"},"student_id_long":{"dataType":"string","validators":{"isString":{"errorMsg":"Please enter your student long ID"}}},"instagram_handle":{"dataType":"string"}},"validators":{}},
@@ -485,10 +494,10 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "AddCouponRequestBody": {
+    "UpdateLodgeCreditsRequestBody": {
         "dataType": "refObject",
         "properties": {
-            "quantity": {"dataType":"double","required":true},
+            "credits": {"ref":"LodgeCreditState","required":true},
         },
         "additionalProperties": false,
     },
@@ -1547,7 +1556,7 @@ export function RegisterRoutes(app: Router) {
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         const argsAdminController_updateCoupon: Record<string, TsoaRoute.ParameterSchema> = {
                 uid: {"in":"path","name":"uid","required":true,"dataType":"string"},
-                requestBody: {"in":"body","name":"requestBody","required":true,"ref":"AddCouponRequestBody"},
+                requestBody: {"in":"body","name":"requestBody","required":true,"ref":"UpdateLodgeCreditsRequestBody"},
         };
         app.put('/admin/users/:uid/lodge-credits',
             authenticateMiddleware([{"jwt":["admin"]}]),

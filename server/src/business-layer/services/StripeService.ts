@@ -24,7 +24,11 @@ import BookingUtils, {
 } from "../utils/BookingUtils"
 import AuthService from "./AuthService"
 import MailService from "./MailService"
-import { LODGE_CREDIT_KEY } from "../utils/CustomerMetadata"
+import {
+  LODGE_CREDIT_ANY_NIGHT_KEY,
+  LODGE_CREDIT_WEEK_NIGHTS_ONLY_KEY,
+  LodgeCreditState
+} from "../utils/CustomerMetadata"
 
 const stripe = new Stripe(process.env.STRIPE_API_KEY)
 
@@ -66,13 +70,25 @@ export default class StripeService {
     return result.data
   }
 
-  public async getLodgeCreditsForUser(customer_id: string) {
+  public async getLodgeCreditsForUser(
+    customer_id: string
+  ): Promise<LodgeCreditState> {
     const userData = await stripe.customers.retrieve(customer_id)
     if (userData.deleted === true) {
-      return 0
+      return {
+        anyNight: 0,
+        weekNightsOnly: 0
+      }
     }
 
-    return Math.floor(Number(userData.metadata[LODGE_CREDIT_KEY]))
+    return {
+      anyNight: Math.floor(
+        Number(userData.metadata[LODGE_CREDIT_ANY_NIGHT_KEY])
+      ),
+      weekNightsOnly: Math.floor(
+        Number(userData.metadata[LODGE_CREDIT_WEEK_NIGHTS_ONLY_KEY])
+      )
+    }
   }
 
   /**
@@ -522,10 +538,14 @@ export default class StripeService {
 
   /**
    */
-  public async editUserLodgeCredits(stripeId: string, amount: number) {
+  public async editUserLodgeCredits(
+    stripeId: string,
+    creditState: LodgeCreditState
+  ) {
     await stripe.customers.update(stripeId, {
       metadata: {
-        [LODGE_CREDIT_KEY]: amount
+        [LODGE_CREDIT_ANY_NIGHT_KEY]: creditState.anyNight,
+        [LODGE_CREDIT_WEEK_NIGHTS_ONLY_KEY]: creditState.weekNightsOnly
       }
     })
   }

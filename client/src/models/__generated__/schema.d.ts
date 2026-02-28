@@ -219,6 +219,19 @@ export interface components {
        */
       nanoseconds: number;
     };
+    /** @description Used to describe what lodge credits a user has, and how many of those credits are for weekdays only */
+    LodgeCreditState: {
+      /**
+       * Format: double
+       * @description Credits that can be used for any booking, including those that start on a Friday or Saturday.
+       */
+      anyNight: number;
+      /**
+       * Format: double
+       * @description Credits that can only be used for bookings that start on a weekday (Monday to Friday)
+       */
+      weekNightsOnly: number;
+    };
     /** @description From T, pick a set of properties whose keys are in the union K */
     "Pick_Partial_UserAdditionalInfo_.Exclude_keyofPartial_UserAdditionalInfo_.stripe_id__": {
       date_of_birth?: components["schemas"]["FirebaseFirestore.Timestamp"];
@@ -663,12 +676,9 @@ export interface components {
     DemoteUserRequestBody: {
       uid: string;
     };
-    AddCouponRequestBody: {
-      /**
-       * Format: double
-       * @description The number of the coupon to be added.
-       */
-      quantity: number;
+    UpdateLodgeCreditsRequestBody: {
+      /** @description The number of the coupon to be added. */
+      credits: components["schemas"]["LodgeCreditState"];
     };
     /** @description Event used to track a user being **manually** added to a booking (only possible via admin view) */
     BookingAddedEvent: {
@@ -965,7 +975,7 @@ export interface operations {
       /** @description Fetched lodge credits for user data */
       200: {
         content: {
-          "application/json": number;
+          "application/json": components["schemas"]["LodgeCreditState"] | 0;
         };
       };
     };
@@ -1406,10 +1416,7 @@ export interface operations {
       /** @description Ok */
       200: {
         content: {
-          "application/json": {
-            /** Format: double */
-            quantity: number;
-          };
+          "application/json": components["schemas"]["LodgeCreditState"];
         };
       };
     };
@@ -1428,7 +1435,7 @@ export interface operations {
     /** @description - The new quantity of coupons (multiplied by $40 for total value). */
     requestBody: {
       content: {
-        "application/json": components["schemas"]["AddCouponRequestBody"];
+        "application/json": components["schemas"]["UpdateLodgeCreditsRequestBody"];
       };
     };
     responses: {

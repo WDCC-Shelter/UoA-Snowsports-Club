@@ -55,22 +55,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Prepare directory structure for deployment
-      shell: bash
-      run: |
-        mkdir -p app
-        cp ./package.json app/package.json
-        cp ./pnpm-lock.yaml app/pnpm-lock.yaml
-        cp ./.nvmrc app/.nvmrc
-        cp ./Dockerfile app/Dockerfile
-        cp ./.dockerignore app/.dockerignore
-        cp ./pnpm-workspace.yaml app/pnpm-workspace.yaml
-        cp ./docker-compose.yml app/docker-compose.yml
-        cp ./tsconfig.json app/tsconfig.json
-        cp ./turbo.json app/turbo.json
-        cp -r ./scripts/. app/scripts
-        cp -r ./server/. app/server
-
     - name: Enable Corepack
       shell: bash
       run: corepack enable
@@ -96,15 +80,29 @@ runs:
     - name: Install dependencies if cache misses
       if: steps.cache-node-modules.outputs.cache-hit != 'true'
       run: |
-        cd app
         pnpm install
       shell: bash
 
     - name: Run build
       shell: bash
       run: |
-        cd app
         pnpm build --filter server
+
+    - name: Prepare directory structure for deployment
+      shell: bash
+      run: |
+        mkdir -p app
+        cp ./package.json app/package.json
+        cp ./pnpm-lock.yaml app/pnpm-lock.yaml
+        cp ./.nvmrc app/.nvmrc
+        cp ./Dockerfile app/Dockerfile
+        cp ./.dockerignore app/.dockerignore
+        cp ./pnpm-workspace.yaml app/pnpm-workspace.yaml
+        cp ./docker-compose.yml app/docker-compose.yml
+        cp ./tsconfig.json app/tsconfig.json
+        cp ./turbo.json app/turbo.json
+        cp -r ./scripts/. app/scripts
+        cp -r ./server/. app/server
 
     - name: Upload combined directory to E2
       uses: burnett01/rsync-deployments@8.0.4

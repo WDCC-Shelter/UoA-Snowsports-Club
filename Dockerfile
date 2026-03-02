@@ -10,7 +10,7 @@ RUN corepack enable
 COPY --link package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.json ./
 COPY --link ./server/package.json ./server/package.json
 COPY --link ./scripts ./scripts
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --filter server
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --filter server --prod
 
 # Stage 2: Prepare entrypoint
 COPY --link ./server ./server

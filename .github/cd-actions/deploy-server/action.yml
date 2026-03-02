@@ -71,10 +71,42 @@ runs:
         cp -r ./scripts/. app/scripts
         cp -r ./server/. app/server
 
+    - name: Enable Corepack
+      shell: bash
+      run: corepack enable
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: latest
+        run_install: false
+
+    - name: Cache node_modules
+      uses: actions/cache/restore@v4
+      id: cache-node-modules
+      with:
+        path: |
+          server/node_modules
+          client/node_modules
+          node_modules
+        key: node-modules-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+        restore-keys: |
+          node-modules-${{ runner.os }}-
+
+    - name: Install dependencies if cache misses
+      if: steps.cache-node-modules.outputs.cache-hit != 'true'
+      run: pnpm install
+      shell: bash
+
+    - name: Run build
+      shell: bash
+      run: |
+        pnpm build --filter server
+
     - name: Upload combined directory to E2
       uses: burnett01/rsync-deployments@8.0.4
       with:
-        switches: -avz --delete
+        switches: -avz --delete --exclude='node_modules/' --exclude='src/'
         path: ./app
         remote_path: ~/
         remote_host: ${{ inputs.SERVER_HOST }}
@@ -104,7 +136,7 @@ runs:
           echo "REDIRECT_MEMBERS_GOOGLE_SHEET_LINK=${{ inputs.REDIRECT_MEMBERS_GOOGLE_SHEET_LINK }}" >> server/.env
           echo "HTTPS_SERVER_CERTIFICATE=$(echo ${{ inputs.HTTPS_SERVER_CERTIFICATE }} | base64 --decode)" >> server/.env
           echo "HTTPS_SERVER_KEY=$(echo ${{ inputs.HTTPS_SERVER_KEY }} | base64 --decode)" >> server/.env
-          
+
           echo "${{ inputs.NEW_RELIC_APP_NAME }}" >> new_relic_app_name.txt
           echo "${{ inputs.NEW_RELIC_LICENSE_KEY }}" >> new_relic_license_key.txt
 
@@ -117,6 +149,6 @@ runs:
           export DOCKER_CLIENT_TIMEOUT=120
           export COMPOSE_HTTP_TIMEOUT=120
           DOCKER_BUILDKIT=1 docker-compose up -d --build
- 
+
           echo "Removing old images after build"
           docker system prune -f

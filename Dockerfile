@@ -12,9 +12,8 @@ COPY --link ./server/package.json ./server/package.json
 COPY --link ./scripts ./scripts
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --filter server
 
-# Stage 2: Build
+# Stage 2: Prepare entrypoint
 COPY --link ./server ./server
-RUN pnpm build --filter server
 RUN chmod +x ./server/entrypoint.sh
 
 # Stage 3: Run

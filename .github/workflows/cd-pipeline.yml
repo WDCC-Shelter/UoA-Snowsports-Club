@@ -41,8 +41,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
       - name: Run Server Deployment Composite Action
         uses: ./.github/cd-actions/deploy-server/
@@ -73,8 +71,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
       - name: Run Host Setup Composite Action
         uses: ./.github/cd-actions/setup-host/

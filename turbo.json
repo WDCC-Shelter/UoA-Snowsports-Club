@@ -4,7 +4,8 @@
   "tasks": {
     "generate:types": {},
     "build": {
-      "inputs": ["$TURBO_DEFAULT$", ".env", "server/.env", "client/.env"]
+      "inputs": ["$TURBO_DEFAULT$", ".env", "server/.env", "client/.env"],
+      "outputs": ["dist"]
     },
     "test": {
       "dependsOn": ["^test", "test:server", "test:client"],

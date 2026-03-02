@@ -82,7 +82,7 @@ runs:
         run_install: false
 
     - name: Cache node_modules
-      uses: actions/cache/restore@v4
+      uses: actions/cache@v4
       id: cache-node-modules
       with:
         path: |

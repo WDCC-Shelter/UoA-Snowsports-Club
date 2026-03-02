@@ -14,8 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
       - name: Run Setup Composite Action
         uses: ./.github/ci-actions/setup/
@@ -36,8 +34,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
       - name: Run Client Deployment Composite Action
         uses: ./.github/cd-actions/deploy-client/

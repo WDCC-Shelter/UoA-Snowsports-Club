@@ -40,8 +40,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
       - name: Run Setup Composite Action
         uses: ./.github/ci-actions/setup/
@@ -53,8 +51,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
       - name: Run Prettier Composite Action
         uses: ./.github/ci-actions/prettier/
@@ -67,8 +63,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
       - name: Run Eslint Composite Action
         uses: ./.github/ci-actions/lint/
@@ -82,8 +76,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
       - name: Run all tests
         uses: ./.github/ci-actions/test
@@ -98,8 +90,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
       - name: Run Code-gen Composite Action
         uses: ./.github/ci-actions/codegen
@@ -113,8 +103,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
       - name: Run Build Client Composite Action
         uses: ./.github/ci-actions/build-client
@@ -139,8 +127,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
       - name: Run Build Server Composite Action
         uses: ./.github/ci-actions/build-server
@@ -158,8 +144,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
       - name: Run Firebase Preview Composite Action
         uses: ./.github/ci-actions/firebase-preview

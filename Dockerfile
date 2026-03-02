@@ -1,4 +1,4 @@
-FROM node:20.3.0-slim AS base
+FROM node:20.3.0-alpine AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 ENV NODE_ENV=production
@@ -10,11 +10,10 @@ RUN corepack enable
 COPY --link package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.json ./
 COPY --link ./server/package.json ./server/package.json
 COPY --link ./scripts ./scripts
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --filter server
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --filter server --prod --ignore-scripts
 
-# Stage 2: Build
+# Stage 2: Prepare entrypoint
 COPY --link ./server ./server
-RUN pnpm build --filter server
 RUN chmod +x ./server/entrypoint.sh
 
 # Stage 3: Run

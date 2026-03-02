@@ -95,18 +95,21 @@ runs:
 
     - name: Install dependencies if cache misses
       if: steps.cache-node-modules.outputs.cache-hit != 'true'
-      run: pnpm install
+      run: |
+        cd ~/app
+        pnpm install
       shell: bash
 
     - name: Run build
       shell: bash
       run: |
+        cd ~/app
         pnpm build --filter server
 
     - name: Upload combined directory to E2
       uses: burnett01/rsync-deployments@8.0.4
       with:
-        switches: -avz --delete --exclude='node_modules/' --exclude='src/'
+        switches: -avz --delete --exclude='app/node_modules/' --exclude='app/src/'
         path: ./app
         remote_path: ~/
         remote_host: ${{ inputs.SERVER_HOST }}

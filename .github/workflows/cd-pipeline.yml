@@ -17,9 +17,9 @@ on:
         description: 'Workflow type'
         type: choice
         options:
-          - setup-host
           - deploy-server
           - deploy-client
+          - setup-host
         required: true
       rebuild:
         description: 'Whether to rebuild the containers by stopping them first'

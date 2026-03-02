@@ -109,7 +109,7 @@ runs:
     - name: Upload combined directory to E2
       uses: burnett01/rsync-deployments@8.0.4
       with:
-        switches: -avz --delete --exclude='app/node_modules/' --exclude='app/src/'
+        switches: -avz --delete --exclude='node_modules/' --exclude='src/'
         path: ./app
         remote_path: ~/
         remote_host: ${{ inputs.SERVER_HOST }}

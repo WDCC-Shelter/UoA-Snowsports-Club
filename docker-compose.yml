@@ -1,5 +1,3 @@
-version: "3"
-
 services:
   server:
     container_name: uasc-server

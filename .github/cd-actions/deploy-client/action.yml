@@ -103,7 +103,7 @@ runs:
     - name: Set Secrets for robots and sitemap generation
       run: | 
         echo "FRONTEND_BASE_URL=${{ inputs.FRONTEND_BASE_URL }}" >> client/.env
-        echo "NEXT_CONFIG_ENB=${{ environment }}" >> client/.env
+        echo "NEXT_CONFIG_ENB=${{ inputs.environment }}" >> client/.env
       shell: bash
 
     - name: Build client

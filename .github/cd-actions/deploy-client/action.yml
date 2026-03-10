@@ -100,6 +100,12 @@ runs:
       run: pnpm install
       shell: bash
 
+    - name: Set Secrets for robots and sitemap generation
+      run: | 
+        echo "FRONTEND_BASE_URL=${{ inputs.FRONTEND_BASE_URL }}" >> client/.env
+        echo "NEXT_CONFIG_ENB=${{ environment }}" >> client/.env
+      shell: bash
+
     - name: Build client
       run: pnpm build --filter client
       shell: bash

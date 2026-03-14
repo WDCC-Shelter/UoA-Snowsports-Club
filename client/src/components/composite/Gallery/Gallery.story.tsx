@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react"
-import Gallery from "./Gallery"
-import type { GalleryImage } from "@/models/sanity/GalleryImage/Utils"
+import Gallery, { type GalleryImageFormat } from "./Gallery"
 
 const meta = {
   title: "Composite/Gallery",
@@ -14,13 +13,17 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-const mockImages: GalleryImage[] = [
+const mockImages: GalleryImageFormat[] = [
   {
     _id: "1",
     title: "Cardrona Opening Weekend",
     description:
       "An incredible start to the season at Cardrona Alpine Resort. Perfect powder conditions greeted the club for the opening weekend, with blue skies all day.",
     imageUrl:
+      "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&auto=format",
+    thumbnailUrl:
+      "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&auto=format",
+    lightboxUrl:
       "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&auto=format",
     year: 2024,
     event: "Opening Weekend",
@@ -33,6 +36,10 @@ const mockImages: GalleryImage[] = [
       "Members put their skills to the test on the giant slalom course. A fantastic competitive atmosphere with some seriously quick times recorded.",
     imageUrl:
       "https://images.unsplash.com/photo-1548885991-553f4b7f20a6?w=800&auto=format",
+    thumbnailUrl:
+      "https://images.unsplash.com/photo-1548885991-553f4b7f20a6?w=800&auto=format",
+    lightboxUrl:
+      "https://images.unsplash.com/photo-1548885991-553f4b7f20a6?w=800&auto=format",
     year: 2024,
     event: "Racing Day",
     location: "Coronet Peak"
@@ -43,6 +50,10 @@ const mockImages: GalleryImage[] = [
     description:
       "After a long day on the slopes, the club gathered at the lodge for our annual après-ski social. Great food, great company, and plenty of stories from the mountain.",
     imageUrl:
+      "https://images.unsplash.com/photo-1520209759809-a9bcb6cb3241?w=800&auto=format",
+    thumbnailUrl:
+      "https://images.unsplash.com/photo-1520209759809-a9bcb6cb3241?w=800&auto=format",
+    lightboxUrl:
       "https://images.unsplash.com/photo-1520209759809-a9bcb6cb3241?w=800&auto=format",
     year: 2024,
     event: "Social Night",
@@ -55,6 +66,10 @@ const mockImages: GalleryImage[] = [
       "An early morning hike rewarded us with this stunning sunrise over The Remarkables. Worth every step of the climb.",
     imageUrl:
       "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&auto=format",
+    thumbnailUrl:
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&auto=format",
+    lightboxUrl:
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&auto=format",
     year: 2024,
     location: "The Remarkables"
   },
@@ -64,6 +79,10 @@ const mockImages: GalleryImage[] = [
     description:
       "The full squad assembled for the annual winter trip. 40 members, 5 days, and more vertical metres than we could count.",
     imageUrl:
+      "https://images.unsplash.com/photo-1610878180933-123728745d22?w=800&auto=format",
+    thumbnailUrl:
+      "https://images.unsplash.com/photo-1610878180933-123728745d22?w=800&auto=format",
+    lightboxUrl:
       "https://images.unsplash.com/photo-1610878180933-123728745d22?w=800&auto=format",
     year: 2023,
     event: "Winter Trip",
@@ -76,6 +95,10 @@ const mockImages: GalleryImage[] = [
       "50cm overnight dump meant one thing — an early alarm and first tracks through untouched powder. Days like this are what the club is all about.",
     imageUrl:
       "https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=800&auto=format",
+    thumbnailUrl:
+      "https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=800&auto=format",
+    lightboxUrl:
+      "https://images.unsplash.com/photo-1491555103944-7c647fd857e6?w=800&auto=format",
     year: 2023,
     event: "Winter Trip",
     location: "Mt Hutt"
@@ -86,6 +109,10 @@ const mockImages: GalleryImage[] = [
     description:
       "We welcomed 15 new members onto the snow for the first time. By the end of the day everyone was making their way down the beginner trails with big smiles.",
     imageUrl:
+      "https://images.unsplash.com/photo-1516139516-6a82da8b6a15?w=800&auto=format",
+    thumbnailUrl:
+      "https://images.unsplash.com/photo-1516139516-6a82da8b6a15?w=800&auto=format",
+    lightboxUrl:
       "https://images.unsplash.com/photo-1516139516-6a82da8b6a15?w=800&auto=format",
     year: 2023,
     event: "Learn to Ski",
@@ -98,6 +125,10 @@ const mockImages: GalleryImage[] = [
       "A quieter weekend retreat at the lodge. Board games, hot chocolates by the fire, and a gentle day on the slopes — the perfect reset.",
     imageUrl:
       "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&auto=format",
+    thumbnailUrl:
+      "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&auto=format",
+    lightboxUrl:
+      "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&auto=format",
     year: 2023,
     location: "UASC Lodge"
   },
@@ -107,6 +138,10 @@ const mockImages: GalleryImage[] = [
     description:
       "Celebrating another fantastic season together. Awards were handed out, memories were shared, and plans were already being made for next year.",
     imageUrl:
+      "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=800&auto=format",
+    thumbnailUrl:
+      "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=800&auto=format",
+    lightboxUrl:
       "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=800&auto=format",
     year: 2022,
     event: "End of Season",
@@ -118,6 +153,10 @@ const mockImages: GalleryImage[] = [
     description:
       "Our freestyle crew spent the afternoon throwing tricks in the halfpipe. Some seriously impressive riding on show from the club's snowboard contingent.",
     imageUrl:
+      "https://images.unsplash.com/photo-1602265585142-6b221d84e0af?w=800&auto=format",
+    thumbnailUrl:
+      "https://images.unsplash.com/photo-1602265585142-6b221d84e0af?w=800&auto=format",
+    lightboxUrl:
       "https://images.unsplash.com/photo-1602265585142-6b221d84e0af?w=800&auto=format",
     year: 2022,
     event: "Freestyle Day",

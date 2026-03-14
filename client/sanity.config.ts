@@ -63,6 +63,12 @@ export default defineConfig({
               S,
               context
             }),
+            orderableDocumentListDeskItem({
+              type: "gallery-image",
+              title: "Photo Gallery",
+              S,
+              context
+            }),
             // Regular document types
             S.documentTypeListItem("shop-item").title("Shop Item"),
             S.documentTypeListItem("about-item").title("About Item"),

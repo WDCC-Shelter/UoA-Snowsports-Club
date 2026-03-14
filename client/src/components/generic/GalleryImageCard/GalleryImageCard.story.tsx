@@ -118,6 +118,7 @@ export const GridPreview: Story = {
     </div>
   ),
   args: {
+    title: "Sample Image Title",
     description: "An amazing time on the mountain with UASC members.",
     imageUrl: MOCK_IMAGE_URL,
     year: 2024,

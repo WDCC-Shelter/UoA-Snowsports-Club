@@ -54,10 +54,6 @@ const Gallery = ({ images }: IGallery) => {
           {/* Header */}
           <div className="flex w-full flex-col gap-2">
             <h2 className="text-dark-blue-100 mr-auto italic">Gallery</h2>
-            <p className="text-gray-4 mr-auto max-w-[600px]">
-              A collection of moments from our trips, events, and life on the
-              mountain.
-            </p>
           </div>
 
           {/* Year filter chips */}

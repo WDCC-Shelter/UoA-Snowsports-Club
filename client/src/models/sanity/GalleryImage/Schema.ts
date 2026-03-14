@@ -1,11 +1,17 @@
 import { type SchemaTypeDefinition, defineField } from "sanity"
+import {
+  orderRankField,
+  orderRankOrdering
+} from "@sanity/orderable-document-list"
 
 export const GalleryImageSchema: SchemaTypeDefinition = {
   name: "gallery-image",
   title: "Gallery Image",
   description: "An image that will be displayed in the gallery",
   type: "document",
+  orderings: [orderRankOrdering],
   fields: [
+    orderRankField({ type: "gallery-image" }),
     defineField({
       name: "title",
       description: "The title of the image",
@@ -28,7 +34,8 @@ export const GalleryImageSchema: SchemaTypeDefinition = {
       name: "year",
       description: "The year the image was taken",
       type: "number",
-      validation: (v) => v.required()
+      validation: (v) =>
+        v.required().min(1970).max(3000).error("Please enter a valid year")
     }),
     defineField({
       name: "event",

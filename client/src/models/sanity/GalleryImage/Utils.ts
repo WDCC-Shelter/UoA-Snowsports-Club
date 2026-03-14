@@ -10,3 +10,7 @@ export type GalleryImage = {
   event?: string
   location?: string
 }
+export interface GalleryImageFormat extends GalleryImage {
+  thumbnailUrl: string
+  lightboxUrl: string
+}

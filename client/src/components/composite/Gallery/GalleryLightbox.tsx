@@ -2,11 +2,11 @@
 
 import Image from "next/image"
 import { useEffect, useCallback } from "react"
-import type { GalleryImage } from "@/models/sanity/GalleryImage/Utils"
+import type { GalleryImageFormat } from "@/models/sanity/GalleryImage/Utils"
 import CloseSign from "@/assets/icons/close_sign.svg"
 
 interface GalleryLightboxProps {
-  image: GalleryImage | null
+  image: GalleryImageFormat | null
   onClose: () => void
   onPrev: () => void
   onNext: () => void

@@ -4,12 +4,8 @@ import { useState, useMemo } from "react"
 import { Footer } from "@/components/generic/Footer/Footer"
 import GalleryImageCard from "@/components/generic/GalleryImageCard/GalleryImageCard"
 import GalleryLightbox from "./GalleryLightbox"
-import type { GalleryImage } from "@/models/sanity/GalleryImage/Utils"
+import type { GalleryImageFormat } from "@/models/sanity/GalleryImage/Utils"
 
-export interface GalleryImageFormat extends GalleryImage {
-  thumbnailUrl: string
-  lightboxUrl: string
-}
 interface IGallery {
   images: GalleryImageFormat[]
 }
@@ -18,7 +14,9 @@ const ALL_YEARS_LABEL = "All"
 
 const Gallery = ({ images }: IGallery) => {
   const [selectedYear, setSelectedYear] = useState<number | null>(null)
-  const [activeImage, setActiveImage] = useState<GalleryImage | null>(null)
+  const [activeImage, setActiveImage] = useState<GalleryImageFormat | null>(
+    null
+  )
 
   const years = useMemo(() => {
     return Array.from(new Set(images.map((img) => img.year))).sort(

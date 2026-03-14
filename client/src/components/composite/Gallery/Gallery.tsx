@@ -6,8 +6,12 @@ import GalleryImageCard from "@/components/generic/GalleryImageCard/GalleryImage
 import GalleryLightbox from "./GalleryLightbox"
 import type { GalleryImage } from "@/models/sanity/GalleryImage/Utils"
 
+interface GalleryImageFormat extends GalleryImage {
+  thumbnailUrl: string
+  lightboxUrl: string
+}
 interface IGallery {
-  images: GalleryImage[]
+  images: GalleryImageFormat[]
 }
 
 const ALL_YEARS_LABEL = "All"

@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react"
-import Gallery, { type GalleryImageFormat } from "./Gallery"
+import Gallery from "./Gallery"
+import type { GalleryImageFormat } from "@/models/sanity/GalleryImage/Utils"
 
 const meta = {
   title: "Composite/Gallery",

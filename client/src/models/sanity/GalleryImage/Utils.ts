@@ -6,6 +6,8 @@ export type GalleryImage = {
   title: string
   description: string
   imageUrl: string
+  thumbnailUrl: string
+  lightboxUrl: string
   year: number
   event?: string
   location?: string

@@ -122,7 +122,7 @@ const GalleryLightbox = ({
         {/* Image area */}
         <div className="relative min-h-[50vw] w-full flex-shrink-0 bg-black md:min-h-0 md:w-[65%]">
           <Image
-            src={image.imageUrl}
+            src={image.lightboxUrl}
             alt={image.title}
             fill
             sizes="(max-width: 768px) 100vw, 65vw"

@@ -129,7 +129,7 @@ const Gallery = ({ images }: IGallery) => {
                     <GalleryImageCard
                       title={image.title}
                       description={image.description}
-                      imageUrl={image.imageUrl}
+                      imageUrl={image.thumbnailUrl}
                       year={image.year}
                       event={image.event}
                       location={image.location}

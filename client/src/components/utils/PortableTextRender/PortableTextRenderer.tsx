@@ -8,6 +8,8 @@ import {
   type PortableTextComponents
 } from "@portabletext/react"
 import React from "react"
+import urlBuilder from "@sanity/image-url"
+import Image from "next/image"
 
 interface PortableTextRendererProps {
   value: PortableTextBlock[]
@@ -19,11 +21,32 @@ const getHeaderColor = (headerColorClass?: string) =>
   headerColorClass || "text-dark-blue-100"
 const getTextColor = (textColorClass?: string) => textColorClass || "text-black"
 
+const DEFAULT_IMAGE_SIZE = 500
+
 const getComponents = (
   headerColorClass?: string,
   textColorClass?: string
 ): PortableTextComponents => ({
-  types: {},
+  types: {
+    image: ({ value }) => {
+      return (
+        <Image
+          src={urlBuilder({
+            dataset: process.env.NEXT_PUBLIC_SANITY_DATASET,
+            projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID
+          })
+            .image(value)
+            .width(DEFAULT_IMAGE_SIZE)
+            .fit("max")
+            .auto("format")
+            .url()}
+          width={DEFAULT_IMAGE_SIZE}
+          height={DEFAULT_IMAGE_SIZE}
+          alt={value.alt || "Image"}
+        />
+      )
+    }
+  },
   marks: {
     strong: ({ children }) => (
       <strong className={`font-bold ${getTextColor(textColorClass)}`}>

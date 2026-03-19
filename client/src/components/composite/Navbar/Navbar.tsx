@@ -31,6 +31,7 @@ const AboutMenuItemsFull = () => {
       <Link href="/contact">Contact</Link>
       <Link href="/about/faq">FAQ</Link>
       <Link href="/about/gallery">Gallery</Link>
+      <Link href="/about/wellbeing">Wellbeing</Link>
     </>
   )
 }
@@ -42,6 +43,7 @@ const AboutMenuItemsMobile = () => {
       <WrappedTab to="/contact">Contact</WrappedTab>
       <WrappedTab to="/about/faq">FAQ</WrappedTab>
       <WrappedTab to="/about/gallery">Gallery</WrappedTab>
+      <WrappedTab to="/about/wellbeing">Wellbeing</WrappedTab>
     </div>
   )
 }

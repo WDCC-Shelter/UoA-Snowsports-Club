@@ -9,6 +9,7 @@ import { LodgeInfoSchema } from "@/models/sanity/LodgeInfo/Schema"
 import { PoliciesSchema } from "@/models/sanity/Policies/Schema"
 import { ShopItemSchema } from "@/models/sanity/ShopItem/Schema"
 import { GalleryImageSchema } from "@/models/sanity/GalleryImage/Schema"
+import { WellbeingPageSchema } from "@/models/sanity/WellbeingPage/Schema"
 
 export const schema: { types: SchemaTypeDefinition[] } = {
   types: [
@@ -21,6 +22,7 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     LifeMemberSchema,
     ShopItemSchema,
     FAQCategorySchema,
-    GalleryImageSchema
+    GalleryImageSchema,
+    WellbeingPageSchema
   ]
 }

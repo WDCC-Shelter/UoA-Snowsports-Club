@@ -26,18 +26,19 @@ const GalleryPage = async () => {
   // width()       → tells the CDN to downscale the image to the largest size
   //                 it will ever be displayed at, so the browser never
   //                 downloads more pixels than it can actually render:
-  //                   - wide cards (every 7th) span 2 columns → 800 px
-  //                   - standard cards span 1 column          → 400 px
+  //                   - all thumbnail cards use 1200 px for high quality
   //                   - lightbox occupies up to 65 vw on a    → 1600 px
   //                     large screen
-  const enrichedImages = images.map((image, index) => {
+  const sortedImages = [...images].sort((a, b) => b.year - a.year)
+
+  const enrichedImages = sortedImages.map((image, index) => {
     const isWide = index % 7 === 0
     return {
       ...image,
       thumbnailUrl: image.imageUrl
         ? new SanityImageUrl(image.imageUrl)
             .autoFormat()
-            .width(isWide ? 800 : 400)
+            .width(1200)
             .toString()
         : image.imageUrl,
       lightboxUrl: image.imageUrl

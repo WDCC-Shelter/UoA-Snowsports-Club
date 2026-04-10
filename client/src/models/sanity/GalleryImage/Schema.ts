@@ -35,7 +35,7 @@ export const GalleryImageSchema: SchemaTypeDefinition = {
       description: "The year the image was taken",
       type: "number",
       validation: (v) =>
-        v.required().min(1970).max(3000).error("Please enter a valid year")
+        v.required().min(1960).max(3000).error("Please enter a valid year")
     }),
     defineField({
       name: "event",

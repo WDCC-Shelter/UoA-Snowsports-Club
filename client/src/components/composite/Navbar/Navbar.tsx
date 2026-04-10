@@ -29,8 +29,6 @@ const AboutMenuItemsFull = () => {
   return (
     <>
       <Link href="/contact">Contact</Link>
-      <Link href="/about/faq">FAQ</Link>
-      <Link href="/about/gallery">Gallery</Link>
       <Link href="/about/wellbeing">Wellbeing</Link>
     </>
   )
@@ -93,6 +91,12 @@ const Navbar = ({
           <WrappedTab to="/bookings">Book the Lodge!</WrappedTab>
           <WrappedTab to="/events">Events</WrappedTab>
           <WrappedTab to="/shop">Shop</WrappedTab>
+          <span className="hidden md:block">
+            <WrappedTab to="/about/faq" mobileCompatiability={false}>FAQ</WrappedTab>
+          </span>
+          <span className="hidden md:block">
+            <WrappedTab to="/about/gallery" mobileCompatiability={false}>Gallery</WrappedTab>
+          </span>
           <span className="hidden md:block">
             <WrappedMenuTab displayName="about" to="/about">
               <AboutMenuItemsFull />

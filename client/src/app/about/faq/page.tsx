@@ -7,9 +7,15 @@ import {
 import { sanityQuery } from "../../../../sanity/lib/utils"
 
 export const metadata: Metadata = {
-  title: "FAQ - UASC",
+  title: "FAQ | University of Auckland Snowsports Club",
   description:
-    "Frequently asked questions about UASC, the lodge, bookings, and membership"
+    "Find answers to frequently asked questions about UASC membership, lodge bookings, pricing, events, and more.",
+  openGraph: {
+    title: "FAQ | University of Auckland Snowsports Club",
+    description:
+      "Find answers to frequently asked questions about UASC membership, lodge bookings, pricing, events, and more.",
+    type: "website"
+  }
 }
 
 const FAQPage = async () => {

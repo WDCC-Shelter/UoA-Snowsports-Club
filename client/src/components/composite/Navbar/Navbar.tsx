@@ -26,19 +26,12 @@ const Logo = () => {
 }
 
 const AboutMenuItemsFull = () => {
-  return (
-    <>
-      <Link href="/contact">Contact</Link>
-      <Link href="/about/faq">FAQ</Link>
-      <Link href="/about/gallery">Gallery</Link>
-      <Link href="/about/wellbeing">Wellbeing</Link>
-    </>
-  )
+  return <Link href="/contact">Contact</Link>
 }
 
 const AboutMenuItemsMobile = () => {
   return (
-    <div className="flex w-full flex-col gap-2 md:hidden">
+    <div className="flex w-full flex-col gap-2 lg:hidden">
       <WrappedTab to="/about">About</WrappedTab>
       <WrappedTab to="/contact">Contact</WrappedTab>
       <WrappedTab to="/about/faq">FAQ</WrappedTab>
@@ -74,7 +67,7 @@ const Navbar = ({
     setIsOpen(false)
   }
   return (
-    <div className="bg-gray-1 navbar-shadow fixed top-0 z-[999] flex w-screen px-8 pt-3 md:px-4">
+    <div className="bg-gray-1 navbar-shadow fixed top-0 z-[999] flex w-screen px-8 pt-3 lg:px-4">
       <div className="flex w-full">
         <Logo />
         <div
@@ -84,16 +77,31 @@ const Navbar = ({
             ${isOpen ? "flex" : "hidden"}
             bg-gray-1
 
-            md:relative md:top-0 md:ml-auto md:flex
-            md:min-h-full md:flex-row md:items-end md:justify-end
-            md:gap-7 md:bg-none md:pr-4 md:pt-0
+            lg:relative lg:top-0 lg:ml-auto lg:flex
+            lg:min-h-full lg:flex-row lg:items-end lg:justify-end
+            lg:gap-7 lg:bg-none lg:pr-4 lg:pt-0
           `}
         >
           <WrappedTab to="/">Home</WrappedTab>
           <WrappedTab to="/bookings">Book the Lodge!</WrappedTab>
           <WrappedTab to="/events">Events</WrappedTab>
           <WrappedTab to="/shop">Shop</WrappedTab>
-          <span className="hidden md:block">
+          <span className="hidden lg:block">
+            <WrappedTab to="/about/faq" mobileCompatiability={false}>
+              FAQ
+            </WrappedTab>
+          </span>
+          <span className="hidden lg:block">
+            <WrappedTab to="/about/gallery" mobileCompatiability={false}>
+              Gallery
+            </WrappedTab>
+          </span>
+          <span className="hidden lg:block">
+            <WrappedTab to="/about/wellbeing" mobileCompatiability={false}>
+              Wellbeing
+            </WrappedTab>
+          </span>
+          <span className="hidden lg:block">
             <WrappedMenuTab displayName="about" to="/about">
               <AboutMenuItemsFull />
             </WrappedMenuTab>
@@ -102,7 +110,7 @@ const Navbar = ({
           <Link
             href="https://www.instagram.com/uasc_nz/"
             target="_blank"
-            className="text-dark-blue-100 -mr-4 hidden pb-2.5 md:inline-block"
+            className="text-dark-blue-100 -mr-4 hidden pb-2.5 lg:inline-block"
           >
             <InstagramLink className="size-7" />
           </Link>
@@ -114,7 +122,7 @@ const Navbar = ({
           />
         </div>
         <div
-          className={`ml-auto flex h-[20px] w-[24px] cursor-pointer gap-x-4 pt-[5px] md:hidden
+          className={`ml-auto flex h-[20px] w-[24px] cursor-pointer gap-x-4 pt-[5px] lg:hidden
             ${isOpen ? "stroke-light-blue-100" : "stroke-black"}`}
           onClick={() => setIsOpen(!isOpen)}
         >

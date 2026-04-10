@@ -7,8 +7,15 @@ import {
 import { SanityImageUrl, sanityQuery } from "../../../../sanity/lib/utils"
 
 export const metadata: Metadata = {
-  title: "Gallery - UASC",
-  description: "Photos from UASC trips, events, and life at the club"
+  title: "Gallery | University of Auckland Snowsports Club",
+  description:
+    "Browse photos from UASC ski trips, lodge stays, social events, and club life over the years.",
+  openGraph: {
+    title: "Gallery | University of Auckland Snowsports Club",
+    description:
+      "Browse photos from UASC ski trips, lodge stays, social events, and club life over the years.",
+    type: "website"
+  }
 }
 
 const GalleryPage = async () => {
@@ -26,19 +33,16 @@ const GalleryPage = async () => {
   // width()       → tells the CDN to downscale the image to the largest size
   //                 it will ever be displayed at, so the browser never
   //                 downloads more pixels than it can actually render:
-  //                   - wide cards (every 7th) span 2 columns → 800 px
-  //                   - standard cards span 1 column          → 400 px
+  //                   - all thumbnail cards use 1200 px for high quality
   //                   - lightbox occupies up to 65 vw on a    → 1600 px
   //                     large screen
-  const enrichedImages = images.map((image, index) => {
-    const isWide = index % 7 === 0
+  const sortedImages = [...images].sort((a, b) => b.year - a.year)
+
+  const enrichedImages = sortedImages.map((image) => {
     return {
       ...image,
       thumbnailUrl: image.imageUrl
-        ? new SanityImageUrl(image.imageUrl)
-            .autoFormat()
-            .width(isWide ? 800 : 400)
-            .toString()
+        ? new SanityImageUrl(image.imageUrl).autoFormat().width(1200).toString()
         : image.imageUrl,
       lightboxUrl: image.imageUrl
         ? new SanityImageUrl(image.imageUrl).autoFormat().width(1600).toString()

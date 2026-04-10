@@ -1,15 +1,22 @@
 import type { Metadata } from "next"
-import { sanityQuery } from "../../../../sanity/lib/utils"
+import WellbeingSection from "@/components/composite/WellbeingSection/WellbeingSection"
+import { Footer } from "@/components/generic/Footer/Footer"
 import {
   WELLBEING_PAGE_GROQ_QUERY,
   type WellbeingPage
 } from "@/models/sanity/WellbeingPage/Utils"
-import WellbeingSection from "@/components/composite/WellbeingSection/WellbeingSection"
-import { Footer } from "@/components/generic/Footer/Footer"
+import { sanityQuery } from "../../../../sanity/lib/utils"
 
 export const metadata: Metadata = {
-  title: "Wellbeing - UASC",
-  description: "Wellbeing resources and support from UASC"
+  title: "Wellbeing | University of Auckland Snowsports Club",
+  description:
+    "Access wellbeing resources, support services, and mental health information provided by UASC for its members.",
+  openGraph: {
+    title: "Wellbeing | University of Auckland Snowsports Club",
+    description:
+      "Access wellbeing resources, support services, and mental health information provided by UASC for its members.",
+    type: "website"
+  }
 }
 
 const WellbeingPageRoute = async () => {

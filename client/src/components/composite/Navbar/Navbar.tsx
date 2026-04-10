@@ -26,12 +26,7 @@ const Logo = () => {
 }
 
 const AboutMenuItemsFull = () => {
-  return (
-    <>
-      <Link href="/contact">Contact</Link>
-      <Link href="/about/wellbeing">Wellbeing</Link>
-    </>
-  )
+  return <Link href="/contact">Contact</Link>
 }
 
 const AboutMenuItemsMobile = () => {
@@ -99,6 +94,11 @@ const Navbar = ({
           <span className="hidden md:block">
             <WrappedTab to="/about/gallery" mobileCompatiability={false}>
               Gallery
+            </WrappedTab>
+          </span>
+          <span className="hidden md:block">
+            <WrappedTab to="/about/wellbeing" mobileCompatiability={false}>
+              Wellbeing
             </WrappedTab>
           </span>
           <span className="hidden md:block">

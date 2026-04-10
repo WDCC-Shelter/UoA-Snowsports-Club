@@ -11,19 +11,44 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1
     },
     {
+      url: `${FRONTEND_URL}/bookings`,
+      priority: 0.9
+    },
+    {
+      url: `${FRONTEND_URL}/events`,
+      priority: 0.8
+    },
+    {
       url: `${FRONTEND_URL}/about`,
-      priority: 2
+      priority: 0.7
+    },
+    {
+      url: `${FRONTEND_URL}/about/faq`,
+      priority: 0.7
+    },
+    {
+      url: `${FRONTEND_URL}/about/gallery`,
+      priority: 0.6
+    },
+    {
+      url: `${FRONTEND_URL}/about/wellbeing`,
+      priority: 0.6
     },
     {
       url: `${FRONTEND_URL}/contact`,
-      priority: 3
+      priority: 0.5
     },
     {
-      url: `${FRONTEND_URL}/events`
+      url: `${FRONTEND_URL}/register`,
+      priority: 0.5
     },
     {
       url: `${FRONTEND_URL}/login`,
-      priority: 4
+      priority: 0.4
+    },
+    {
+      url: `${FRONTEND_URL}/shop`,
+      priority: 0.4
     }
   ]
 }

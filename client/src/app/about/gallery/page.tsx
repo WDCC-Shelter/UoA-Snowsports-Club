@@ -7,8 +7,15 @@ import {
 import { SanityImageUrl, sanityQuery } from "../../../../sanity/lib/utils"
 
 export const metadata: Metadata = {
-  title: "Gallery - UASC",
-  description: "Photos from UASC trips, events, and life at the club"
+  title: "Gallery | University of Auckland Snowsports Club",
+  description:
+    "Browse photos from UASC ski trips, lodge stays, social events, and club life over the years.",
+  openGraph: {
+    title: "Gallery | University of Auckland Snowsports Club",
+    description:
+      "Browse photos from UASC ski trips, lodge stays, social events, and club life over the years.",
+    type: "website"
+  }
 }
 
 const GalleryPage = async () => {

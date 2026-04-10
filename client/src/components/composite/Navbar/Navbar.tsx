@@ -92,10 +92,14 @@ const Navbar = ({
           <WrappedTab to="/events">Events</WrappedTab>
           <WrappedTab to="/shop">Shop</WrappedTab>
           <span className="hidden md:block">
-            <WrappedTab to="/about/faq" mobileCompatiability={false}>FAQ</WrappedTab>
+            <WrappedTab to="/about/faq" mobileCompatiability={false}>
+              FAQ
+            </WrappedTab>
           </span>
           <span className="hidden md:block">
-            <WrappedTab to="/about/gallery" mobileCompatiability={false}>Gallery</WrappedTab>
+            <WrappedTab to="/about/gallery" mobileCompatiability={false}>
+              Gallery
+            </WrappedTab>
           </span>
           <span className="hidden md:block">
             <WrappedMenuTab displayName="about" to="/about">

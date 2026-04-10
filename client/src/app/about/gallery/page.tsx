@@ -31,15 +31,11 @@ const GalleryPage = async () => {
   //                     large screen
   const sortedImages = [...images].sort((a, b) => b.year - a.year)
 
-  const enrichedImages = sortedImages.map((image, index) => {
-    const isWide = index % 7 === 0
+  const enrichedImages = sortedImages.map((image) => {
     return {
       ...image,
       thumbnailUrl: image.imageUrl
-        ? new SanityImageUrl(image.imageUrl)
-            .autoFormat()
-            .width(1200)
-            .toString()
+        ? new SanityImageUrl(image.imageUrl).autoFormat().width(1200).toString()
         : image.imageUrl,
       lightboxUrl: image.imageUrl
         ? new SanityImageUrl(image.imageUrl).autoFormat().width(1600).toString()

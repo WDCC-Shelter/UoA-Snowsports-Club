@@ -1,8 +1,8 @@
-import { type SchemaTypeDefinition, defineField } from "sanity"
 import {
   orderRankField,
   orderRankOrdering
 } from "@sanity/orderable-document-list"
+import { defineField, type SchemaTypeDefinition } from "sanity"
 
 export const GalleryImageSchema: SchemaTypeDefinition = {
   name: "gallery-image",

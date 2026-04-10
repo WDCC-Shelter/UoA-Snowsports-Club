@@ -1,7 +1,7 @@
-import Tab from "@/components/generic/Tab/Tab"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import type { ReactNode } from "react"
+import Tab from "@/components/generic/Tab/Tab"
 
 interface IWrappedTab {
   children: ReactNode
@@ -19,7 +19,7 @@ export const WrappedTab = ({
   return (
     <Link
       href={to}
-      className={`flex w-full ${mobileCompatiability ? "px-8" : "px-0"} md:w-fit md:px-0`}
+      className={`flex w-full ${mobileCompatiability ? "px-8" : "px-0"} lg:w-fit lg:px-0`}
     >
       <Tab
         stretchesOnSmallScreen={mobileCompatiability}

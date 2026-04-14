@@ -21,7 +21,7 @@ const GalleryImageCard = ({
   return (
     <div
       onClick={onClick}
-      className="group relative aspect-square w-full cursor-pointer overflow-hidden rounded-sm"
+      className="group relative aspect-square h-full w-full cursor-pointer overflow-hidden rounded-sm"
     >
       <Image
         src={imageUrl}

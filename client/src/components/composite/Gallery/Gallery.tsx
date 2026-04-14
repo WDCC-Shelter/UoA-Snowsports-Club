@@ -119,14 +119,18 @@ const Gallery = ({ images }: IGallery) => {
               )}
             </div>
           ) : (
-            <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2 sm:grid-flow-dense lg:grid-cols-3">
               {filteredImages.map((image, index) => {
                 // Every 7th image starting from the 1st (index 0, 7, 14…) spans 2 columns on lg
                 const isWide = index % 7 === 0
                 return (
                   <div
                     key={image._id}
-                    className={isWide ? "sm:col-span-2 lg:col-span-2" : ""}
+                    className={
+                      isWide
+                        ? "sm:col-span-2 sm:row-span-2 lg:col-span-2 lg:row-span-2 [&>*]:!aspect-auto"
+                        : ""
+                    }
                   >
                     <GalleryImageCard
                       title={image.title}

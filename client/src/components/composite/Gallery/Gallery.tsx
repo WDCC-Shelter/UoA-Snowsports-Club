@@ -121,8 +121,11 @@ const Gallery = ({ images }: IGallery) => {
           ) : (
             <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2 sm:grid-flow-dense lg:grid-cols-3">
               {filteredImages.map((image, index) => {
-                // Every 7th image starting from the 1st (index 0, 7, 14…) spans 2 columns on lg
-                const isWide = index % 7 === 0
+                // Every 7th image starting from the 1st (index 0, 7, 14…) spans 2 columns on lg.
+                // Only apply the wide/aspect-auto treatment when there are enough images to
+                // actually form a multi-cell layout — otherwise a lone "wide" image collapses
+                // because [&>*]:!aspect-auto removes its intrinsic height.
+                const isWide = index % 7 === 0 && filteredImages.length > 1
                 return (
                   <div
                     key={image._id}

@@ -139,5 +139,10 @@ runs:
         apiToken: ${{ inputs.CLOUDFLARE_API_TOKEN }}
         accountId: ${{ inputs.CLOUDFLARE_ACCOUNT_ID }}
         wranglerVersion: "3.90.0"
+        # Use npm (not the inferred pnpm) to install wrangler. This repo is a
+        # pnpm workspace, so the action's default `pnpm add wrangler` fails at
+        # the workspace root with ERR_PNPM_ADDING_TO_ROOT. npm/npx has no such
+        # restriction.
+        packageManager: npm
         command: pages deploy client/out --project-name=uasc
         gitHubToken: ${{ inputs.GITHUB_TOKEN }}

@@ -134,15 +134,14 @@ runs:
 
     - name: Deploy to Cloudflare
       if: inputs.strategy == 'cloudflare'
-      uses: cloudflare/wrangler-action@v3
-      with:
-        apiToken: ${{ inputs.CLOUDFLARE_API_TOKEN }}
-        accountId: ${{ inputs.CLOUDFLARE_ACCOUNT_ID }}
-        wranglerVersion: "3.90.0"
-        # Use npm (not the inferred pnpm) to install wrangler. This repo is a
-        # pnpm workspace, so the action's default `pnpm add wrangler` fails at
-        # the workspace root with ERR_PNPM_ADDING_TO_ROOT. npm/npx has no such
-        # restriction.
-        packageManager: npm
-        command: pages deploy client/out --project-name=uasc
-        gitHubToken: ${{ inputs.GITHUB_TOKEN }}
+      # Run wrangler directly via `pnpm dlx` instead of cloudflare/wrangler-action.
+      # The action tries to install wrangler into the repo, which fails in this
+      # pnpm workspace: `pnpm add` errors with ERR_PNPM_ADDING_TO_ROOT, and
+      # forcing npm errors with "Cannot read properties of null (reading
+      # 'matches')". `pnpm dlx` fetches and runs the pinned wrangler version from
+      # an isolated temp store, avoiding any workspace install entirely.
+      shell: bash
+      run: pnpm dlx wrangler@3.90.0 pages deploy client/out --project-name=${{ inputs.CLOUDFLARE_PROJECT_NAME }}
+      env:
+        CLOUDFLARE_API_TOKEN: ${{ inputs.CLOUDFLARE_API_TOKEN }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ inputs.CLOUDFLARE_ACCOUNT_ID }}

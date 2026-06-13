@@ -25,6 +25,11 @@ jobs:
         uses: yumemi-inc/path-filter@v2.3.0
         id: filter
         with:
+          # Use fetchable refs (not raw SHAs). GitHub only serves commits that
+          # are ref tips via `git fetch --depth 1`, so the PR merge ref / branch
+          # ref must be used instead of the raw github.sha.
+          head-ref: ${{ github.event_name == 'pull_request' && format('refs/pull/{0}/merge', github.event.number) || github.ref }}
+          base-ref: ${{ github.event_name == 'pull_request' && github.base_ref || github.event.repository.default_branch }}
           patterns: |
             **
             !**.md

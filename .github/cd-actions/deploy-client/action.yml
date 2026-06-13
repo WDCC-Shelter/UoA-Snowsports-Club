@@ -80,8 +80,6 @@ runs:
       uses: pnpm/action-setup@v2
       with:
         version: latest
-        run_install: |
-          - args: [--global, wrangler@3.90.0]
 
     - name: Cache node_modules
       uses: actions/cache@v4
@@ -140,5 +138,6 @@ runs:
       with:
         apiToken: ${{ inputs.CLOUDFLARE_API_TOKEN }}
         accountId: ${{ inputs.CLOUDFLARE_ACCOUNT_ID }}
+        wranglerVersion: "3.90.0"
         command: pages deploy client/out --project-name=uasc
         gitHubToken: ${{ inputs.GITHUB_TOKEN }}

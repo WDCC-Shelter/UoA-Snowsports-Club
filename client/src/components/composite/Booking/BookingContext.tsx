@@ -104,16 +104,34 @@ export const BookingContextProvider = ({
 
   const handleBookingCreation = useCallback(
     async (startDate?: Timestamp, endDate?: Timestamp) => {
-      await updateAllergies({ dietary_requirements: allergies })
-      await mutateAsync(
-        { startDate, endDate },
-        {
-          onSuccess() {
-            router.push("/bookings/payment")
+      // Updating allergies should never block the user from proceeding to
+      // payment. Failures here are logged but otherwise swallowed.
+      try {
+        await updateAllergies({ dietary_requirements: allergies })
+      } catch (e) {
+        console.error("Failed to update dietary requirements, continuing", e)
+      }
+
+      try {
+        await mutateAsync(
+          { startDate, endDate },
+          {
+            onSuccess() {
+              router.push("/bookings/payment")
+            }
           }
+        )
+        fireAnalytics("add_to_cart", { payment_type: "booking" })
+      } catch (e) {
+        // Surface unexpected failures instead of silently doing nothing.
+        // `UnavailableBookingError` is handled separately via `errorMessage`.
+        console.error("Failed to create booking payment session", e)
+        if ((e as Error)?.name !== "UnavailableBookingError") {
+          alert(
+            "Something went wrong while proceeding to payment. Please try again."
+          )
         }
-      )
-      fireAnalytics("add_to_cart", { payment_type: "booking" })
+      }
     },
     [allergies, mutateAsync, router, updateAllergies]
   )

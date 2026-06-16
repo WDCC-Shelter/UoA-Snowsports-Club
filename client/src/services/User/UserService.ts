@@ -54,7 +54,11 @@ const UserService = {
   },
   editSelf: async (userData: Partial<ReducedUserAdditionalInfo>) => {
     const { response } = await fetchClient.PATCH("/users/edit-self", {
-      body: { updatedInformation: userData }
+      body: { updatedInformation: userData },
+      // The endpoint returns `200 OK` with an empty body, so prevent
+      // openapi-fetch from attempting `response.json()` (which throws
+      // "Failed to execute 'json' on Response" on an empty/non-JSON body).
+      parseAs: "stream"
     })
     if (!response.ok)
       throw new Error("Something went wrong when editing self data")

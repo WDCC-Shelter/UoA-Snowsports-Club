@@ -137,7 +137,8 @@ export const CreateBookingSection = ({
    * Derive prices from the props
    */
   const NORMAL_PRICE = lodgePrices.normal
-  const SPECIAL_PRICE = lodgePrices.moreExpensive
+  const SINGLE_FRI_SAT_PRICE = lodgePrices.singleFridayOrSaturday
+  const WEEKEND_PRICE = lodgePrices.weekend
 
   const [isValidForCreation, setIsValidForCreation] = useState<boolean>(false)
 
@@ -233,19 +234,36 @@ export const CreateBookingSection = ({
    *  a string to be shown to the user about the price for their date selection
    */
   const estimatedPriceString = useMemo(() => {
-    const nights = DateUtils.datesToDateRange(
-      currentStartDate,
-      currentEndDate
-    ).length
-    const requiredPrice = DateUtils.isSingleFridayOrSaturday(
+    const breakdown = DateUtils.getNightPricingBreakdown(
       currentStartDate,
       currentEndDate
     )
-      ? SPECIAL_PRICE
-      : NORMAL_PRICE
 
-    return `$${requiredPrice} * ${nights} night${nights > 1 ? "s" : ""} = $${requiredPrice * nights}` as const
-  }, [currentStartDate, currentEndDate, SPECIAL_PRICE, NORMAL_PRICE])
+    // Lone Friday/Saturday keeps the single special rate.
+    if (breakdown.singleFridayOrSaturday > 0) {
+      return `$${SINGLE_FRI_SAT_PRICE} * 1 night = $${SINGLE_FRI_SAT_PRICE}` as const
+    }
+
+    const total =
+      breakdown.normal * NORMAL_PRICE + breakdown.weekend * WEEKEND_PRICE
+
+    // Build a human-readable per-rate summary, e.g. "$40 * 1 + $50 * 1 = $90".
+    const parts: string[] = []
+    if (breakdown.normal > 0) {
+      parts.push(`$${NORMAL_PRICE} * ${breakdown.normal}`)
+    }
+    if (breakdown.weekend > 0) {
+      parts.push(`$${WEEKEND_PRICE} * ${breakdown.weekend}`)
+    }
+
+    return `${parts.join(" + ")} = $${total}` as const
+  }, [
+    currentStartDate,
+    currentEndDate,
+    NORMAL_PRICE,
+    WEEKEND_PRICE,
+    SINGLE_FRI_SAT_PRICE
+  ])
 
   return (
     <>
@@ -259,7 +277,8 @@ export const CreateBookingSection = ({
         <div className="h-full max-h-[600px] self-start">
           <BookingInfoComponent
             pricePerNight={NORMAL_PRICE.toString()}
-            priceSingleFridayOrSaturday={SPECIAL_PRICE.toString()}
+            priceWeekend={WEEKEND_PRICE.toString()}
+            priceSingleFridayOrSaturday={SINGLE_FRI_SAT_PRICE.toString()}
           />
         </div>
 

@@ -57,7 +57,8 @@ const HomeComponent = ({
                 lodgePricing.normal
               ),
             disclaimer: lodgeBookingPricingBannerMessages.disclaimer(
-              lodgePricing.moreExpensive
+              lodgePricing.weekend,
+              lodgePricing.singleFridayOrSaturday
             )
           }}
         />

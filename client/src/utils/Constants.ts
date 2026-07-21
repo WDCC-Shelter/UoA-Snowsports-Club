@@ -3,7 +3,21 @@ export const DEFAULT_BOOKING_AVAILABILITY = 32 as const
 export const MEMBER_TABLE_MAX_DATA = 100
 
 export const DEFAULT_NORMAL_PRICE = 40 as const
-export const DEFAULT_SPECIAL_PRICE = 60 as const
+/**
+ * Display-only fallback for the lone single Friday/Saturday special rate.
+ *
+ * Used purely to render a number at SSG time when the Stripe price can't be
+ * fetched; it never charges anyone (the server always charges from Stripe).
+ */
+export const DEFAULT_SINGLE_FRI_SAT_PRICE = 60 as const
+/**
+ * Display-only fallback for the weekend-night rate (Fri/Sat nights within a
+ * multi-night booking).
+ *
+ * Used purely to render a number at SSG time when the Stripe price can't be
+ * fetched; it never charges anyone (the server always charges from Stripe).
+ */
+export const DEFAULT_WEEKEND_PRICE = 50 as const
 
 /**
  * Need to remove time data from this

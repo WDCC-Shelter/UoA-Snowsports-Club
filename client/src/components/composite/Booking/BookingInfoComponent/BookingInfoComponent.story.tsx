@@ -12,6 +12,7 @@ export const DefaultBookingInfoComponent: Story = {
   tags: ["autodocs"],
   args: {
     pricePerNight: "40",
+    priceWeekend: "50",
     priceSingleFridayOrSaturday: "60"
   }
 }

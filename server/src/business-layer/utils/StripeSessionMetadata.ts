@@ -34,3 +34,14 @@ export const START_DATE = "start_date" as const
  * **End Date** the last date (inclusive) for the booking
  */
 export const END_DATE = "end date" as const
+
+/**
+ * For booking checkouts, stored in a Stripe session.
+ *
+ * The value at this metadata key will be a JSON serialized object mapping each
+ * {@link LodgePricingTypeValues} used in the booking to the number of nights
+ * charged at that rate.
+ *
+ * @example '{"normal":1,"weekend":1}'
+ */
+export const LODGE_PRICING_BREAKDOWN_KEY = "lodge_pricing_breakdown" as const

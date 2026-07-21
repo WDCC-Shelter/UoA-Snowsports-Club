@@ -13,7 +13,8 @@ export const DefaultCreateBookingPage: Story = {
   args: {
     lodgePrices: {
       normal: 69,
-      moreExpensive: 420
+      weekend: 200,
+      singleFridayOrSaturday: 420
     }
   }
 }

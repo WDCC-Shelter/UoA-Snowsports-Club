@@ -342,4 +342,135 @@ describe("BookingUtils", () => {
       expect(result.anyNight).toEqual(3)
     })
   })
+
+  describe("BookingUtils.getPricingBreakdown", () => {
+    it("should return the single special rate for a lone Friday", () => {
+      const dates = [Timestamp.fromDate(new Date("2024-06-21"))] // Friday
+      expect(BookingUtils.getPricingBreakdown(dates)).toEqual({
+        [LodgePricingTypeValues.SingleFridayOrSaturday]: 1
+      })
+    })
+
+    it("should return the single special rate for a lone Saturday", () => {
+      const dates = [Timestamp.fromDate(new Date("2024-06-22"))] // Saturday
+      expect(BookingUtils.getPricingBreakdown(dates)).toEqual({
+        [LodgePricingTypeValues.SingleFridayOrSaturday]: 1
+      })
+    })
+
+    it("should charge a weekend rate for a Friday within a multi-night booking (Thu + Fri)", () => {
+      const dates = [
+        Timestamp.fromDate(new Date("2024-06-20")), // Thursday
+        Timestamp.fromDate(new Date("2024-06-21")) // Friday
+      ]
+      expect(BookingUtils.getPricingBreakdown(dates)).toEqual({
+        [LodgePricingTypeValues.Normal]: 1,
+        [LodgePricingTypeValues.Weekend]: 1
+      })
+    })
+
+    it("should charge both nights at the weekend rate for Fri + Sat", () => {
+      const dates = [
+        Timestamp.fromDate(new Date("2024-06-21")), // Friday
+        Timestamp.fromDate(new Date("2024-06-22")) // Saturday
+      ]
+      expect(BookingUtils.getPricingBreakdown(dates)).toEqual({
+        [LodgePricingTypeValues.Weekend]: 2
+      })
+    })
+
+    it("should charge all nights at the normal rate for a weekday-only booking (Mon + Tue)", () => {
+      const dates = [
+        Timestamp.fromDate(new Date("2024-06-17")), // Monday
+        Timestamp.fromDate(new Date("2024-06-18")) // Tuesday
+      ]
+      expect(BookingUtils.getPricingBreakdown(dates)).toEqual({
+        [LodgePricingTypeValues.Normal]: 2
+      })
+    })
+
+    it("should correctly count nights for a booking spanning two weekends", () => {
+      // Fri 21 Jun -> Fri 28 Jun inclusive (8 nights)
+      const dates = [
+        Timestamp.fromDate(new Date("2024-06-21")), // Friday
+        Timestamp.fromDate(new Date("2024-06-22")), // Saturday
+        Timestamp.fromDate(new Date("2024-06-23")), // Sunday
+        Timestamp.fromDate(new Date("2024-06-24")), // Monday
+        Timestamp.fromDate(new Date("2024-06-25")), // Tuesday
+        Timestamp.fromDate(new Date("2024-06-26")), // Wednesday
+        Timestamp.fromDate(new Date("2024-06-27")), // Thursday
+        Timestamp.fromDate(new Date("2024-06-28")) // Friday
+      ]
+      expect(BookingUtils.getPricingBreakdown(dates)).toEqual({
+        [LodgePricingTypeValues.Weekend]: 3, // Fri, Sat, Fri
+        [LodgePricingTypeValues.Normal]: 5 // Sun, Mon, Tue, Wed, Thu
+      })
+    })
+
+    it("should return an empty breakdown for no dates", () => {
+      expect(BookingUtils.getPricingBreakdown([])).toEqual({})
+    })
+  })
+
+  describe("BookingUtils.getLodgeCreditDiscountAmount", () => {
+    const unitAmountByType = {
+      [LodgePricingTypeValues.Normal]: 4000, // $40
+      [LodgePricingTypeValues.Weekend]: 5000 // $50
+    }
+
+    it("should discount weeknight credits against the actual consumed night rate (incl. Friday at weekend rate)", () => {
+      // Thu (normal) + Fri (weekend), one weeknight credit.
+      const dates = [
+        Timestamp.fromDate(new Date("2024-06-20")), // Thursday - normal
+        Timestamp.fromDate(new Date("2024-06-21")) // Friday - weekend
+      ]
+      // Weeknight credit consumes the most expensive weeknight first (Fri @ $50)
+      const result = BookingUtils.getLodgeCreditDiscountAmount(
+        dates,
+        { weekNightsOnly: 1, anyNight: 0 },
+        unitAmountByType
+      )
+      expect(result).toEqual(5000)
+    })
+
+    it("should discount any-night credits against a Saturday at the weekend rate", () => {
+      const dates = [
+        Timestamp.fromDate(new Date("2024-06-21")), // Friday - weekend
+        Timestamp.fromDate(new Date("2024-06-22")) // Saturday - weekend
+      ]
+      // Weeknight credit can consume Fri (weekend rate); any-night consumes Sat.
+      const result = BookingUtils.getLodgeCreditDiscountAmount(
+        dates,
+        { weekNightsOnly: 1, anyNight: 1 },
+        unitAmountByType
+      )
+      expect(result).toEqual(10000) // $50 (Fri) + $50 (Sat)
+    })
+
+    it("should sum consumed-night rates for a mixed booking", () => {
+      // Thu (normal), Fri (weekend), Sat (weekend)
+      const dates = [
+        Timestamp.fromDate(new Date("2024-06-20")), // Thursday - normal
+        Timestamp.fromDate(new Date("2024-06-21")), // Friday - weekend
+        Timestamp.fromDate(new Date("2024-06-22")) // Saturday - weekend
+      ]
+      // 1 weeknight credit (consumes Fri @ $50), 1 any-night credit (consumes Sat @ $50)
+      const result = BookingUtils.getLodgeCreditDiscountAmount(
+        dates,
+        { weekNightsOnly: 1, anyNight: 1 },
+        unitAmountByType
+      )
+      expect(result).toEqual(10000)
+    })
+
+    it("should return 0 when no credits are applied", () => {
+      const dates = [Timestamp.fromDate(new Date("2024-06-20"))]
+      const result = BookingUtils.getLodgeCreditDiscountAmount(
+        dates,
+        { weekNightsOnly: 0, anyNight: 0 },
+        unitAmountByType
+      )
+      expect(result).toEqual(0)
+    })
+  })
 })

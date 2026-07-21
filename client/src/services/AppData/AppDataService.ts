@@ -1,6 +1,10 @@
 import type { MembershipTypes } from "@/models/Payment"
 import fetchClient from "@/services/OpenApiFetchClient"
-import { DEFAULT_NORMAL_PRICE, DEFAULT_SPECIAL_PRICE } from "@/utils/Constants"
+import {
+  DEFAULT_NORMAL_PRICE,
+  DEFAULT_SINGLE_FRI_SAT_PRICE,
+  DEFAULT_WEEKEND_PRICE
+} from "@/utils/Constants"
 
 export type MembershipPrices = {
   title: string
@@ -15,13 +19,20 @@ export type MembershipPrices = {
  */
 export interface LodgePricingProps {
   /**
-   * Price (per night) for when a user books the lodge
+   * Price (per night) for a standard night (any night that is not a weekend
+   * night within a multi-night booking, and not a lone Friday/Saturday).
    */
   normal: number
   /**
-   * Price (per night) for when a user books a single Friday or Saturday
+   * Price for when a user books a lone single Friday or Saturday (single-night
+   * booking).
    */
-  moreExpensive: number
+  singleFridayOrSaturday: number
+  /**
+   * Price (per night) for Friday/Saturday nights that fall *within* a
+   * multi-night booking.
+   */
+  weekend: number
 }
 
 const MembershipLongNames = {
@@ -89,23 +100,30 @@ const AppDataService = {
       const normalPrice = priceList?.find(
         (price) => price.name === "normal"
       )?.displayPrice
-      const moreExpensivePrice = priceList?.find(
+      const singleFridayOrSaturdayPrice = priceList?.find(
         (price) => price.name === "single_friday_or_saturday"
+      )?.displayPrice
+      const weekendPrice = priceList?.find(
+        (price) => price.name === "weekend"
       )?.displayPrice
 
       return {
         normal: normalPrice
           ? Number.parseInt(normalPrice)
           : DEFAULT_NORMAL_PRICE,
-        moreExpensive: moreExpensivePrice
-          ? Number.parseInt(moreExpensivePrice)
-          : DEFAULT_SPECIAL_PRICE
+        singleFridayOrSaturday: singleFridayOrSaturdayPrice
+          ? Number.parseInt(singleFridayOrSaturdayPrice)
+          : DEFAULT_SINGLE_FRI_SAT_PRICE,
+        weekend: weekendPrice
+          ? Number.parseInt(weekendPrice)
+          : DEFAULT_WEEKEND_PRICE
       }
     } catch (e) {
       console.error("Failed to fetch lodge prices", e)
       return {
         normal: DEFAULT_NORMAL_PRICE,
-        moreExpensive: DEFAULT_SPECIAL_PRICE
+        singleFridayOrSaturday: DEFAULT_SINGLE_FRI_SAT_PRICE,
+        weekend: DEFAULT_WEEKEND_PRICE
       }
     }
   },

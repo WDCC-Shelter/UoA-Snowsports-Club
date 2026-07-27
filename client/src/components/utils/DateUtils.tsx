@@ -66,6 +66,49 @@ export const DateUtils = {
   },
 
   /**
+   * Produces a per-rate breakdown of how many nights in the selected range are
+   * charged at each rate. This mirrors the server's `BookingUtils.getPricingBreakdown`
+   * so the front-end estimate matches the actual charge exactly.
+   *
+   * Pricing rules:
+   * - A lone Friday or Saturday → `{ singleFridayOrSaturday: 1 }`.
+   * - Otherwise, each Friday/Saturday night → `weekend`, all other nights → `normal`.
+   *
+   * @param startDate the first night of the selected range
+   * @param endDate the last night of the selected range
+   * @returns the number of nights to charge at each rate
+   */
+  getNightPricingBreakdown: (
+    startDate: Date,
+    endDate: Date
+  ): { normal: number; weekend: number; singleFridayOrSaturday: number } => {
+    const FRIDAY = 5
+    const SATURDAY = 6
+    const dateArray = DateUtils.datesToDateRange(startDate, endDate)
+
+    const breakdown = { normal: 0, weekend: 0, singleFridayOrSaturday: 0 }
+
+    if (dateArray.length === 0) {
+      return breakdown
+    }
+
+    if (DateUtils.isSingleFridayOrSaturday(startDate, endDate)) {
+      breakdown.singleFridayOrSaturday = 1
+      return breakdown
+    }
+
+    for (const date of dateArray) {
+      const day = date.getDay()
+      if (day === FRIDAY || day === SATURDAY) {
+        breakdown.weekend++
+      } else {
+        breakdown.normal++
+      }
+    }
+    return breakdown
+  },
+
+  /**
    * @param date to compare
    * @param timestamp to compare
    * @returns `true` if the two are equal

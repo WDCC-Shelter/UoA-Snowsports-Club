@@ -99,6 +99,135 @@ const BookingUtils = {
   },
 
   /**
+   * Produces a per-{@link LodgePricingTypeValues} breakdown of how many nights
+   * in the booking should be charged at each rate. This is the single source
+   * of truth for the night → price mapping (the client mirrors this logic).
+   *
+   * Pricing rules:
+   * - A lone Friday or Saturday (single-night booking) →
+   *   `{ [SingleFridayOrSaturday]: 1 }`.
+   * - Otherwise, each Friday/Saturday night is charged at the
+   *   {@link LodgePricingTypeValues.Weekend} rate, and every other night is
+   *   charged at the {@link LodgePricingTypeValues.Normal} rate.
+   *
+   * @param datesInBooking an array of dates (nights) in the booking
+   * @returns a partial record keyed by pricing type with the number of nights
+   *   to charge at that rate (only non-zero entries are included)
+   */
+  getPricingBreakdown: (
+    datesInBooking: Timestamp[]
+  ): Partial<Record<LodgePricingTypeValues, number>> => {
+    if (datesInBooking.length === 0) {
+      return {}
+    }
+
+    // A lone Friday/Saturday keeps the existing single-night special rate.
+    if (
+      BookingUtils.getRequiredPricing(datesInBooking) ===
+      LodgePricingTypeValues.SingleFridayOrSaturday
+    ) {
+      return { [LodgePricingTypeValues.SingleFridayOrSaturday]: 1 }
+    }
+
+    const WEEKEND_DAYS: ReadonlyArray<number> = [FRIDAY, SATURDAY]
+    let weekendNights = 0
+    let normalNights = 0
+    for (const date of datesInBooking) {
+      const day = new Date(firestoreTimestampToDate(date)).getUTCDay()
+      if (WEEKEND_DAYS.includes(day)) {
+        weekendNights++
+      } else {
+        normalNights++
+      }
+    }
+
+    const breakdown: Partial<Record<LodgePricingTypeValues, number>> = {}
+    if (normalNights > 0) {
+      breakdown[LodgePricingTypeValues.Normal] = normalNights
+    }
+    if (weekendNights > 0) {
+      breakdown[LodgePricingTypeValues.Weekend] = weekendNights
+    }
+    return breakdown
+  },
+
+  /**
+   * Computes the total lodge-credit discount amount (in the smallest currency
+   * unit, e.g. cents) for a booking that may mix normal and weekend rates.
+   *
+   * Each credit discounts the *actual* rate of the specific night it is
+   * consumed against ("match consumed night type"):
+   * - Weeknight-only credits are consumed against Mon–Fri nights first. A
+   *   Friday consumed is discounted at the weekend rate; Mon–Thu at the normal
+   *   rate.
+   * - Any-night credits are consumed against the remaining nights (a Saturday
+   *   is discounted at the weekend rate; other nights at their respective rate).
+   *
+   * The nights are sorted most-expensive-first within each credit pool so the
+   * discount is applied consistently and to the member's benefit.
+   *
+   * @param datesInBooking the nights in the booking
+   * @param creditsToApply the credits being consumed (from
+   *   {@link BookingUtils.getDiscountableNights})
+   * @param unitAmountByType a map from pricing type to that type's Stripe
+   *   `unit_amount` (smallest currency unit)
+   * @returns the total discount amount in the smallest currency unit
+   */
+  getLodgeCreditDiscountAmount: (
+    datesInBooking: Timestamp[],
+    creditsToApply: LodgeCreditState,
+    unitAmountByType: Partial<Record<LodgePricingTypeValues, number>>
+  ): number => {
+    const normalAmount = unitAmountByType[LodgePricingTypeValues.Normal] ?? 0
+    const weekendAmount = unitAmountByType[LodgePricingTypeValues.Weekend] ?? 0
+
+    /**
+     * The per-night rate used when a credit is consumed against `date`.
+     * A lone Friday/Saturday is never discountable here in practice (multi-night
+     * only), so we fall back to the single special rate if present, else normal.
+     */
+    const rateForDate = (date: Timestamp): number => {
+      const day = new Date(firestoreTimestampToDate(date)).getUTCDay()
+      if (day === FRIDAY || day === SATURDAY) {
+        return weekendAmount
+      }
+      return normalAmount
+    }
+
+    // Weeknight credits apply to Mon–Fri nights (exclude Sat & Sun), matching
+    // getDiscountableNights.
+    const weekNightDates = datesInBooking.filter((date) => {
+      const day = new Date(firestoreTimestampToDate(date)).getUTCDay()
+      return day !== SUNDAY && day !== SATURDAY
+    })
+
+    // Sort most-expensive-first so credits discount the highest rates first.
+    const sortByRateDesc = (a: Timestamp, b: Timestamp) =>
+      rateForDate(b) - rateForDate(a)
+
+    const weekNightsToDiscount = weekNightDates
+      .slice()
+      .sort(sortByRateDesc)
+      .slice(0, creditsToApply.weekNightsOnly)
+
+    const consumedSet = new Set(weekNightsToDiscount)
+
+    // Any-night credits apply to the remaining (not-yet-discounted) nights.
+    const remainingDates = datesInBooking.filter(
+      (date) => !consumedSet.has(date)
+    )
+    const anyNightsToDiscount = remainingDates
+      .slice()
+      .sort(sortByRateDesc)
+      .slice(0, creditsToApply.anyNight)
+
+    return [...weekNightsToDiscount, ...anyNightsToDiscount].reduce(
+      (total, date) => total + rateForDate(date),
+      0
+    )
+  },
+
+  /**
    * subtracts a {@link LodgeCreditState} representing the credits to be deducted from a starting {@link LodgeCreditState}.
    * @param startingLodgeCredits The initial lodge credit state before the booking is made.
    * @param lodgeCreditsToDeduct The lodge credit state representing the credits to be deducted for the booking.

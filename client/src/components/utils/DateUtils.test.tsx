@@ -31,6 +31,53 @@ describe("DateUtils", () => {
     })
   })
 
+  describe("getNightPricingBreakdown", () => {
+    it("should charge a lone Friday/Saturday at the single special rate", () => {
+      const friday = new Date("2024-01-05")
+      const saturday = new Date("2024-01-06")
+      expect(DateUtils.getNightPricingBreakdown(friday, friday)).toEqual({
+        normal: 0,
+        weekend: 0,
+        singleFridayOrSaturday: 1
+      })
+      expect(DateUtils.getNightPricingBreakdown(saturday, saturday)).toEqual({
+        normal: 0,
+        weekend: 0,
+        singleFridayOrSaturday: 1
+      })
+    })
+
+    it("should charge a Friday within a multi-night booking at the weekend rate (Thu + Fri)", () => {
+      const thursday = new Date("2024-01-04")
+      const friday = new Date("2024-01-05")
+      expect(DateUtils.getNightPricingBreakdown(thursday, friday)).toEqual({
+        normal: 1,
+        weekend: 1,
+        singleFridayOrSaturday: 0
+      })
+    })
+
+    it("should charge both nights at the weekend rate for Fri + Sat", () => {
+      const friday = new Date("2024-01-05")
+      const saturday = new Date("2024-01-06")
+      expect(DateUtils.getNightPricingBreakdown(friday, saturday)).toEqual({
+        normal: 0,
+        weekend: 2,
+        singleFridayOrSaturday: 0
+      })
+    })
+
+    it("should charge all nights at the normal rate for a weekday-only booking (Mon + Tue)", () => {
+      const monday = new Date("2024-01-08")
+      const tuesday = new Date("2024-01-09")
+      expect(DateUtils.getNightPricingBreakdown(monday, tuesday)).toEqual({
+        normal: 2,
+        weekend: 0,
+        singleFridayOrSaturday: 0
+      })
+    })
+  })
+
   describe("dateEqualToTimestamp", () => {
     it("should return true if date and timestamp are equal", () => {
       const date = new Date("2024-01-01")

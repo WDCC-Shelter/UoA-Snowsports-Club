@@ -14,7 +14,8 @@ export const DefaultHomePage = () => {
       membershipPricingData={[]}
       lodgePricing={{
         normal: 69,
-        moreExpensive: 420
+        weekend: 200,
+        singleFridayOrSaturday: 420
       }}
     />
   )

@@ -5,11 +5,15 @@ import Link from "next/link"
 
 interface IBookingInfoProps {
   /**
-   * The price to *display* for a "normal booking"
+   * The price to *display* for a "normal booking" (per night)
    */
   pricePerNight: string
   /**
-   * The price to *display* for a single friday/saturday
+   * The price to *display* per Friday/Saturday night within a multi-night booking
+   */
+  priceWeekend: string
+  /**
+   * The price to *display* for a lone single Friday/Saturday booking
    */
   priceSingleFridayOrSaturday: string
 }
@@ -23,6 +27,7 @@ const Divider = () => <span className="bg-dark-blue-100 my-3 h-[1px] w-full" />
  */
 const BookingInfoComponent = ({
   pricePerNight,
+  priceWeekend,
   priceSingleFridayOrSaturday
 }: props) => {
   return (
@@ -31,6 +36,10 @@ const BookingInfoComponent = ({
         <h3 className="flex gap-2">
           ${pricePerNight}
           <h3 className="font-normal">per night</h3>
+        </h3>
+        <h3 className="flex gap-2">
+          ${priceWeekend}
+          <h3 className="font-normal">per Friday or Saturday night</h3>
         </h3>
         <h3 className="flex gap-2">
           ${priceSingleFridayOrSaturday}

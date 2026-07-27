@@ -12,6 +12,7 @@ import {
   CHECKOUT_TYPE_KEY,
   CheckoutTypeValues,
   END_DATE,
+  LODGE_PRICING_BREAKDOWN_KEY,
   START_DATE
 } from "business-layer/utils/StripeSessionMetadata"
 import {
@@ -480,28 +481,57 @@ export class PaymentController extends Controller {
       }
 
       // implement pricing logic
-      const requiredBookingType = BookingUtils.getRequiredPricing(
+      /**
+       * Per-night breakdown of how many nights are charged at each rate.
+       * This is the single source of truth for the night → price mapping.
+       */
+      const pricingBreakdown = BookingUtils.getPricingBreakdown(
         dateTimestampsInBooking
       )
 
-      const requiredBookingProducts = await stripeService.getProductByMetadata(
-        LODGE_PRICING_TYPE_KEY,
-        requiredBookingType,
-        ["data.default_price"]
-      )
-      const requiredBookingProduct = requiredBookingProducts.find(
-        (product) => product.active
-      )
-      const { default_price } = requiredBookingProduct
       /**
-       * We'd reach here if the expand failed. This should never happen
+       * Build a Stripe line item for each pricing type in the breakdown, and
+       * record each type's `unit_amount` so lodge credits can be discounted
+       * against the actual rate of the night they are consumed against.
        */
-      if (typeof default_price !== "object") {
-        this.setStatus(StatusCodes.INTERNAL_SERVER_ERROR)
-        return {
-          error:
-            "Something went wrong when fetching the price for the booking, please try again later"
+      const lineItems: Array<{ price: string; quantity: number }> = []
+      const unitAmountByType: Partial<Record<LodgePricingTypeValues, number>> =
+        {}
+
+      for (const [pricingType, quantity] of Object.entries(
+        pricingBreakdown
+      ) as Array<[LodgePricingTypeValues, number]>) {
+        if (!quantity) {
+          continue
         }
+
+        const products = await stripeService.getProductByMetadata(
+          LODGE_PRICING_TYPE_KEY,
+          pricingType,
+          ["data.default_price"]
+        )
+        const activeProduct = products.find((product) => product.active)
+        const default_price = activeProduct?.default_price
+
+        /**
+         * The server never charges from a hard-coded price. If the active
+         * product/price for a required rate can't be found (e.g. the weekend
+         * product hasn't been set up in Stripe yet, or the expand failed), we
+         * fail loudly rather than charging an incorrect amount.
+         */
+        if (!activeProduct || typeof default_price !== "object") {
+          this.setStatus(StatusCodes.INTERNAL_SERVER_ERROR)
+          console.error(
+            `No active Stripe product/price found for lodge pricing type "${pricingType}"`
+          )
+          return {
+            error:
+              "Something went wrong when fetching the price for the booking, please try again later"
+          }
+        }
+
+        unitAmountByType[pricingType] = default_price.unit_amount
+        lineItems.push({ price: default_price.id, quantity })
       }
 
       // Calculate lodge credits for discount
@@ -527,8 +557,17 @@ export class PaymentController extends Controller {
 
       let coupon: string | undefined
       if (totalLodgeCreditsApplied > 0) {
+        /**
+         * Each credit discounts the actual rate of the specific night it is
+         * consumed against (see BookingUtils.getLodgeCreditDiscountAmount).
+         */
+        const discountAmount = BookingUtils.getLodgeCreditDiscountAmount(
+          dateTimestampsInBooking,
+          creditsToApply,
+          unitAmountByType
+        )
         coupon = await stripeService.createCoupon(
-          totalLodgeCreditsApplied * default_price.unit_amount,
+          discountAmount,
           `${totalLodgeCreditsApplied} lodge credit(s) applied`,
           MINUTES_AGO
         )
@@ -537,15 +576,10 @@ export class PaymentController extends Controller {
       const clientSecret = await stripeService.createCheckoutSession(
         uid,
         `${process.env.FRONTEND_URL}/bookings/success?session_id={CHECKOUT_SESSION_ID}&startDate=${BOOKING_START_DATE}&endDate=${BOOKING_END_DATE}`,
-        [
-          {
-            price: default_price.id,
-            quantity: totalDays
-          }
-        ],
+        lineItems,
         {
           [CHECKOUT_TYPE_KEY]: CheckoutTypeValues.BOOKING,
-          [LODGE_PRICING_TYPE_KEY]: requiredBookingType,
+          [LODGE_PRICING_BREAKDOWN_KEY]: JSON.stringify(pricingBreakdown),
           [BOOKING_SLOTS_KEY]: JSON.stringify(
             bookingSlots.map((slot) => slot.id)
           ),

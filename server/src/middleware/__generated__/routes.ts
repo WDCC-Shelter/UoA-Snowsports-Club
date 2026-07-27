@@ -127,7 +127,7 @@ const models: TsoaRoute.Models = {
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "LodgePricingTypeValues": {
         "dataType": "refEnum",
-        "enums": ["single_friday_or_saturday","normal"],
+        "enums": ["single_friday_or_saturday","weekend","normal"],
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "LodgeStripeProductResponse": {

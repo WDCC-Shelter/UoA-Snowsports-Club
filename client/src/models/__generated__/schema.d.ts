@@ -323,7 +323,7 @@ export interface components {
         }[];
     };
     /** @enum {string} */
-    LodgePricingTypeValues: "single_friday_or_saturday" | "normal";
+    LodgePricingTypeValues: "single_friday_or_saturday" | "weekend" | "normal";
     LodgeStripeProductResponse: {
       error?: string;
       message?: string;

@@ -320,6 +320,7 @@
 			"LodgePricingTypeValues": {
 				"enum": [
 					"single_friday_or_saturday",
+					"weekend",
 					"normal"
 				],
 				"type": "string"

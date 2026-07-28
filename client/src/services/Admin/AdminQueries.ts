@@ -6,6 +6,7 @@ export const ALL_USERS_QUERY = "allUsers"
 export const ALL_BOOKINGS_BETWEEN_RANGE_QUERY = "bookings-between-range"
 export const BOOKING_HISTORY_QUERY = "latest-booking-history"
 export const LODGE_CREDITS_FOR_USER_QUERY = "lodge-credits-for-user"
+export const MAIL_CONFIG_QUERY = "mail-config"
 
 export function useUsersQuery() {
   return useInfiniteQuery({
@@ -69,5 +70,12 @@ export function useAdminUserLodgeCreditsQuery(userId: string | undefined) {
       if (userId) return AdminService.getLodgeCreditsForUser(userId)
       return Promise.resolve(undefined)
     }
+  })
+}
+
+export function useMailConfigQuery() {
+  return useQuery({
+    queryKey: [MAIL_CONFIG_QUERY],
+    queryFn: AdminService.getMailConfig
   })
 }

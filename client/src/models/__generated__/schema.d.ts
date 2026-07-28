@@ -850,6 +850,10 @@ export interface components {
        * @default UASC Bookings
        */
       fromHeader?: string;
+      /** @description Name of the current lodge custodian, injected into booking emails */
+      custodianName?: string;
+      /** @description Door code for entering the lodge, injected into booking emails */
+      doorCode?: string;
     };
     GetMailConfigResponse: {
       error?: string;
@@ -872,6 +876,10 @@ export interface components {
        * @default UASC Bookings
        */
       fromHeader?: string;
+      /** @description Name of the current lodge custodian, injected into booking emails */
+      custodianName?: string;
+      /** @description Door code for entering the lodge, injected into booking emails */
+      doorCode?: string;
     };
     UpdateMailConfigRequestBody: {
       /** @description The updated mail configuration settings */

@@ -18,6 +18,16 @@ export interface MailConfig {
    * @default "UASC Bookings"
    */
   fromHeader?: string
+
+  /**
+   * Name of the current lodge custodian, injected into booking emails
+   */
+  custodianName?: string
+
+  /**
+   * Door code for entering the lodge, injected into booking emails
+   */
+  doorCode?: string
 }
 
 /**

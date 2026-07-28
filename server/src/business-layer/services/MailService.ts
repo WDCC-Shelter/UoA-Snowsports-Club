@@ -102,7 +102,9 @@ export default class MailService {
       html: template({
         name: recipientName,
         startDate: startDateString,
-        endDate: endDateString
+        endDate: endDateString,
+        custodianName: mailConfig?.custodianName ?? "",
+        doorCode: mailConfig?.doorCode ?? ""
       })
     })
 

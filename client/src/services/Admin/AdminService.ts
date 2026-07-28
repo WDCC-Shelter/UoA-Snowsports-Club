@@ -1,9 +1,12 @@
 import { Timestamp } from "firebase/firestore"
+import type { components } from "@/models/__generated__/schema"
+import type { LodgeCreditState } from "@/models/Booking"
 import type { CreateEventBody, EditEventBody } from "@/models/Events"
 import type { UserAdditionalInfo } from "@/models/User"
 import fetchClient from "@/services/OpenApiFetchClient"
 import { MEMBER_TABLE_MAX_DATA } from "@/utils/Constants"
-import type { LodgeCreditState } from "@/models/Booking"
+
+export type MailConfig = components["schemas"]["MailConfig"]
 
 export type EditUsersBody = {
   uid: string
@@ -323,6 +326,19 @@ const AdminService = {
         `Failed to edit lodge credits for user with id ${userId} to anyNight: ${newState.anyNight}, weekNightsOnly: ${newState.weekNightsOnly}`
       )
     }
+  },
+  getMailConfig: async () => {
+    const { data } = await fetchClient.GET("/admin/mail/config")
+    if (!data) throw new Error("Failed to fetch mail configuration")
+    return data.config
+  },
+  updateMailConfig: async (config: MailConfig) => {
+    const { response } = await fetchClient.PUT("/admin/mail/config", {
+      body: {
+        config
+      }
+    })
+    if (!response.ok) throw new Error("Failed to update mail configuration")
   }
 } as const
 

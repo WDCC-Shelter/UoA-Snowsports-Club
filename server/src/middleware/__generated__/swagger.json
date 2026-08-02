@@ -1589,21 +1589,8 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"Partial_MailConfig_": {
+			"Pick_MailConfig.custodianName-or-doorCode_": {
 				"properties": {
-					"email": {
-						"type": "string",
-						"description": "Email address used for sending emails"
-					},
-					"password": {
-						"type": "string",
-						"description": "App password for the email service"
-					},
-					"fromHeader": {
-						"type": "string",
-						"description": "From header for sent emails",
-						"default": "UASC Bookings"
-					},
 					"custodianName": {
 						"type": "string",
 						"description": "Name of the current lodge custodian, injected into booking emails"
@@ -1614,12 +1601,16 @@
 					}
 				},
 				"type": "object",
-				"description": "Make all properties in T optional"
+				"description": "From T, pick a set of properties whose keys are in the union K"
+			},
+			"EditableMailConfig": {
+				"$ref": "#/components/schemas/Pick_MailConfig.custodianName-or-doorCode_",
+				"description": "The subset of {@link MailConfig} fields that can be edited through the\nadmin mail configuration endpoint.\n\nRestricting the request body to these fields prevents extra properties\n(such as the sensitive `password`, or `email`/`fromHeader`) that are\nreturned by the GET endpoint from being echoed back and rejected by the\nrequest validator."
 			},
 			"UpdateMailConfigRequestBody": {
 				"properties": {
 					"config": {
-						"$ref": "#/components/schemas/Partial_MailConfig_",
+						"$ref": "#/components/schemas/EditableMailConfig",
 						"description": "The updated mail configuration settings"
 					}
 				},

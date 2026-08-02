@@ -1054,8 +1054,8 @@ describe("AdminController endpoint tests", () => {
     it("should allow admins to update mail configuration", async () => {
       const configData = {
         config: {
-          email: "test@example.com",
-          fromHeader: "Test UASC Bookings"
+          custodianName: "Jenny",
+          doorCode: "C7890Z"
         }
       }
 
@@ -1070,8 +1070,27 @@ describe("AdminController endpoint tests", () => {
       const mailConfigService = new MailConfigService(new EncryptionService())
       const savedConfig = await mailConfigService.getMailConfig()
       expect(savedConfig).toBeDefined()
-      expect(savedConfig.email).toEqual("test@example.com")
-      expect(savedConfig.fromHeader).toEqual("Test UASC Bookings")
+      expect(savedConfig.custodianName).toEqual("Jenny")
+      expect(savedConfig.doorCode).toEqual("C7890Z")
+    })
+
+    it("should reject a mail configuration update with unexpected fields", async () => {
+      const configData = {
+        config: {
+          custodianName: "Jenny",
+          doorCode: "C7890Z",
+          // `password` is returned by the GET endpoint but must not be
+          // accepted on update
+          password: "should-not-be-here"
+        }
+      }
+
+      const res = await request
+        .put("/admin/mail/config")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send(configData)
+
+      expect(res.status).toEqual(StatusCodes.BAD_REQUEST)
     })
 
     it("should not allow members to update mail configuration", async () => {

@@ -865,25 +865,26 @@ export interface components {
       error?: string;
       message?: string;
     };
-    /** @description Make all properties in T optional */
-    Partial_MailConfig_: {
-      /** @description Email address used for sending emails */
-      email?: string;
-      /** @description App password for the email service */
-      password?: string;
-      /**
-       * @description From header for sent emails
-       * @default UASC Bookings
-       */
-      fromHeader?: string;
+    /** @description From T, pick a set of properties whose keys are in the union K */
+    "Pick_MailConfig.custodianName-or-doorCode_": {
       /** @description Name of the current lodge custodian, injected into booking emails */
       custodianName?: string;
       /** @description Door code for entering the lodge, injected into booking emails */
       doorCode?: string;
     };
+    /**
+     * @description The subset of {@link MailConfig} fields that can be edited through the
+     * admin mail configuration endpoint.
+     *
+     * Restricting the request body to these fields prevents extra properties
+     * (such as the sensitive `password`, or `email`/`fromHeader`) that are
+     * returned by the GET endpoint from being echoed back and rejected by the
+     * request validator.
+     */
+    EditableMailConfig: components["schemas"]["Pick_MailConfig.custodianName-or-doorCode_"];
     UpdateMailConfigRequestBody: {
       /** @description The updated mail configuration settings */
-      config: components["schemas"]["Partial_MailConfig_"];
+      config: components["schemas"]["EditableMailConfig"];
     };
     /** @description Interface for email template configuration */
     EmailTemplate: {

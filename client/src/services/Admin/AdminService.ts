@@ -8,6 +8,12 @@ import { MEMBER_TABLE_MAX_DATA } from "@/utils/Constants"
 
 export type MailConfig = components["schemas"]["MailConfig"]
 
+/**
+ * The subset of {@link MailConfig} fields that are editable through the
+ * admin mail configuration endpoint.
+ */
+export type EditableMailConfig = components["schemas"]["EditableMailConfig"]
+
 export type EditUsersBody = {
   uid: string
   updatedInformation: UserAdditionalInfo
@@ -332,7 +338,7 @@ const AdminService = {
     if (!data) throw new Error("Failed to fetch mail configuration")
     return data.config
   },
-  updateMailConfig: async (config: MailConfig) => {
+  updateMailConfig: async (config: EditableMailConfig) => {
     const { response } = await fetchClient.PUT("/admin/mail/config", {
       body: {
         config

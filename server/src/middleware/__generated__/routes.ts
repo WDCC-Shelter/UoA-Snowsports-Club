@@ -613,15 +613,20 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "Partial_MailConfig_": {
+    "Pick_MailConfig.custodianName-or-doorCode_": {
         "dataType": "refAlias",
-        "type": {"dataType":"nestedObjectLiteral","nestedProperties":{"email":{"dataType":"string"},"password":{"dataType":"string"},"fromHeader":{"dataType":"string","default":"UASC Bookings"},"custodianName":{"dataType":"string"},"doorCode":{"dataType":"string"}},"validators":{}},
+        "type": {"dataType":"nestedObjectLiteral","nestedProperties":{"custodianName":{"dataType":"string"},"doorCode":{"dataType":"string"}},"validators":{}},
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "EditableMailConfig": {
+        "dataType": "refAlias",
+        "type": {"ref":"Pick_MailConfig.custodianName-or-doorCode_","validators":{}},
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "UpdateMailConfigRequestBody": {
         "dataType": "refObject",
         "properties": {
-            "config": {"ref":"Partial_MailConfig_","required":true},
+            "config": {"ref":"EditableMailConfig","required":true},
         },
         "additionalProperties": false,
     },

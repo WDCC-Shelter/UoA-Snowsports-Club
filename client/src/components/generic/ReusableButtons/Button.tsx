@@ -107,8 +107,8 @@ const SignUp = ({ children, props }: props) => {
 const Small = ({ children, props }: props) => {
   return (
     <button
-      {...props}
       type="button"
+      {...props}
       className="
         position:relative
         dark:focus: 

@@ -1548,6 +1548,14 @@
 						"type": "string",
 						"description": "From header for sent emails",
 						"default": "UASC Bookings"
+					},
+					"custodianName": {
+						"type": "string",
+						"description": "Name of the current lodge custodian, injected into booking emails"
+					},
+					"doorCode": {
+						"type": "string",
+						"description": "Door code for entering the lodge, injected into booking emails"
 					}
 				},
 				"type": "object",
@@ -1595,6 +1603,14 @@
 						"type": "string",
 						"description": "From header for sent emails",
 						"default": "UASC Bookings"
+					},
+					"custodianName": {
+						"type": "string",
+						"description": "Name of the current lodge custodian, injected into booking emails"
+					},
+					"doorCode": {
+						"type": "string",
+						"description": "Door code for entering the lodge, injected into booking emails"
 					}
 				},
 				"type": "object",

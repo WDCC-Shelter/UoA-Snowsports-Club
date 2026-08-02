@@ -8,7 +8,8 @@ import {
   ALL_BOOKINGS_BETWEEN_RANGE_QUERY,
   ALL_USERS_QUERY,
   BOOKING_HISTORY_QUERY,
-  LODGE_CREDITS_FOR_USER_QUERY
+  LODGE_CREDITS_FOR_USER_QUERY,
+  MAIL_CONFIG_QUERY
 } from "./AdminQueries"
 import AdminService from "./AdminService"
 import { replaceUserInPage } from "./AdminUtils"
@@ -230,6 +231,19 @@ export function useUpdateLodgeCreditMutation() {
     onSuccess: () => {
       queryClient.removeQueries({
         queryKey: [LODGE_CREDITS_FOR_USER_QUERY]
+      })
+    }
+  })
+}
+
+export function useUpdateMailConfigMutation() {
+  return useMutation({
+    mutationKey: ["update-mail-config"],
+    retry: false,
+    mutationFn: AdminService.updateMailConfig,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [MAIL_CONFIG_QUERY]
       })
     }
   })

@@ -4,15 +4,16 @@ export const MEMBER_TABLE_MAX_DATA = 100
 
 export const DEFAULT_NORMAL_PRICE = 40 as const
 /**
- * Display-only fallback for the lone single Friday/Saturday special rate.
+ * Display-only fallback for the rate charged when a Friday or Saturday is
+ * booked without the other.
  *
  * Used purely to render a number at SSG time when the Stripe price can't be
  * fetched; it never charges anyone (the server always charges from Stripe).
  */
 export const DEFAULT_SINGLE_FRI_SAT_PRICE = 60 as const
 /**
- * Display-only fallback for the weekend-night rate (Fri/Sat nights within a
- * multi-night booking).
+ * Display-only fallback for the weekend-night rate (Fri/Sat nights when both
+ * the Friday and Saturday are booked).
  *
  * Used purely to render a number at SSG time when the Stripe price can't be
  * fetched; it never charges anyone (the server always charges from Stripe).

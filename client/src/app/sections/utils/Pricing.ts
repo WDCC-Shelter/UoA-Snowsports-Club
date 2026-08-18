@@ -21,12 +21,12 @@ export const lodgeBookingPricingBannerMessages = {
   /**
    * A function that returns a formatted disclaimer message.
    *
-   * @param {number} weekendPrice - The per-night price for Friday/Saturday nights within a multi-night booking.
-   * @param {number} singleFridayOrSaturdayPrice - The price when booking a lone single Friday or Saturday.
+   * @param {number} weekendPrice - The per-night price for Friday/Saturday nights, only when both are booked together.
+   * @param {number} singleFridayOrSaturdayPrice - The price for a Friday or Saturday night booked without the other.
    * @returns {string} The formatted disclaimer message.
    */
   disclaimer: (weekendPrice: number, singleFridayOrSaturdayPrice: number) =>
-    `*$${weekendPrice} per Friday or Saturday night, or $${singleFridayOrSaturdayPrice} when booking a single Friday or Saturday` as const
+    `*$${weekendPrice} per night when Friday and Saturday are booked together, otherwise $${singleFridayOrSaturdayPrice} per Friday or Saturday night` as const
 } as const
 
 export const MembershipPricings: MembershipPricing[] = [

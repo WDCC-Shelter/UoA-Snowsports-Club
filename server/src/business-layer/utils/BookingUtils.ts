@@ -24,6 +24,18 @@ const FRIDAY = 5 as const
 const SATURDAY = 6 as const
 const SUNDAY = 0 as const
 
+const MS_IN_DAY = 86400000 as const
+
+/**
+ * Normalises a booking date to the UTC-midnight epoch milliseconds of the night
+ * it represents, so nights can be compared/adjacency-checked reliably.
+ */
+const toUtcMidnightMs = (date: Timestamp): number => {
+  const normalised = new Date(firestoreTimestampToDate(date))
+  normalised.setUTCHours(0, 0, 0, 0)
+  return normalised.getTime()
+}
+
 const BookingUtils = {
   /**
    * Used to check if the dates are within the acceptable range
@@ -75,8 +87,12 @@ const BookingUtils = {
     return slotOccurences
   },
   /**
-   * Checks if the dates should be priced differently
-   * (the current condition is if a single Friday or Saturday is requested)
+   * Checks if a *single-night* booking is a lone Friday or Saturday.
+   *
+   * @deprecated this only inspects single-night bookings and is **not** the
+   *   pricing source of truth. Use {@link BookingUtils.getNightPricingTypes} or
+   *   {@link BookingUtils.getPricingBreakdown} to determine what each night in
+   *   a booking is charged at.
    *
    * @param datesInBooking an array of dates for checking
    * @returns a `LodgePricingTypeValue` based on if the date meets any special conditions
@@ -99,16 +115,56 @@ const BookingUtils = {
   },
 
   /**
-   * Produces a per-{@link LodgePricingTypeValues} breakdown of how many nights
-   * in the booking should be charged at each rate. This is the single source
-   * of truth for the night → price mapping (the client mirrors this logic).
+   * Determines the {@link LodgePricingTypeValues} that each individual night in
+   * the booking should be charged at. This is the single source of truth for
+   * the night → rate mapping (the client mirrors this logic).
    *
    * Pricing rules:
-   * - A lone Friday or Saturday (single-night booking) →
-   *   `{ [SingleFridayOrSaturday]: 1 }`.
-   * - Otherwise, each Friday/Saturday night is charged at the
-   *   {@link LodgePricingTypeValues.Weekend} rate, and every other night is
-   *   charged at the {@link LodgePricingTypeValues.Normal} rate.
+   * - The discounted {@link LodgePricingTypeValues.Weekend} rate is **only**
+   *   given to a Friday/Saturday night when the *whole weekend* is booked, i.e.
+   *   the Friday and the immediately following Saturday are **both** in the
+   *   booking.
+   * - Any Friday or Saturday booked without its weekend partner (e.g. a lone
+   *   Friday, Thursday + Friday, or Saturday + Sunday) is charged at the more
+   *   expensive {@link LodgePricingTypeValues.SingleFridayOrSaturday} rate.
+   * - Every other night is charged at the
+   *   {@link LodgePricingTypeValues.Normal} rate.
+   *
+   * @param datesInBooking an array of dates (nights) in the booking
+   * @returns the pricing type for each night, in the same order as
+   *   `datesInBooking`
+   */
+  getNightPricingTypes: (
+    datesInBooking: Timestamp[]
+  ): LodgePricingTypeValues[] => {
+    const nightsInMs = datesInBooking.map(toUtcMidnightMs)
+    const bookedNights = new Set(nightsInMs)
+
+    return nightsInMs.map((nightMs) => {
+      const day = new Date(nightMs).getUTCDay()
+
+      /**
+       * A Friday only gets the weekend rate if the Saturday right after it is
+       * also booked, and a Saturday only if the Friday right before it is.
+       */
+      if (day === FRIDAY) {
+        return bookedNights.has(nightMs + MS_IN_DAY)
+          ? LodgePricingTypeValues.Weekend
+          : LodgePricingTypeValues.SingleFridayOrSaturday
+      }
+      if (day === SATURDAY) {
+        return bookedNights.has(nightMs - MS_IN_DAY)
+          ? LodgePricingTypeValues.Weekend
+          : LodgePricingTypeValues.SingleFridayOrSaturday
+      }
+      return LodgePricingTypeValues.Normal
+    })
+  },
+
+  /**
+   * Produces a per-{@link LodgePricingTypeValues} breakdown of how many nights
+   * in the booking should be charged at each rate, based on
+   * {@link BookingUtils.getNightPricingTypes}.
    *
    * @param datesInBooking an array of dates (nights) in the booking
    * @returns a partial record keyed by pricing type with the number of nights
@@ -117,37 +173,14 @@ const BookingUtils = {
   getPricingBreakdown: (
     datesInBooking: Timestamp[]
   ): Partial<Record<LodgePricingTypeValues, number>> => {
-    if (datesInBooking.length === 0) {
-      return {}
-    }
-
-    // A lone Friday/Saturday keeps the existing single-night special rate.
-    if (
-      BookingUtils.getRequiredPricing(datesInBooking) ===
-      LodgePricingTypeValues.SingleFridayOrSaturday
-    ) {
-      return { [LodgePricingTypeValues.SingleFridayOrSaturday]: 1 }
-    }
-
-    const WEEKEND_DAYS: ReadonlyArray<number> = [FRIDAY, SATURDAY]
-    let weekendNights = 0
-    let normalNights = 0
-    for (const date of datesInBooking) {
-      const day = new Date(firestoreTimestampToDate(date)).getUTCDay()
-      if (WEEKEND_DAYS.includes(day)) {
-        weekendNights++
-      } else {
-        normalNights++
-      }
-    }
-
     const breakdown: Partial<Record<LodgePricingTypeValues, number>> = {}
-    if (normalNights > 0) {
-      breakdown[LodgePricingTypeValues.Normal] = normalNights
+
+    for (const pricingType of BookingUtils.getNightPricingTypes(
+      datesInBooking
+    )) {
+      breakdown[pricingType] = (breakdown[pricingType] ?? 0) + 1
     }
-    if (weekendNights > 0) {
-      breakdown[LodgePricingTypeValues.Weekend] = weekendNights
-    }
+
     return breakdown
   },
 
@@ -156,12 +189,13 @@ const BookingUtils = {
    * unit, e.g. cents) for a booking that may mix normal and weekend rates.
    *
    * Each credit discounts the *actual* rate of the specific night it is
-   * consumed against ("match consumed night type"):
-   * - Weeknight-only credits are consumed against Mon–Fri nights first. A
-   *   Friday consumed is discounted at the weekend rate; Mon–Thu at the normal
-   *   rate.
-   * - Any-night credits are consumed against the remaining nights (a Saturday
-   *   is discounted at the weekend rate; other nights at their respective rate).
+   * consumed against ("match consumed night type"), as determined by
+   * {@link BookingUtils.getNightPricingTypes}. This means a Friday booked
+   * without its Saturday is discounted at the more expensive
+   * {@link LodgePricingTypeValues.SingleFridayOrSaturday} rate, while a Friday
+   * booked together with its Saturday is discounted at the weekend rate:
+   * - Weeknight-only credits are consumed against Mon–Fri nights first.
+   * - Any-night credits are consumed against the remaining nights.
    *
    * The nights are sorted most-expensive-first within each credit pool so the
    * discount is applied consistently and to the member's benefit.
@@ -170,7 +204,8 @@ const BookingUtils = {
    * @param creditsToApply the credits being consumed (from
    *   {@link BookingUtils.getDiscountableNights})
    * @param unitAmountByType a map from pricing type to that type's Stripe
-   *   `unit_amount` (smallest currency unit)
+   *   `unit_amount` (smallest currency unit). Must contain an entry for every
+   *   pricing type present in the booking's breakdown
    * @returns the total discount amount in the smallest currency unit
    */
   getLodgeCreditDiscountAmount: (
@@ -178,51 +213,41 @@ const BookingUtils = {
     creditsToApply: LodgeCreditState,
     unitAmountByType: Partial<Record<LodgePricingTypeValues, number>>
   ): number => {
-    const normalAmount = unitAmountByType[LodgePricingTypeValues.Normal] ?? 0
-    const weekendAmount = unitAmountByType[LodgePricingTypeValues.Weekend] ?? 0
+    const nightPricingTypes = BookingUtils.getNightPricingTypes(datesInBooking)
 
     /**
-     * The per-night rate used when a credit is consumed against `date`.
-     * A lone Friday/Saturday is never discountable here in practice (multi-night
-     * only), so we fall back to the single special rate if present, else normal.
+     * Each night paired with the rate it is actually charged at, so a credit
+     * always discounts exactly what that night costs.
      */
-    const rateForDate = (date: Timestamp): number => {
-      const day = new Date(firestoreTimestampToDate(date)).getUTCDay()
-      if (day === FRIDAY || day === SATURDAY) {
-        return weekendAmount
-      }
-      return normalAmount
-    }
+    const nights = datesInBooking.map((date, index) => ({
+      index,
+      day: new Date(firestoreTimestampToDate(date)).getUTCDay(),
+      rate: unitAmountByType[nightPricingTypes[index]] ?? 0
+    }))
+
+    // Sort most-expensive-first so credits discount the highest rates first.
+    const sortByRateDesc = (a: { rate: number }, b: { rate: number }) =>
+      b.rate - a.rate
 
     // Weeknight credits apply to Mon–Fri nights (exclude Sat & Sun), matching
     // getDiscountableNights.
-    const weekNightDates = datesInBooking.filter((date) => {
-      const day = new Date(firestoreTimestampToDate(date)).getUTCDay()
-      return day !== SUNDAY && day !== SATURDAY
-    })
-
-    // Sort most-expensive-first so credits discount the highest rates first.
-    const sortByRateDesc = (a: Timestamp, b: Timestamp) =>
-      rateForDate(b) - rateForDate(a)
-
-    const weekNightsToDiscount = weekNightDates
-      .slice()
+    const weekNightsToDiscount = nights
+      .filter((night) => night.day !== SUNDAY && night.day !== SATURDAY)
       .sort(sortByRateDesc)
       .slice(0, creditsToApply.weekNightsOnly)
 
-    const consumedSet = new Set(weekNightsToDiscount)
+    const consumedIndexes = new Set(
+      weekNightsToDiscount.map((night) => night.index)
+    )
 
     // Any-night credits apply to the remaining (not-yet-discounted) nights.
-    const remainingDates = datesInBooking.filter(
-      (date) => !consumedSet.has(date)
-    )
-    const anyNightsToDiscount = remainingDates
-      .slice()
+    const anyNightsToDiscount = nights
+      .filter((night) => !consumedIndexes.has(night.index))
       .sort(sortByRateDesc)
       .slice(0, creditsToApply.anyNight)
 
     return [...weekNightsToDiscount, ...anyNightsToDiscount].reduce(
-      (total, date) => total + rateForDate(date),
+      (total, night) => total + night.rate,
       0
     )
   },

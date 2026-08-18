@@ -9,11 +9,13 @@ interface IBookingInfoProps {
    */
   pricePerNight: string
   /**
-   * The price to *display* per Friday/Saturday night within a multi-night booking
+   * The price to *display* per Friday/Saturday night when the full
+   * Friday **and** Saturday weekend is booked
    */
   priceWeekend: string
   /**
-   * The price to *display* for a lone single Friday/Saturday booking
+   * The price to *display* for a Friday or Saturday night booked without the
+   * other (e.g. just Friday, or Thursday + Friday)
    */
   priceSingleFridayOrSaturday: string
 }
@@ -39,12 +41,22 @@ const BookingInfoComponent = ({
         </h3>
         <h3 className="flex gap-2">
           ${priceWeekend}
-          <h3 className="font-normal">per Friday or Saturday night</h3>
+          <h3 className="font-normal">
+            per night for a Friday <strong>and</strong> Saturday
+          </h3>
         </h3>
         <h3 className="flex gap-2">
           ${priceSingleFridayOrSaturday}
-          <h3 className="font-normal">a single Friday or Saturday</h3>
+          <h3 className="font-normal">
+            for a Friday <strong>or</strong> Saturday on its own
+          </h3>
         </h3>
+        <h5 className="font-normal">
+          The ${priceWeekend} weekend rate only applies when you book Friday and
+          Saturday together. A Friday or Saturday booked without the other is $
+          {priceSingleFridayOrSaturday} for that night, even as part of a longer
+          stay.
+        </h5>
         <h5>
           Bookings can <strong>only</strong> be made for the user on this
           account

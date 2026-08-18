@@ -19,19 +19,20 @@ export enum MembershipTypeValues {
 export const LODGE_PRICING_TYPE_KEY = "lodge_pricing_type"
 export enum LodgePricingTypeValues {
   /**
-   * Special rate charged **only** when a lone Friday or Saturday is booked
-   * as a single-night booking (e.g. just Fri, or just Sat).
+   * The more expensive rate charged for a Friday or Saturday night that is
+   * booked **without** its weekend partner, e.g. just Fri, just Sat,
+   * Thu + Fri, or Sat + Sun.
    *
-   * Do **not** confuse with {@link LodgePricingTypeValues.Weekend}, which
-   * applies to Friday/Saturday nights that fall *within* a multi-night booking.
+   * Do **not** confuse with {@link LodgePricingTypeValues.Weekend}, which is
+   * only given when the full Friday **and** Saturday weekend is booked.
    */
   SingleFridayOrSaturday = "single_friday_or_saturday",
   /**
-   * Rate charged for Friday/Saturday nights that fall *within* a multi-night
-   * booking (i.e. the booking is not a lone Friday or Saturday).
+   * The discounted rate charged for Friday/Saturday nights **only** when both
+   * the Friday and the immediately following Saturday are booked.
    *
    * Do **not** confuse with {@link LodgePricingTypeValues.SingleFridayOrSaturday},
-   * which only applies to a single-night lone Friday or Saturday booking.
+   * which applies to a Friday or Saturday booked on its own.
    */
   Weekend = "weekend",
   /**

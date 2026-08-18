@@ -71,8 +71,12 @@ export const DateUtils = {
    * so the front-end estimate matches the actual charge exactly.
    *
    * Pricing rules:
-   * - A lone Friday or Saturday → `{ singleFridayOrSaturday: 1 }`.
-   * - Otherwise, each Friday/Saturday night → `weekend`, all other nights → `normal`.
+   * - The discounted `weekend` rate is **only** given when a Friday and the
+   *   immediately following Saturday are **both** booked.
+   * - A Friday or Saturday booked without its weekend partner (e.g. a lone
+   *   Friday, Thu + Fri, or Sat + Sun) → the more expensive
+   *   `singleFridayOrSaturday` rate.
+   * - All other nights → `normal`.
    *
    * @param startDate the first night of the selected range
    * @param endDate the last night of the selected range
@@ -88,23 +92,30 @@ export const DateUtils = {
 
     const breakdown = { normal: 0, weekend: 0, singleFridayOrSaturday: 0 }
 
-    if (dateArray.length === 0) {
-      return breakdown
-    }
-
-    if (DateUtils.isSingleFridayOrSaturday(startDate, endDate)) {
-      breakdown.singleFridayOrSaturday = 1
-      return breakdown
-    }
-
-    for (const date of dateArray) {
+    dateArray.forEach((date, index) => {
       const day = date.getDay()
-      if (day === FRIDAY || day === SATURDAY) {
-        breakdown.weekend++
+
+      /**
+       * The range is contiguous, so a Friday's weekend partner can only be the
+       * next night, and a Saturday's can only be the previous night.
+       */
+      if (day === FRIDAY) {
+        if (dateArray[index + 1]?.getDay() === SATURDAY) {
+          breakdown.weekend++
+        } else {
+          breakdown.singleFridayOrSaturday++
+        }
+      } else if (day === SATURDAY) {
+        if (dateArray[index - 1]?.getDay() === FRIDAY) {
+          breakdown.weekend++
+        } else {
+          breakdown.singleFridayOrSaturday++
+        }
       } else {
         breakdown.normal++
       }
-    }
+    })
+
     return breakdown
   },
 

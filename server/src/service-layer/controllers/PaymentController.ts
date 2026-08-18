@@ -544,27 +544,55 @@ export class PaymentController extends Controller {
         dateTimestampsInBooking,
         userLodgeCredits
       )
-      const newLodgeCreditBalance = BookingUtils.deductLodgeCreditBalance(
-        userLodgeCredits,
-        creditsToApply
-      )
-      await stripeService.editUserLodgeCredits(
-        stripeCustomerId,
-        newLodgeCreditBalance
-      )
       const totalLodgeCreditsApplied =
         creditsToApply.anyNight + creditsToApply.weekNightsOnly
 
+      /**
+       * Each credit discounts the actual rate of the specific night it is
+       * consumed against (see BookingUtils.getLodgeCreditDiscountAmount).
+       */
+      const discountAmount =
+        totalLodgeCreditsApplied > 0
+          ? BookingUtils.getLodgeCreditDiscountAmount(
+              dateTimestampsInBooking,
+              creditsToApply,
+              unitAmountByType
+            )
+          : 0
+
+      /**
+       * Stripe rejects a coupon whose `amount_off` is below 1, which would
+       * throw and fail the entire booking. Credits resolving to no discount
+       * means the night → rate mapping is broken (e.g. a night priced at a
+       * rate that has no entry in `unitAmountByType`), so we let the booking
+       * proceed at full price instead of blocking the member.
+       */
+      const STRIPE_MINIMUM_AMOUNT_OFF = 1 as const
+      const canApplyLodgeCredits =
+        totalLodgeCreditsApplied > 0 &&
+        discountAmount >= STRIPE_MINIMUM_AMOUNT_OFF
+
+      if (totalLodgeCreditsApplied > 0 && !canApplyLodgeCredits) {
+        console.error(
+          `Skipping lodge credit discount for user "${uid}": ${totalLodgeCreditsApplied} credit(s) resolved to an unusable discount of ${discountAmount}. The member keeps their credits and is charged full price.`,
+          { pricingBreakdown, unitAmountByType, creditsToApply }
+        )
+      }
+
       let coupon: string | undefined
-      if (totalLodgeCreditsApplied > 0) {
+      if (canApplyLodgeCredits) {
         /**
-         * Each credit discounts the actual rate of the specific night it is
-         * consumed against (see BookingUtils.getLodgeCreditDiscountAmount).
+         * Only spend the member's credits once we know they buy a real
+         * discount, otherwise they would be charged full price *and* lose the
+         * credits, as nothing refunds them.
          */
-        const discountAmount = BookingUtils.getLodgeCreditDiscountAmount(
-          dateTimestampsInBooking,
-          creditsToApply,
-          unitAmountByType
+        const newLodgeCreditBalance = BookingUtils.deductLodgeCreditBalance(
+          userLodgeCredits,
+          creditsToApply
+        )
+        await stripeService.editUserLodgeCredits(
+          stripeCustomerId,
+          newLodgeCreditBalance
         )
         coupon = await stripeService.createCoupon(
           discountAmount,

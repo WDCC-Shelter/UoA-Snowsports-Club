@@ -239,13 +239,10 @@ export const CreateBookingSection = ({
       currentEndDate
     )
 
-    // Lone Friday/Saturday keeps the single special rate.
-    if (breakdown.singleFridayOrSaturday > 0) {
-      return `$${SINGLE_FRI_SAT_PRICE} * 1 night = $${SINGLE_FRI_SAT_PRICE}` as const
-    }
-
     const total =
-      breakdown.normal * NORMAL_PRICE + breakdown.weekend * WEEKEND_PRICE
+      breakdown.normal * NORMAL_PRICE +
+      breakdown.weekend * WEEKEND_PRICE +
+      breakdown.singleFridayOrSaturday * SINGLE_FRI_SAT_PRICE
 
     // Build a human-readable per-rate summary, e.g. "$40 * 1 + $50 * 1 = $90".
     const parts: string[] = []
@@ -254,6 +251,11 @@ export const CreateBookingSection = ({
     }
     if (breakdown.weekend > 0) {
       parts.push(`$${WEEKEND_PRICE} * ${breakdown.weekend}`)
+    }
+    if (breakdown.singleFridayOrSaturday > 0) {
+      parts.push(
+        `$${SINGLE_FRI_SAT_PRICE} * ${breakdown.singleFridayOrSaturday}`
+      )
     }
 
     return `${parts.join(" + ")} = $${total}` as const

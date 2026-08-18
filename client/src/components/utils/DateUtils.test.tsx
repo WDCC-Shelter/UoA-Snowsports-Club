@@ -47,13 +47,23 @@ describe("DateUtils", () => {
       })
     })
 
-    it("should charge a Friday within a multi-night booking at the weekend rate (Thu + Fri)", () => {
+    it("should charge a Friday booked without its Saturday at the more expensive rate (Thu + Fri)", () => {
       const thursday = new Date("2024-01-04")
       const friday = new Date("2024-01-05")
       expect(DateUtils.getNightPricingBreakdown(thursday, friday)).toEqual({
         normal: 1,
-        weekend: 1,
-        singleFridayOrSaturday: 0
+        weekend: 0,
+        singleFridayOrSaturday: 1
+      })
+    })
+
+    it("should charge a Saturday booked without its Friday at the more expensive rate (Sat + Sun)", () => {
+      const saturday = new Date("2024-01-06")
+      const sunday = new Date("2024-01-07")
+      expect(DateUtils.getNightPricingBreakdown(saturday, sunday)).toEqual({
+        normal: 1,
+        weekend: 0,
+        singleFridayOrSaturday: 1
       })
     })
 
@@ -64,6 +74,29 @@ describe("DateUtils", () => {
         normal: 0,
         weekend: 2,
         singleFridayOrSaturday: 0
+      })
+    })
+
+    it("should give the weekend rate to a Fri + Sat pair within a longer stay (Thu -> Sun)", () => {
+      const thursday = new Date("2024-01-04")
+      const sunday = new Date("2024-01-07")
+      expect(DateUtils.getNightPricingBreakdown(thursday, sunday)).toEqual({
+        normal: 2, // Thu, Sun
+        weekend: 2, // Fri, Sat
+        singleFridayOrSaturday: 0
+      })
+    })
+
+    it("should only give the weekend rate to the complete weekend when a stay spans two weekends", () => {
+      // Fri 5 Jan -> Fri 12 Jan inclusive (8 nights)
+      const firstFriday = new Date("2024-01-05")
+      const secondFriday = new Date("2024-01-12")
+      expect(
+        DateUtils.getNightPricingBreakdown(firstFriday, secondFriday)
+      ).toEqual({
+        normal: 5, // Sun, Mon, Tue, Wed, Thu
+        weekend: 2, // Fri 5 + Sat 6
+        singleFridayOrSaturday: 1 // Fri 12 has no Saturday
       })
     })
 

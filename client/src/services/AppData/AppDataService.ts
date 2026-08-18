@@ -19,18 +19,18 @@ export type MembershipPrices = {
  */
 export interface LodgePricingProps {
   /**
-   * Price (per night) for a standard night (any night that is not a weekend
-   * night within a multi-night booking, and not a lone Friday/Saturday).
+   * Price (per night) for a standard night (any night that is not a Friday or
+   * Saturday).
    */
   normal: number
   /**
-   * Price for when a user books a lone single Friday or Saturday (single-night
-   * booking).
+   * Price (per night) for a Friday or Saturday booked *without* the other, e.g.
+   * a lone Friday, or Thursday + Friday.
    */
   singleFridayOrSaturday: number
   /**
-   * Price (per night) for Friday/Saturday nights that fall *within* a
-   * multi-night booking.
+   * Price (per night) for Friday/Saturday nights, only given when the Friday
+   * **and** the following Saturday are both booked.
    */
   weekend: number
 }

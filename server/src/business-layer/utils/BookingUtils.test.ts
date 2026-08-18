@@ -358,14 +358,38 @@ describe("BookingUtils", () => {
       })
     })
 
-    it("should charge a weekend rate for a Friday within a multi-night booking (Thu + Fri)", () => {
+    it("should charge the more expensive rate for a Friday booked without its Saturday (Thu + Fri)", () => {
       const dates = [
         Timestamp.fromDate(new Date("2024-06-20")), // Thursday
         Timestamp.fromDate(new Date("2024-06-21")) // Friday
       ]
       expect(BookingUtils.getPricingBreakdown(dates)).toEqual({
         [LodgePricingTypeValues.Normal]: 1,
-        [LodgePricingTypeValues.Weekend]: 1
+        [LodgePricingTypeValues.SingleFridayOrSaturday]: 1
+      })
+    })
+
+    it("should charge the more expensive rate for a Saturday booked without its Friday (Sat + Sun)", () => {
+      const dates = [
+        Timestamp.fromDate(new Date("2024-06-22")), // Saturday
+        Timestamp.fromDate(new Date("2024-06-23")) // Sunday
+      ]
+      expect(BookingUtils.getPricingBreakdown(dates)).toEqual({
+        [LodgePricingTypeValues.Normal]: 1,
+        [LodgePricingTypeValues.SingleFridayOrSaturday]: 1
+      })
+    })
+
+    it("should give the weekend rate to a Fri + Sat pair within a longer stay (Thu -> Sun)", () => {
+      const dates = [
+        Timestamp.fromDate(new Date("2024-06-20")), // Thursday
+        Timestamp.fromDate(new Date("2024-06-21")), // Friday
+        Timestamp.fromDate(new Date("2024-06-22")), // Saturday
+        Timestamp.fromDate(new Date("2024-06-23")) // Sunday
+      ]
+      expect(BookingUtils.getPricingBreakdown(dates)).toEqual({
+        [LodgePricingTypeValues.Normal]: 2, // Thu, Sun
+        [LodgePricingTypeValues.Weekend]: 2 // Fri, Sat
       })
     })
 
@@ -402,7 +426,8 @@ describe("BookingUtils", () => {
         Timestamp.fromDate(new Date("2024-06-28")) // Friday
       ]
       expect(BookingUtils.getPricingBreakdown(dates)).toEqual({
-        [LodgePricingTypeValues.Weekend]: 3, // Fri, Sat, Fri
+        [LodgePricingTypeValues.Weekend]: 2, // Fri 21 + Sat 22 (full weekend)
+        [LodgePricingTypeValues.SingleFridayOrSaturday]: 1, // Fri 28 has no Sat
         [LodgePricingTypeValues.Normal]: 5 // Sun, Mon, Tue, Wed, Thu
       })
     })
@@ -415,22 +440,23 @@ describe("BookingUtils", () => {
   describe("BookingUtils.getLodgeCreditDiscountAmount", () => {
     const unitAmountByType = {
       [LodgePricingTypeValues.Normal]: 4000, // $40
-      [LodgePricingTypeValues.Weekend]: 5000 // $50
+      [LodgePricingTypeValues.Weekend]: 5000, // $50
+      [LodgePricingTypeValues.SingleFridayOrSaturday]: 6000 // $60
     }
 
-    it("should discount weeknight credits against the actual consumed night rate (incl. Friday at weekend rate)", () => {
-      // Thu (normal) + Fri (weekend), one weeknight credit.
+    it("should discount weeknight credits against the actual consumed night rate (Friday without its Saturday)", () => {
+      // Thu (normal) + Fri (no Saturday, so the more expensive rate).
       const dates = [
         Timestamp.fromDate(new Date("2024-06-20")), // Thursday - normal
-        Timestamp.fromDate(new Date("2024-06-21")) // Friday - weekend
+        Timestamp.fromDate(new Date("2024-06-21")) // Friday - single fri/sat
       ]
-      // Weeknight credit consumes the most expensive weeknight first (Fri @ $50)
+      // Weeknight credit consumes the most expensive weeknight first (Fri @ $60)
       const result = BookingUtils.getLodgeCreditDiscountAmount(
         dates,
         { weekNightsOnly: 1, anyNight: 0 },
         unitAmountByType
       )
-      expect(result).toEqual(5000)
+      expect(result).toEqual(6000)
     })
 
     it("should discount any-night credits against a Saturday at the weekend rate", () => {
@@ -471,6 +497,109 @@ describe("BookingUtils", () => {
         unitAmountByType
       )
       expect(result).toEqual(0)
+    })
+
+    /**
+     * `PaymentController.getBookingPayment` only looks up a Stripe product for
+     * the pricing types that actually appear in the booking's breakdown, so
+     * `unitAmountByType` is **sparse**: a lone Friday/Saturday booking only ever
+     * has a `SingleFridayOrSaturday` entry, with no `Weekend` entry at all.
+     *
+     * These tests mirror that sparseness. A regression that looks up the wrong
+     * (absent) pricing type silently falls back to a 0 rate, which produced a
+     * `amount_off: 0` coupon and a `StripeInvalidRequestError` that failed the
+     * entire booking.
+     */
+    const unitAmountsAsControllerWouldBuild = (
+      dates: Timestamp[]
+    ): Partial<Record<LodgePricingTypeValues, number>> => {
+      const sparse: Partial<Record<LodgePricingTypeValues, number>> = {}
+      for (const pricingType of Object.keys(
+        BookingUtils.getPricingBreakdown(dates)
+      ) as LodgePricingTypeValues[]) {
+        sparse[pricingType] = unitAmountByType[pricingType]
+      }
+      return sparse
+    }
+
+    it.each([
+      ["Friday", "2024-06-21"],
+      ["Saturday", "2024-06-22"]
+    ])(
+      "should discount a single-night lone %s booking at the single Fri/Sat rate",
+      (_day, isoDate) => {
+        const dates = [Timestamp.fromDate(new Date(isoDate))]
+        const sparseUnitAmounts = unitAmountsAsControllerWouldBuild(dates)
+
+        // Sanity check: the weekend rate genuinely is not available here.
+        expect(sparseUnitAmounts).toEqual({
+          [LodgePricingTypeValues.SingleFridayOrSaturday]: 6000
+        })
+
+        const creditsToApply = BookingUtils.getDiscountableNights(dates, {
+          weekNightsOnly: 2,
+          anyNight: 2
+        })
+
+        const result = BookingUtils.getLodgeCreditDiscountAmount(
+          dates,
+          creditsToApply,
+          sparseUnitAmounts
+        )
+
+        expect(result).toEqual(6000)
+      }
+    )
+
+    it("should never return a 0 discount when credits are actually consumed", () => {
+      /**
+       * Stripe rejects a coupon with `amount_off` below 1, so any booking that
+       * consumes at least one credit must produce a positive discount.
+       */
+      const bookingStartDates = [
+        "2024-06-17", // Mon
+        "2024-06-18", // Tue
+        "2024-06-19", // Wed
+        "2024-06-20", // Thu
+        "2024-06-21", // Fri
+        "2024-06-22", // Sat
+        "2024-06-23" // Sun
+      ]
+
+      for (const startDate of bookingStartDates) {
+        for (let nights = 1; nights <= 4; nights++) {
+          const dates = Array.from({ length: nights }, (_, offset) =>
+            Timestamp.fromDate(
+              new Date(
+                new Date(startDate).getTime() + offset * 24 * 60 * 60 * 1000
+              )
+            )
+          )
+          const creditsToApply = BookingUtils.getDiscountableNights(dates, {
+            weekNightsOnly: 1,
+            anyNight: 1
+          })
+          const totalCreditsApplied =
+            creditsToApply.weekNightsOnly + creditsToApply.anyNight
+
+          if (totalCreditsApplied === 0) {
+            continue
+          }
+
+          const result = BookingUtils.getLodgeCreditDiscountAmount(
+            dates,
+            creditsToApply,
+            unitAmountsAsControllerWouldBuild(dates)
+          )
+
+          // Compared as an object so a failure names the offending booking.
+          expect({
+            startDate,
+            nights,
+            isValidStripeAmountOff: result >= 1
+          }).toEqual({ startDate, nights, isValidStripeAmountOff: true })
+        }
+      }
     })
   })
 })

@@ -311,6 +311,58 @@ describe("BookingController endpoint tests", () => {
       ])
     })
 
+    it("should return the stripe payment id for each booking so manual entries can be identified", async () => {
+      const bookingSlotService = new BookingSlotService()
+      const bookingDataService = new BookingDataService()
+
+      const slot1 = await bookingSlotService.createBookingSlot({
+        date: dateToFirestoreTimeStamp(new Date("02/01/2023")),
+        max_bookings: 10
+      })
+      const slot2 = await bookingSlotService.createBookingSlot({
+        date: dateToFirestoreTimeStamp(new Date("03/01/2023")),
+        max_bookings: 10
+      })
+
+      const { id: manualBookingId } = await bookingDataService.createBooking({
+        user_id: MEMBER_USER_UID,
+        booking_slot_id: slot1.id,
+        stripe_payment_id: "manual_entry"
+      })
+      const { id: paidBookingId } = await bookingDataService.createBooking({
+        user_id: GUEST_USER_UID,
+        booking_slot_id: slot2.id,
+        stripe_payment_id: "cs_test_123"
+      })
+
+      const res = await request
+        .post("/bookings/fetch-users")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send({
+          startDate: dateToFirestoreTimeStamp(new Date("01/01/2023")),
+          endDate: dateToFirestoreTimeStamp(new Date("12/31/2023"))
+        })
+
+      expect(res.status).toEqual(StatusCodes.OK)
+      const users = res.body.data.flatMap(
+        (slot: { users: unknown[] }) => slot.users
+      )
+      expect(users).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            uid: MEMBER_USER_UID,
+            bookingId: manualBookingId,
+            stripePaymentId: "manual_entry"
+          }),
+          expect.objectContaining({
+            uid: GUEST_USER_UID,
+            bookingId: paidBookingId,
+            stripePaymentId: "cs_test_123"
+          })
+        ])
+      )
+    })
+
     it("should return unauthorized error for non-admin users", async () => {
       const startDate = dateToFirestoreTimeStamp(new Date("01/01/2023"))
       const endDate = dateToFirestoreTimeStamp(new Date("12/31/2023"))

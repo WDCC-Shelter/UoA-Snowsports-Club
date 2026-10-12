@@ -290,6 +290,7 @@ const models: TsoaRoute.Models = {
             "email": {"dataType":"string","required":true},
             "membership": {"ref":"UserAccountTypes","required":true},
             "bookingId": {"dataType":"string","required":true},
+            "stripePaymentId": {"dataType":"string"},
         },
         "additionalProperties": false,
     },

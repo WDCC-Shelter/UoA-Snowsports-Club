@@ -707,6 +707,10 @@
 					},
 					"bookingId": {
 						"type": "string"
+					},
+					"stripePaymentId": {
+						"type": "string",
+						"description": "The Stripe payment ID for the booking, or `\"manual_entry\"` if an admin added it"
 					}
 				},
 				"required": [

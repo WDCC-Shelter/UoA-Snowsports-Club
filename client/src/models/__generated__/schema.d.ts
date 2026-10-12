@@ -488,6 +488,8 @@ export interface components {
       /** @description What type of account the user has */
       membership: components["schemas"]["UserAccountTypes"];
       bookingId: string;
+      /** @description The Stripe payment ID for the booking, or `"manual_entry"` if an admin added it */
+      stripePaymentId?: string;
     };
     /** @description Represents the response structure for fetching users by date range. */
     UsersByDateRangeResponse: {

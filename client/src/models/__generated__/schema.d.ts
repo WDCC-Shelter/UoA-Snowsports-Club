@@ -490,6 +490,8 @@ export interface components {
       bookingId: string;
       /** @description The Stripe payment ID for the booking, or `"manual_entry"` if an admin added it */
       stripePaymentId?: string;
+      /** @description The uid of the admin who manually added the booking, if recorded */
+      addedBy?: string;
     };
     /** @description Represents the response structure for fetching users by date range. */
     UsersByDateRangeResponse: {
@@ -704,6 +706,11 @@ export interface components {
       /** @description The end of the operated on date range */
       end_date: components["schemas"]["FirebaseFirestore.Timestamp"];
       /**
+       * @description The uid of the admin who performed the operation. Missing on events logged
+       * before this field was introduced.
+       */
+      performed_by?: string;
+      /**
        * @description The type of event that the admin performed, used for parsing on the front-end
        *
        * Each of these are associated with the following:
@@ -726,6 +733,11 @@ export interface components {
       /** @description The end of the operated on date range */
       end_date: components["schemas"]["FirebaseFirestore.Timestamp"];
       /**
+       * @description The uid of the admin who performed the operation. Missing on events logged
+       * before this field was introduced.
+       */
+      performed_by?: string;
+      /**
        * @description The type of event that the admin performed, used for parsing on the front-end
        *
        * Each of these are associated with the following:
@@ -747,6 +759,11 @@ export interface components {
       start_date: components["schemas"]["FirebaseFirestore.Timestamp"];
       /** @description The end of the operated on date range */
       end_date: components["schemas"]["FirebaseFirestore.Timestamp"];
+      /**
+       * @description The uid of the admin who performed the operation. Missing on events logged
+       * before this field was introduced.
+       */
+      performed_by?: string;
       /**
        * @description The type of event that the admin performed, used for parsing on the front-end
        *

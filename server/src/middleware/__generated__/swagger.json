@@ -711,6 +711,10 @@
 					"stripePaymentId": {
 						"type": "string",
 						"description": "The Stripe payment ID for the booking, or `\"manual_entry\"` if an admin added it"
+					},
+					"addedBy": {
+						"type": "string",
+						"description": "The uid of the admin who manually added the booking, if recorded"
 					}
 				},
 				"required": [
@@ -1322,6 +1326,10 @@
 						"$ref": "#/components/schemas/FirebaseFirestore.Timestamp",
 						"description": "The end of the operated on date range"
 					},
+					"performed_by": {
+						"type": "string",
+						"description": "The uid of the admin who performed the operation. Missing on events logged\nbefore this field was introduced."
+					},
 					"event_type": {
 						"type": "string",
 						"enum": [
@@ -1360,6 +1368,10 @@
 						"$ref": "#/components/schemas/FirebaseFirestore.Timestamp",
 						"description": "The end of the operated on date range"
 					},
+					"performed_by": {
+						"type": "string",
+						"description": "The uid of the admin who performed the operation. Missing on events logged\nbefore this field was introduced."
+					},
 					"event_type": {
 						"type": "string",
 						"enum": [
@@ -1397,6 +1409,10 @@
 					"end_date": {
 						"$ref": "#/components/schemas/FirebaseFirestore.Timestamp",
 						"description": "The end of the operated on date range"
+					},
+					"performed_by": {
+						"type": "string",
+						"description": "The uid of the admin who performed the operation. Missing on events logged\nbefore this field was introduced."
 					},
 					"event_type": {
 						"type": "string",

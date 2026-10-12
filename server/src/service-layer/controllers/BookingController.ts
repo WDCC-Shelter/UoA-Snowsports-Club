@@ -258,7 +258,7 @@ export class BookingController extends Controller {
         /** Adding the date and users to the response data array */
         responseData.push({
           date: slot.date,
-          // Mapping the users to include the booking ID and payment ID
+          // Mapping the users to include the booking ID, payment ID and admin who added it
           users: combinedUsers.map((user) => {
             const booking = bookings.find(
               (booking) =>
@@ -268,7 +268,8 @@ export class BookingController extends Controller {
             return {
               ...user,
               bookingId: booking?.id,
-              stripePaymentId: booking?.stripe_payment_id
+              stripePaymentId: booking?.stripe_payment_id,
+              addedBy: booking?.added_by
             }
           })
         })

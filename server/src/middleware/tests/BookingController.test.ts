@@ -1,5 +1,5 @@
 import { request, memberToken, guestToken, adminToken } from "../routes.setup"
-import { GUEST_USER_UID, MEMBER_USER_UID } from "../routes.mock"
+import { ADMIN_USER_UID, GUEST_USER_UID, MEMBER_USER_UID } from "../routes.mock"
 import { dateToFirestoreTimeStamp } from "data-layer/adapters/DateUtils"
 import BookingSlotService from "data-layer/services/BookingSlotsService"
 import BookingDataService from "data-layer/services/BookingDataService"
@@ -311,7 +311,7 @@ describe("BookingController endpoint tests", () => {
       ])
     })
 
-    it("should return the stripe payment id for each booking so manual entries can be identified", async () => {
+    it("should return the stripe payment id and adding admin for each booking so manual entries can be identified", async () => {
       const bookingSlotService = new BookingSlotService()
       const bookingDataService = new BookingDataService()
 
@@ -327,7 +327,8 @@ describe("BookingController endpoint tests", () => {
       const { id: manualBookingId } = await bookingDataService.createBooking({
         user_id: MEMBER_USER_UID,
         booking_slot_id: slot1.id,
-        stripe_payment_id: "manual_entry"
+        stripe_payment_id: "manual_entry",
+        added_by: ADMIN_USER_UID
       })
       const { id: paidBookingId } = await bookingDataService.createBooking({
         user_id: GUEST_USER_UID,
@@ -352,7 +353,8 @@ describe("BookingController endpoint tests", () => {
           expect.objectContaining({
             uid: MEMBER_USER_UID,
             bookingId: manualBookingId,
-            stripePaymentId: "manual_entry"
+            stripePaymentId: "manual_entry",
+            addedBy: ADMIN_USER_UID
           }),
           expect.objectContaining({
             uid: GUEST_USER_UID,

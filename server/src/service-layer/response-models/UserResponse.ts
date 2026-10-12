@@ -29,6 +29,10 @@ export interface AllUsersResponse
 
 export interface BookingIdandUserData extends CombinedUserData {
   bookingId: string
+  /**
+   * The Stripe payment ID for the booking, or `"manual_entry"` if an admin added it
+   */
+  stripePaymentId?: string
 }
 
 export interface GetUserResponse extends CommonResponse {

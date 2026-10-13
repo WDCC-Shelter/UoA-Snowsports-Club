@@ -2,11 +2,19 @@ import { Timestamp } from "firebase/firestore"
 import type { components } from "@/models/__generated__/schema"
 import type { LodgeCreditState } from "@/models/Booking"
 import type { CreateEventBody, EditEventBody } from "@/models/Events"
-import type { UserAdditionalInfo } from "@/models/User"
+import type {
+  ReducedUserAdditionalInfo,
+  UserAdditionalInfo
+} from "@/models/User"
 import fetchClient from "@/services/OpenApiFetchClient"
 import { MEMBER_TABLE_MAX_DATA } from "@/utils/Constants"
 
 export type MailConfig = components["schemas"]["MailConfig"]
+
+export type AdminCreateUserBody = {
+  email: string
+  user: ReducedUserAdditionalInfo
+}
 
 /**
  * The subset of {@link MailConfig} fields that are editable through the
@@ -59,6 +67,22 @@ const AdminService = {
       }
     })
     if (!response.ok) throw new Error(`Failed to demote ${uid}`)
+  },
+  /**
+   * Creates an account without a password, the user has to set one with a password reset email
+   * @returns the uid of the created user
+   */
+  createUserAccount: async ({ email, user }: AdminCreateUserBody) => {
+    const { data, response } = await fetchClient.POST("/admin/users", {
+      body: { email, user }
+    })
+    if (response.status === 409) {
+      throw new Error(`An account already exists with the email ${email}`)
+    }
+    if (!response.ok || !data?.uid) {
+      throw new Error(`Failed to create an account for ${email}`)
+    }
+    return data.uid
   },
   promoteUser: async (uid: string) => {
     const { response } = await fetchClient.PUT("/admin/users/promote", {

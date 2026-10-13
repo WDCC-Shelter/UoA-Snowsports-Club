@@ -4,6 +4,7 @@ import { StatusCodes } from "http-status-codes"
 
 export type SignUpUserBody = {
   email: string
+  password: string
   user: ReducedUserAdditionalInfo
 }
 
@@ -31,18 +32,19 @@ const UserService = {
   },
   signUpUser: async (userData: SignUpUserBody) => {
     // gets data from signup and returns data (all data needed after signing up)
-    const { data, response } = await fetchClient.POST("/signup", {
+    const { data, error, response } = await fetchClient.POST("/signup", {
       body: userData
     })
 
     if (response.status === StatusCodes.BAD_REQUEST)
       throw new Error(
-        "Invalid details, double check to see if the details are correct"
+        (error as { error?: string } | undefined)?.error ||
+          "Invalid details, double check to see if the details are correct"
       )
 
     if (response.status === StatusCodes.CONFLICT)
       throw new Error(
-        `An account already exists with the email ${userData.email}`
+        `An account already exists with the email ${userData.email}. Try logging in, or resetting your password if you've forgotten it.`
       )
 
     if (!response.ok)

@@ -3,7 +3,14 @@ import TextInput from "@/components/generic/TextInputComponent/TextInput"
 
 export const ContactSection = () => {
   const [
-    { emergency_contact, email, confirmEmail, phone_number },
+    {
+      emergency_contact,
+      email,
+      confirmEmail,
+      password,
+      confirmPassword,
+      phone_number
+    },
     { updateFormData }
   ] = useSignUpFormData()
 
@@ -21,10 +28,29 @@ export const ContactSection = () => {
       <TextInput
         type="email"
         label="Confirm Email"
-        id="Email"
+        id="ConfirmEmail"
         defaultValue={confirmEmail}
         onChange={(e) => updateFormData({ confirmEmail: e.target.value })}
         placeholder="email@domain.com"
+        required
+      />
+      <TextInput
+        type="password"
+        label="Password"
+        description="You'll use this with your email to log in. At least 8 characters, with a number, a lowercase and an uppercase letter"
+        id="Password"
+        autoComplete="new-password"
+        defaultValue={password}
+        onChange={(e) => updateFormData({ password: e.target.value })}
+        required
+      />
+      <TextInput
+        type="password"
+        label="Confirm Password"
+        id="ConfirmPassword"
+        autoComplete="new-password"
+        defaultValue={confirmPassword}
+        onChange={(e) => updateFormData({ confirmPassword: e.target.value })}
         required
       />
       <TextInput

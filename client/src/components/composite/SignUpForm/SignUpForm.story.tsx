@@ -85,7 +85,7 @@ export const DefaultStory = () => {
             }
           },
           {
-            title: "Confirmation",
+            title: "Payment",
             index: 6,
             onBack: () => {
               setCurrentPage(5)
@@ -95,7 +95,7 @@ export const DefaultStory = () => {
             }
           },
           {
-            title: "Account setup",
+            title: "Confirmation",
             index: 7,
             onBack: () => {
               setCurrentPage(6)

@@ -1,5 +1,4 @@
 import {
-  ACCOUNT_SETUP_ROUTE,
   ADDITIONAL_ROUTE,
   CONFIRM_ROUTE,
   CONTACT_ROUTE,
@@ -46,15 +45,10 @@ export const useCheckRegisterPermissions = (currentPage: PAGES) => {
 
       // User has already paid for membership
       if (currentUserClaims?.member) {
-        router.push(oneLevelUp(ACCOUNT_SETUP_ROUTE))
+        router.push(oneLevelUp(SUCCESS_ROUTE))
       }
       break
     case PAGES.Confirm:
-      break
-    case PAGES.AccountSetup:
-      if (!currentUser) {
-        router.push(oneLevelUp(PERSONAL_ROUTE_1))
-      }
       break
     case PAGES.Success:
       break
@@ -86,9 +80,6 @@ export const useCurrentStep = (step?: string): PAGES => {
 
     case CONFIRM_ROUTE:
       return PAGES.Confirm
-
-    case ACCOUNT_SETUP_ROUTE:
-      return PAGES.AccountSetup
 
     case SUCCESS_ROUTE:
       return PAGES.Success

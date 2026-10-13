@@ -6,7 +6,6 @@ export const CONFIRM_DETAILS_ROUTE = "confirm-details" as const
 export const PAYMENT_INFORMATION_ROUTE = "payment-info" as const
 export const PAYMENT_ROUTE = "payment" as const
 export const CONFIRM_ROUTE = "confirm" as const
-export const ACCOUNT_SETUP_ROUTE = "setup" as const
 export const SUCCESS_ROUTE = "success" as const
 
 export type RouteNames =
@@ -18,7 +17,6 @@ export type RouteNames =
   | typeof PAYMENT_INFORMATION_ROUTE
   | typeof PAYMENT_ROUTE
   | typeof CONFIRM_ROUTE
-  | typeof ACCOUNT_SETUP_ROUTE
   | typeof SUCCESS_ROUTE
 
 /**
@@ -33,7 +31,6 @@ export enum PAGES {
   PaymentInfo,
   Payment,
   Confirm,
-  AccountSetup,
   Success,
   Unknown
 }

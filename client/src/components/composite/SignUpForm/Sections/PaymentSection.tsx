@@ -10,7 +10,7 @@ import {
 import { useMembershipClientSecretQuery } from "@/services/Payment/PaymentQueries"
 import { useMembershipPaymentDetails } from "@/store/MembershipPayment"
 import { useAppData } from "@/store/Store"
-import { ACCOUNT_SETUP_ROUTE } from "../utils/RouteNames"
+import { SUCCESS_ROUTE } from "../utils/RouteNames"
 import {
   getMembershipTypeConfirmationMessage,
   oneLevelUp
@@ -84,8 +84,8 @@ const BankTransferSection = ({ wantsBankTransfer }: PaymentSectionProps) => {
           been confirmed by UASC.
         </p>
         <p className="text-gray-3">
-          You will still have access to your account, and are able to set your
-          login details as well as edit your personal information
+          You will still have access to your account, and are able to log in and
+          edit your personal information
         </p>
       </div>
 
@@ -98,9 +98,9 @@ const BankTransferSection = ({ wantsBankTransfer }: PaymentSectionProps) => {
       </h5>
       <h5
         className="text-dark-blue-100  cursor-pointer font-bold uppercase"
-        onClick={() => router.push(oneLevelUp(ACCOUNT_SETUP_ROUTE))}
+        onClick={() => router.push(oneLevelUp(SUCCESS_ROUTE))}
       >
-        Set up account in meantime
+        Continue to your account in the meantime
       </h5>
     </>
   )

@@ -10,7 +10,6 @@ import ConfirmationSection from "../Sections/ConfirmationSection"
 import SuccessSection from "../Sections/SuccessSection"
 
 import {
-  ACCOUNT_SETUP_ROUTE,
   ADDITIONAL_ROUTE,
   CONTACT_ROUTE,
   PAGES,
@@ -19,6 +18,7 @@ import {
   PAYMENT_ROUTE,
   PERSONAL_ROUTE_1,
   PERSONAL_ROUTE_2,
+  SUCCESS_ROUTE,
   type RouteNames
 } from "../utils/RouteNames"
 import {
@@ -26,7 +26,6 @@ import {
   PaymentSection
 } from "../Sections/PaymentSection"
 import TestIcon from "@/assets/icons/snowboarder.svg"
-import AccountSetupSection from "../Sections/AccountSetupSection"
 
 export const PAGINATED_FORM_PAGES = (
   navigateFn: (route: RouteNames | "/profile" | number) => void,
@@ -91,20 +90,15 @@ export const PAGINATED_FORM_PAGES = (
   {
     index: PAGES.Confirm,
     title: "Confirm",
-    onNext: () => navigateFn(ACCOUNT_SETUP_ROUTE),
+    onNext: () => navigateFn(SUCCESS_ROUTE),
     nextDisabled: !isSignedIn,
     backDisabled: !isSignedIn
   },
   {
-    index: PAGES.AccountSetup,
-    title: "Account",
-    // goes back to one page earlier in history, otherwise does nothing
-    onBack: () => navigateFn(-1)
-  },
-  {
     index: PAGES.Success,
     title: "Success",
-    onBack: () => navigateFn(ACCOUNT_SETUP_ROUTE),
+    // goes back to one page earlier in history, otherwise does nothing
+    onBack: () => navigateFn(-1),
     onNext: () => navigateFn("/profile")
   }
 ]
@@ -124,10 +118,9 @@ export const PAGE_CONTENT = [
     key="confirm"
     subHeader="Thank you!"
     textTop="Your application has been received, and you’ll be sent a confirmation email soon."
-    textBottom="In the meantime, please set up your login details."
+    textBottom="We've also sent you an email to verify your email address."
     SvgIcon={TestIcon}
   />,
-  <AccountSetupSection key="account" />,
   <SuccessSection key="Success" />
 ]
 
@@ -141,6 +134,5 @@ export const STEPPER_PROPS = [
   { name: "Contact", index: PAGES.Contact },
   { name: "Additional", index: PAGES.Additional },
   { name: "Payment", index: PAGES.PaymentInfo },
-  { name: "Confirm", index: PAGES.Confirm },
-  { name: "Account", index: PAGES.AccountSetup }
+  { name: "Confirm", index: PAGES.Confirm }
 ]

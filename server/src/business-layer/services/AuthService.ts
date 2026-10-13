@@ -75,12 +75,16 @@ export default class AuthService {
   /**
    * Creates a new user account in the Firebase Authentication Service.
    * @param email
+   * @param password if omitted, the account will have no password until one is set
    */
-  public async createUser(email: string): Promise<UserRecord> {
+  public async createUser(
+    email: string,
+    password?: string
+  ): Promise<UserRecord> {
     // get the user record
     let userRecord: UserRecord
     try {
-      userRecord = await auth.createUser({ email })
+      userRecord = await auth.createUser({ email, password })
     } catch (err) {
       console.error("Error creating user", err)
       throw err

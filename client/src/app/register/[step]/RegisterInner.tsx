@@ -20,8 +20,8 @@ export default function RegisterInner({ step }: { step: string }) {
     email,
     confirmEmail,
     password,
-    // biome-ignore lint/correctness/noUnusedVariables: excluded so it doesn't end up in `user`
-    confirmPassword,
+    // excluded so it doesn't end up in `user`
+    confirmPassword: _confirmPassword,
     formValidity,
     ...user
   } = signUpFormData

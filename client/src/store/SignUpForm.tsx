@@ -3,10 +3,18 @@ import { Timestamp } from "firebase/firestore"
 import type { ReducedUserAdditionalInfo } from "@/models/User"
 import { createStore, type Action, createHook } from "react-sweet-state"
 
+/**
+ * At least 8 characters, with at least one number, lowercase and uppercase letter.
+ * Must match the policy enforced by the server on sign up.
+ */
+const PASSWORD_POLICY = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/
+
 type FormValidity = { errorMessage?: string; success: boolean }
 type State = ReducedUserAdditionalInfo & {
   email: string
   confirmEmail: string
+  password: string
+  confirmPassword: string
 } & {
   formValidity: FormValidity
 }
@@ -14,6 +22,8 @@ type State = ReducedUserAdditionalInfo & {
 const initialState: State = {
   email: "",
   confirmEmail: "",
+  password: "",
+  confirmPassword: "",
   phone_number: 0x0,
   date_of_birth: Timestamp.fromDate(new Date("2000/01/01")),
   does_snowboarding: false,
@@ -67,8 +77,14 @@ const actions = {
       }
 
       const validateContactSection = (invalidFields: string[]) => {
-        const { email, confirmEmail, phone_number, emergency_contact } =
-          getState()
+        const {
+          email,
+          confirmEmail,
+          password,
+          confirmPassword,
+          phone_number,
+          emergency_contact
+        } = getState()
         const validRegex =
           /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/
 
@@ -77,6 +93,14 @@ const actions = {
         }
         if (confirmEmail !== email) {
           invalidFields.push("Confirm Email")
+        }
+        if (!PASSWORD_POLICY.test(password)) {
+          invalidFields.push(
+            "Password (at least 8 characters with a number, lowercase and uppercase letter)"
+          )
+        }
+        if (confirmPassword !== password) {
+          invalidFields.push("Confirm Password")
         }
         if (phone_number.toString().length < 6) {
           invalidFields.push("Phone Number")

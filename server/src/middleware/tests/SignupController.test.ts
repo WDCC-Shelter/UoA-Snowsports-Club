@@ -1,6 +1,7 @@
 import { request } from "../routes.setup"
 import { signupUserMock } from "test-config/mocks/User.mock"
 import AuthService from "business-layer/services/AuthService"
+import { auth } from "business-layer/security/Firebase"
 import { StatusCodes } from "http-status-codes"
 
 describe("SignupController endpoint tests", () => {
@@ -39,6 +40,29 @@ describe("SignupController endpoint tests", () => {
       // check if user custom claims exist
       const claims = await new AuthService().getCustomerUserClaim(res.body.uid)
       expect(claims).toEqual(undefined)
+    })
+    it("should create the account with a password if one is provided", async () => {
+      const res = await request.post("/signup").send({
+        email: "withpassword@mail.com",
+        password: "Password123",
+        user: signupUserMock
+      })
+      expect(res.status).toEqual(StatusCodes.OK)
+      const userRecord = await auth.getUser(res.body.uid)
+      expect(userRecord.providerData.map((p) => p.providerId)).toContain(
+        "password"
+      )
+    })
+    it("should reject passwords that do not meet the policy", async () => {
+      const res = await request.post("/signup").send({
+        email: "weakpassword@mail.com",
+        password: "password",
+        user: signupUserMock
+      })
+      expect(res.status).toEqual(StatusCodes.BAD_REQUEST)
+      await expect(
+        auth.getUserByEmail("weakpassword@mail.com")
+      ).rejects.toThrow()
     })
   })
 })

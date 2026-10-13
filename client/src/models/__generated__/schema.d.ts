@@ -306,6 +306,12 @@ export interface components {
     "Omit_UserAdditionalInfo.stripe_id_": components["schemas"]["Pick_UserAdditionalInfo.Exclude_keyofUserAdditionalInfo.stripe_id__"];
     UserSignupBody: {
       email: string;
+      /**
+       * @description The password to create the account with. Optional so that admins can
+       * create accounts on behalf of members, who then set a password via a
+       * password reset email.
+       */
+      password?: string;
       user: components["schemas"]["Omit_UserAdditionalInfo.stripe_id_"];
     };
     /** @enum {string} */
@@ -1067,7 +1073,7 @@ export interface operations {
   };
   /** @description Signs up a user and creates a user record in the database. Also creates a JWT token for the user in AuthService. */
   Signup: {
-    /** @description - The user's email and their user additional info. */
+    /** @description - The user's email, optional password, and their user additional info. */
     requestBody: {
       content: {
         "application/json": components["schemas"]["UserSignupBody"];

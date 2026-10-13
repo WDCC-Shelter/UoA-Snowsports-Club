@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query"
 import UserService from "./UserService"
-import { sendPasswordResetEmail, signInWithCustomToken } from "firebase/auth"
+import { sendEmailVerification, signInWithCustomToken } from "firebase/auth"
 import { auth } from "@/firebase"
 import queryClient from "@/services/QueryClient"
 import { SELF_DATA_QUERY_KEY } from "./UserQueries"
@@ -16,14 +16,14 @@ export function useSignUpUserMutation(signUpType: SignUpType = "member") {
   return useMutation({
     mutationKey: [SIGN_UP_USER_MUTATION_KEY, signUpType],
     mutationFn: UserService.signUpUser,
-    onSuccess: async (data, variables) => {
+    onSuccess: async (data) => {
       if (signUpType === "admin") return
       if (data?.jwtToken) {
-        try {
-          sendPasswordResetEmail(auth, variables.email) // It must be non-blocking
-        } finally {
-          await signInWithCustomToken(auth, data.jwtToken)
-        }
+        const { user } = await signInWithCustomToken(auth, data.jwtToken)
+        // It must be non-blocking
+        sendEmailVerification(user).catch((e) =>
+          console.error("Failed to send verification email", e)
+        )
       }
     },
     retry: 0

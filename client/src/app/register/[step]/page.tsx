@@ -1,5 +1,4 @@
 import {
-  ACCOUNT_SETUP_ROUTE,
   ADDITIONAL_ROUTE,
   CONFIRM_DETAILS_ROUTE,
   CONFIRM_ROUTE,
@@ -22,7 +21,6 @@ export async function generateStaticParams() {
     PAYMENT_INFORMATION_ROUTE,
     PAYMENT_ROUTE,
     CONFIRM_ROUTE,
-    ACCOUNT_SETUP_ROUTE,
     SUCCESS_ROUTE
   ].map((routeName) => {
     return { step: routeName }

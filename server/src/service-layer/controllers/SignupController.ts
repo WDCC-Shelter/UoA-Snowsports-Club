@@ -4,15 +4,20 @@ import UserDataService from "data-layer/services/UserDataService"
 import type { UserRecord } from "firebase-admin/auth"
 import { StatusCodes } from "http-status-codes"
 import type { UserSignupBody } from "service-layer/request-models/UserSignupRequests"
-// import { UserSignupBody } from "service-layer/request-models/UserSignupRequests"
 import type { UserSignupResponse } from "service-layer/response-models/UserSignupResponse"
 import { Body, Controller, Post, Route, SuccessResponse } from "tsoa"
+
+/**
+ * At least 8 characters, with at least one number, lowercase and uppercase letter.
+ * Must match the pattern used by the client's password inputs.
+ */
+const PASSWORD_POLICY = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/
 
 @Route("signup")
 export class UserSignup extends Controller {
   /**
    * Signs up a user and creates a user record in the database. Also creates a JWT token for the user in AuthService.
-   * @param requestBody - The user's email and their user additional info.
+   * @param requestBody - The user's email, optional password, and their user additional info.
    * @returns The JWT token and the user's UID.
    */
   @Post()
@@ -23,12 +28,21 @@ export class UserSignup extends Controller {
     const userService = new UserDataService()
     const authService = new AuthService()
 
+    const { password } = requestBody
+    if (password !== undefined && !PASSWORD_POLICY.test(password)) {
+      this.setStatus(StatusCodes.BAD_REQUEST)
+      return {
+        error:
+          "Password must be at least 8 characters and contain a number, a lowercase and an uppercase letter."
+      }
+    }
+
     // Received userInfo omits stripe_id
     const userInfo = requestBody.user
     let userRecord: UserRecord
     // Seperate try/catch to avoid conflicting emails while creating user.
     try {
-      userRecord = await authService.createUser(requestBody.email)
+      userRecord = await authService.createUser(requestBody.email, password)
     } catch (e) {
       this.setStatus(StatusCodes.CONFLICT)
       return {

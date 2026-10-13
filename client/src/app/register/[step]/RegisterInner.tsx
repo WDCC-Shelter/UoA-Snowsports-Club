@@ -16,7 +16,15 @@ export default function RegisterInner({ step }: { step: string }) {
   const navigateFn = useRouter()
   const [signUpFormData, { validateForm, resetForm }] = useSignUpFormData()
   const [{ currentUser }] = useAppData()
-  const { email, confirmEmail, formValidity, ...user } = signUpFormData
+  const {
+    email,
+    confirmEmail,
+    password,
+    // biome-ignore lint/correctness/noUnusedVariables: excluded so it doesn't end up in `user`
+    confirmPassword,
+    formValidity,
+    ...user
+  } = signUpFormData
 
   const { mutate, isPending, error, data } = useSignUpUserMutation()
 
@@ -38,6 +46,7 @@ export default function RegisterInner({ step }: { step: string }) {
     mutate(
       {
         email: email === confirmEmail ? email : "",
+        password,
         user
       },
       {

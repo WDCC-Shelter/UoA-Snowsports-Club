@@ -253,6 +253,10 @@
 					"email": {
 						"type": "string"
 					},
+					"password": {
+						"type": "string",
+						"description": "The password to create the account with. Optional so that admins can\ncreate accounts on behalf of members, who then set a password via a\npassword reset email."
+					},
 					"user": {
 						"$ref": "#/components/schemas/Omit_UserAdditionalInfo.stripe_id_"
 					}
@@ -1993,13 +1997,13 @@
 				"security": [],
 				"parameters": [],
 				"requestBody": {
-					"description": "- The user's email and their user additional info.",
+					"description": "- The user's email, optional password, and their user additional info.",
 					"required": true,
 					"content": {
 						"application/json": {
 							"schema": {
 								"$ref": "#/components/schemas/UserSignupBody",
-								"description": "- The user's email and their user additional info."
+								"description": "- The user's email, optional password, and their user additional info."
 							}
 						}
 					}

@@ -105,6 +105,7 @@ const models: TsoaRoute.Models = {
         "dataType": "refObject",
         "properties": {
             "email": {"dataType":"string","required":true},
+            "password": {"dataType":"string"},
             "user": {"ref":"Omit_UserAdditionalInfo.stripe_id_","required":true},
         },
         "additionalProperties": false,

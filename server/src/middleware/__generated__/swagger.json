@@ -255,7 +255,7 @@
 					},
 					"password": {
 						"type": "string",
-						"description": "The password to create the account with. Optional so that admins can\ncreate accounts on behalf of members, who then set a password via a\npassword reset email."
+						"description": "The password to create the account with"
 					},
 					"user": {
 						"$ref": "#/components/schemas/Omit_UserAdditionalInfo.stripe_id_"
@@ -263,6 +263,7 @@
 				},
 				"required": [
 					"email",
+					"password",
 					"user"
 				],
 				"type": "object",
@@ -1071,6 +1072,38 @@
 						"$ref": "#/components/schemas/CombinedUserData"
 					}
 				},
+				"type": "object",
+				"additionalProperties": false
+			},
+			"AdminCreateUserResponse": {
+				"properties": {
+					"error": {
+						"type": "string"
+					},
+					"message": {
+						"type": "string"
+					},
+					"uid": {
+						"type": "string"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
+			},
+			"AdminCreateUserRequestBody": {
+				"properties": {
+					"email": {
+						"type": "string",
+						"description": "The email of the account to create. The account is created without a\npassword, so the user has to set one with a password reset email."
+					},
+					"user": {
+						"$ref": "#/components/schemas/Omit_UserAdditionalInfo.stripe_id_"
+					}
+				},
+				"required": [
+					"email",
+					"user"
+				],
 				"type": "object",
 				"additionalProperties": false
 			},
@@ -1997,13 +2030,13 @@
 				"security": [],
 				"parameters": [],
 				"requestBody": {
-					"description": "- The user's email, optional password, and their user additional info.",
+					"description": "- The user's email, password, and their user additional info.",
 					"required": true,
 					"content": {
 						"application/json": {
 							"schema": {
 								"$ref": "#/components/schemas/UserSignupBody",
-								"description": "- The user's email, optional password, and their user additional info."
+								"description": "- The user's email, password, and their user additional info."
 							}
 						}
 					}
@@ -2561,6 +2594,42 @@
 						}
 					}
 				]
+			},
+			"post": {
+				"operationId": "CreateUserAccount",
+				"responses": {
+					"200": {
+						"description": "Created",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/AdminCreateUserResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Creates a new user account without a password, along with their user data.\nThe user will have to set a password using a password reset email.\nRequires an admin JWT token.",
+				"security": [
+					{
+						"jwt": [
+							"admin"
+						]
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"description": "- The email for the account and the user data.",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/AdminCreateUserRequestBody",
+								"description": "- The email for the account and the user data."
+							}
+						}
+					}
+				}
 			}
 		},
 		"/admin/users/{uid}": {

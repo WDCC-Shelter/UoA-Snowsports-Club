@@ -1,3 +1,4 @@
+import type { UserAdditionalInfo } from "data-layer/models/firebase"
 import type { Timestamp } from "firebase-admin/firestore"
 import { LodgeCreditState } from "../../business-layer/utils/CustomerMetadata"
 
@@ -46,4 +47,13 @@ export interface FetchLatestBookingEventRequest {
    * The id of the cursor to continue paginating from
    */
   cursor?: string
+}
+
+export interface AdminCreateUserRequestBody {
+  /**
+   * The email of the account to create. The account is created without a
+   * password, so the user has to set one with a password reset email.
+   */
+  email: string
+  user: Omit<UserAdditionalInfo, "stripe_id">
 }

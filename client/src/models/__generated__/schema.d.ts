@@ -107,6 +107,12 @@ export interface paths {
   "/admin/users": {
     /** @description User Operations */
     get: operations["GetAllUsers"];
+    /**
+     * @description Creates a new user account without a password, along with their user data.
+     * The user will have to set a password using a password reset email.
+     * Requires an admin JWT token.
+     */
+    post: operations["CreateUserAccount"];
   };
   "/admin/users/{uid}": {
     /**
@@ -306,12 +312,8 @@ export interface components {
     "Omit_UserAdditionalInfo.stripe_id_": components["schemas"]["Pick_UserAdditionalInfo.Exclude_keyofUserAdditionalInfo.stripe_id__"];
     UserSignupBody: {
       email: string;
-      /**
-       * @description The password to create the account with. Optional so that admins can
-       * create accounts on behalf of members, who then set a password via a
-       * password reset email.
-       */
-      password?: string;
+      /** @description The password to create the account with */
+      password: string;
       user: components["schemas"]["Omit_UserAdditionalInfo.stripe_id_"];
     };
     /** @enum {string} */
@@ -614,6 +616,19 @@ export interface components {
       error?: string;
       message?: string;
       data?: components["schemas"]["CombinedUserData"];
+    };
+    AdminCreateUserResponse: {
+      error?: string;
+      message?: string;
+      uid?: string;
+    };
+    AdminCreateUserRequestBody: {
+      /**
+       * @description The email of the account to create. The account is created without a
+       * password, so the user has to set one with a password reset email.
+       */
+      email: string;
+      user: components["schemas"]["Omit_UserAdditionalInfo.stripe_id_"];
     };
     UserAdditionalInfo: {
       date_of_birth: components["schemas"]["FirebaseFirestore.Timestamp"];
@@ -1073,7 +1088,7 @@ export interface operations {
   };
   /** @description Signs up a user and creates a user record in the database. Also creates a JWT token for the user in AuthService. */
   Signup: {
-    /** @description - The user's email, optional password, and their user additional info. */
+    /** @description - The user's email, password, and their user additional info. */
     requestBody: {
       content: {
         "application/json": components["schemas"]["UserSignupBody"];
@@ -1345,6 +1360,27 @@ export interface operations {
       200: {
         content: {
           "application/json": components["schemas"]["AllUsersResponse"];
+        };
+      };
+    };
+  };
+  /**
+   * @description Creates a new user account without a password, along with their user data.
+   * The user will have to set a password using a password reset email.
+   * Requires an admin JWT token.
+   */
+  CreateUserAccount: {
+    /** @description - The email for the account and the user data. */
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AdminCreateUserRequestBody"];
+      };
+    };
+    responses: {
+      /** @description Created */
+      200: {
+        content: {
+          "application/json": components["schemas"]["AdminCreateUserResponse"];
         };
       };
     };

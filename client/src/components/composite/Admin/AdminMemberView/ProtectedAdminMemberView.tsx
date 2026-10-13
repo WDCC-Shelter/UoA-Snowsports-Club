@@ -8,6 +8,7 @@ import { DateUtils } from "@/components/utils/DateUtils"
 import { auth } from "@/firebase"
 import type { ReducedUserAdditionalInfo } from "@/models/User"
 import {
+  useCreateUserAccountMutation,
   useDeleteUserMutation,
   useDemoteUserMutation,
   usePromoteUserMutation,
@@ -15,12 +16,12 @@ import {
   useUpdateLodgeCreditMutation
 } from "@/services/Admin/AdminMutations"
 import {
+  ALL_USERS_QUERY,
   useAdminUserLodgeCreditsQuery,
   useMemberGoogleSheetUrlQuery,
   useUsersQuery
 } from "@/services/Admin/AdminQueries"
 import queryClient from "@/services/QueryClient"
-import { useSignUpUserMutation } from "@/services/User/UserMutations"
 import { AdminMemberView, type MemberColumnFormat } from "./AdminMemberView"
 import AdminUserCreationModal, {
   type AccountType
@@ -40,10 +41,7 @@ const WrappedAdminMemberView = () => {
   const { data, fetchNextPage, isFetchingNextPage, hasNextPage } =
     useUsersQuery()
 
-  /**
-   * The `admin` key is important as we don't want to share cache with the normal sign up
-   */
-  const { mutateAsync: addNewUser } = useSignUpUserMutation("admin")
+  const { mutateAsync: addNewUser } = useCreateUserAccountMutation()
 
   const { mutateAsync: resetAllMemberships } = useResetMembershipsMutation()
 
@@ -69,7 +67,7 @@ const WrappedAdminMemberView = () => {
     await addNewUser(
       { email, user },
       {
-        async onSuccess(data) {
+        async onSuccess(uid) {
           alert(
             `Successfully added ${user.first_name} ${user.last_name} (${email})`
           )
@@ -77,13 +75,13 @@ const WrappedAdminMemberView = () => {
            * We need to do this for both guests and members
            */
           await sendPasswordResetEmail(auth, email)
-          if (accountType === "member" && data?.uid) {
-            await promoteUser(data.uid)
+          if (accountType === "member") {
+            await promoteUser(uid)
           }
           /**
            * Force refetch after adding the new user
            */
-          queryClient.invalidateQueries({ queryKey: ["allUsers"] })
+          queryClient.invalidateQueries({ queryKey: [ALL_USERS_QUERY] })
         },
         onError(error) {
           alert(error.message)

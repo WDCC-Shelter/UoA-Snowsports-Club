@@ -1,4 +1,5 @@
 import AuthService from "business-layer/services/AuthService"
+import { parseFirebaseError } from "business-layer/utils/FirebaseErrorParser"
 import { EncryptionService } from "business-layer/services/EncryptionService"
 import MailService from "business-layer/services/MailService"
 import {
@@ -30,6 +31,7 @@ import { type DocumentSnapshot, Timestamp } from "firebase-admin/firestore"
 import { getReasonPhrase, StatusCodes } from "http-status-codes"
 import { compile as pugCompile } from "pug"
 import type {
+  AdminCreateUserRequestBody,
   UpdateLodgeCreditsRequestBody,
   DeleteBookingRequest,
   FetchLatestBookingEventRequest,
@@ -49,6 +51,7 @@ import type {
   SelfRequestModel
 } from "service-layer/request-models/UserRequests"
 import type {
+  AdminCreateUserResponse,
   FetchLatestBookingHistoryEventResponse,
   GetEventResponse
 } from "service-layer/response-models/AdminResponse"
@@ -541,6 +544,41 @@ export class AdminController extends Controller {
       console.error("Failed to fetch user data", e)
       this.setStatus(StatusCodes.INTERNAL_SERVER_ERROR)
       return { error: "Something went wrong when fetching user data" }
+    }
+  }
+
+  /**
+   * Creates a new user account without a password, along with their user data.
+   * The user will have to set a password using a password reset email.
+   * Requires an admin JWT token.
+   * @param requestBody - The email for the account and the user data.
+   * @returns The UID of the created user.
+   */
+  @SuccessResponse("200", "Created")
+  @Post("/users")
+  public async createUserAccount(
+    @Body() requestBody: AdminCreateUserRequestBody
+  ): Promise<AdminCreateUserResponse> {
+    const authService = new AuthService()
+    let userRecord: UserRecord
+    try {
+      userRecord = await authService.createUser(requestBody.email)
+    } catch (e) {
+      this.setStatus(StatusCodes.CONFLICT)
+      return { error: parseFirebaseError(e) }
+    }
+
+    try {
+      await new UserDataService().createUserData(
+        userRecord.uid,
+        requestBody.user
+      )
+      this.setStatus(StatusCodes.OK)
+      return { uid: userRecord.uid }
+    } catch (e) {
+      console.error(e)
+      this.setStatus(StatusCodes.INTERNAL_SERVER_ERROR)
+      return { error: parseFirebaseError(e) }
     }
   }
 

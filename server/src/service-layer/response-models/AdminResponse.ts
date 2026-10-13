@@ -10,3 +10,7 @@ export interface FetchLatestBookingHistoryEventResponse
 export interface GetEventResponse extends CommonResponse {
   data?: Event
 }
+
+export interface AdminCreateUserResponse extends CommonResponse {
+  uid?: string
+}

@@ -14,6 +14,13 @@ import {
 import AdminService from "./AdminService"
 import { replaceUserInPage } from "./AdminUtils"
 
+export function useCreateUserAccountMutation() {
+  return useMutation({
+    mutationKey: ["create-user-account"],
+    mutationFn: AdminService.createUserAccount
+  })
+}
+
 export function usePromoteUserMutation() {
   return useMutation({
     mutationKey: ["promote-user"],

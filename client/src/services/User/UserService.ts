@@ -4,7 +4,7 @@ import { StatusCodes } from "http-status-codes"
 
 export type SignUpUserBody = {
   email: string
-  password?: string
+  password: string
   user: ReducedUserAdditionalInfo
 }
 

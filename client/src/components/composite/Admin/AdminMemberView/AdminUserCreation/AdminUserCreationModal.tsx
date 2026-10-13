@@ -3,7 +3,7 @@ import Button from "@/components/generic/FigmaButtons/FigmaButton"
 import TextInput from "@/components/generic/TextInputComponent/TextInput"
 import { Timestamp } from "firebase/firestore"
 import { type FormEvent, useRef, useState } from "react"
-import type { SignUpUserBody } from "@/services/User/UserService"
+import type { AdminCreateUserBody } from "@/services/Admin/AdminService"
 import CloseIcon from "@/assets/icons/x.svg"
 import { useClickOutside } from "@/components/utils/Utils"
 
@@ -17,11 +17,11 @@ interface IAdminUserCreationModal {
    * When the new details have been filled in on the create new user form this
    * callback will be invoked.
    *
-   * @param details `SignUpUserBody` type, used to call a sign up endpoint
+   * @param details the email and user details to create the account with
    * @param accountType whether or not the newly created member should be made a member
    */
   userCreationHandler?: (
-    details: SignUpUserBody,
+    details: AdminCreateUserBody,
     accountType: AccountType
   ) => void
   /**

@@ -17,7 +17,7 @@ const PASSWORD_POLICY = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/
 export class UserSignup extends Controller {
   /**
    * Signs up a user and creates a user record in the database. Also creates a JWT token for the user in AuthService.
-   * @param requestBody - The user's email, optional password, and their user additional info.
+   * @param requestBody - The user's email, password, and their user additional info.
    * @returns The JWT token and the user's UID.
    */
   @Post()
@@ -29,7 +29,7 @@ export class UserSignup extends Controller {
     const authService = new AuthService()
 
     const { password } = requestBody
-    if (password !== undefined && !PASSWORD_POLICY.test(password)) {
+    if (!PASSWORD_POLICY.test(password)) {
       this.setStatus(StatusCodes.BAD_REQUEST)
       return {
         error:

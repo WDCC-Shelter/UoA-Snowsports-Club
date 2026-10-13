@@ -26,6 +26,9 @@ import {
 } from "../routes.mock"
 import { adminToken, guestToken, memberToken, request } from "../routes.setup"
 import StripeService from "../../business-layer/services/StripeService"
+import UserDataService from "data-layer/services/UserDataService"
+import { auth } from "business-layer/security/Firebase"
+import { signupUserMock } from "test-config/mocks/User.mock"
 
 describe("AdminController endpoint tests", () => {
   describe("/admin/users", () => {
@@ -104,6 +107,50 @@ describe("AdminController endpoint tests", () => {
         .set("Authorization", `Bearer ${guestToken}`)
         .send({})
         .expect(StatusCodes.UNAUTHORIZED, done)
+    })
+  })
+
+  describe("POST /admin/users", () => {
+    it("should create an account without a password and its user data", async () => {
+      const res = await request
+        .post("/admin/users")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send({ email: "admincreated@mail.com", user: signupUserMock })
+      expect(res.status).toEqual(StatusCodes.OK)
+
+      const { uid } = res.body
+      const userRecord = await auth.getUser(uid)
+      expect(userRecord.email).toEqual("admincreated@mail.com")
+      expect(userRecord.providerData.map((p) => p.providerId)).not.toContain(
+        "password"
+      )
+      expect(await new UserDataService().userDataExists(uid)).toEqual(true)
+    })
+
+    it("should return a 409 conflict when an email is already in use", async () => {
+      const body = { email: "admincreated@mail.com", user: signupUserMock }
+      let res = await request
+        .post("/admin/users")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send(body)
+      expect(res.status).toEqual(StatusCodes.OK)
+
+      res = await request
+        .post("/admin/users")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send(body)
+      expect(res.status).toEqual(StatusCodes.CONFLICT)
+    })
+
+    it("should not allow members or guests to create accounts", async () => {
+      for (const token of [memberToken, guestToken]) {
+        const res = await request
+          .post("/admin/users")
+          .set("Authorization", `Bearer ${token}`)
+          .send({ email: "notallowed@mail.com", user: signupUserMock })
+        expect(res.status).toEqual(StatusCodes.UNAUTHORIZED)
+      }
+      await expect(auth.getUserByEmail("notallowed@mail.com")).rejects.toThrow()
     })
   })
 

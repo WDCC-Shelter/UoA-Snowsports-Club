@@ -136,6 +136,11 @@ export interface Booking {
    * @example 'cs_test_a11YYufWQzNY63zpQ6QSNRQhkUpVph4WRmzW0zWJO2znZKdVujZ0N0S22u'
    */
   stripe_payment_id: string
+  /**
+   * The uid of the admin who manually added this booking. Only present on manual entries
+   * created after this field was introduced.
+   */
+  added_by?: string
 }
 
 // Interface for booking changes
@@ -230,6 +235,12 @@ interface BookingHistory {
    * The end of the operated on date range
    */
   end_date: Timestamp
+
+  /**
+   * The uid of the admin who performed the operation. Missing on events logged
+   * before this field was introduced.
+   */
+  performed_by?: string
 
   /**
    * The type of event that the admin performed, used for parsing on the front-end

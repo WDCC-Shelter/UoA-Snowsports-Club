@@ -45,7 +45,8 @@ import type {
   CreateUserRequestBody,
   DemoteUserRequestBody,
   EditUsersRequestBody,
-  PromoteUserRequestBody
+  PromoteUserRequestBody,
+  SelfRequestModel
 } from "service-layer/request-models/UserRequests"
 import type {
   FetchLatestBookingHistoryEventResponse,
@@ -77,6 +78,7 @@ import {
   Post,
   Put,
   Query,
+  Request,
   Route,
   Security,
   SuccessResponse
@@ -128,7 +130,8 @@ export class AdminController extends Controller {
   @SuccessResponse("201", "Slot made available")
   @Post("/bookings/make-dates-available")
   public async makeDateAvailable(
-    @Body() requestBody: MakeDatesAvailableRequestBody
+    @Body() requestBody: MakeDatesAvailableRequestBody,
+    @Request() request: SelfRequestModel
   ): Promise<BookingSlotUpdateResponse> {
     const { startDate, endDate, slots } = requestBody
     const bookingSlotService = new BookingSlotService()
@@ -174,7 +177,8 @@ export class AdminController extends Controller {
         start_date: startDate,
         end_date: endDate,
         event_type: "changed_date_availability",
-        change: slots || DEFAULT_BOOKING_MAX_SLOTS
+        change: slots || DEFAULT_BOOKING_MAX_SLOTS,
+        performed_by: request.user?.uid
       })
 
       this.setStatus(StatusCodes.CREATED)
@@ -194,7 +198,8 @@ export class AdminController extends Controller {
   @SuccessResponse("201", "Slot made unavailable")
   @Post("/bookings/make-dates-unavailable")
   public async makeDateUnavailable(
-    @Body() requestBody: Omit<MakeDatesAvailableRequestBody, "slots">
+    @Body() requestBody: Omit<MakeDatesAvailableRequestBody, "slots">,
+    @Request() request: SelfRequestModel
   ): Promise<BookingSlotUpdateResponse> {
     const { startDate, endDate } = requestBody
     const bookingSlotService = new BookingSlotService()
@@ -241,7 +246,8 @@ export class AdminController extends Controller {
         start_date: startDate,
         end_date: endDate,
         event_type: "changed_date_availability",
-        change
+        change,
+        performed_by: request.user?.uid
       })
 
       this.setStatus(StatusCodes.CREATED)
@@ -263,7 +269,8 @@ export class AdminController extends Controller {
   @SuccessResponse("200", "Bookings successfully created")
   @Post("/bookings/create")
   public async createBookings(
-    @Body() requestBody: CreateBookingsRequestModel
+    @Body() requestBody: CreateBookingsRequestModel,
+    @Request() request: SelfRequestModel
   ): Promise<UIdssByDateRangeResponse> {
     try {
       const { startDate, endDate, userId } = requestBody
@@ -297,7 +304,8 @@ export class AdminController extends Controller {
           await bookingDataService.createBooking({
             user_id: userId,
             booking_slot_id: slot.id,
-            stripe_payment_id: "manual_entry"
+            stripe_payment_id: "manual_entry",
+            added_by: request.user?.uid
           })
         }
         responseData.push({
@@ -316,7 +324,8 @@ export class AdminController extends Controller {
         start_date: startDate,
         end_date: endDate,
         event_type: "added_user_to_booking",
-        uid: userId
+        uid: userId,
+        performed_by: request.user?.uid
       })
 
       this.setStatus(StatusCodes.OK)
@@ -381,7 +390,8 @@ export class AdminController extends Controller {
   // TODO: Refactor this to be a DELETE request
   @Post("/bookings/delete")
   public async removeBooking(
-    @Body() requestBody: DeleteBookingRequest
+    @Body() requestBody: DeleteBookingRequest,
+    @Request() request: SelfRequestModel
   ): Promise<BookingDeleteResponse> {
     const { bookingID } = requestBody
     // Validate and check if the booking actually exists
@@ -411,7 +421,8 @@ export class AdminController extends Controller {
       uid: user_id,
       start_date: date,
       end_date: date,
-      event_type: "removed_user_from_booking"
+      event_type: "removed_user_from_booking",
+      performed_by: request.user?.uid
     })
 
     return { user_id }

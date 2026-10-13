@@ -230,6 +230,29 @@ describe("AdminController endpoint tests", () => {
       })
     })
 
+    it("Should record the admin who changed the availability", async () => {
+      const res = await request
+        .post("/admin/bookings/make-dates-available")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send({
+          startDate: dateToFirestoreTimeStamp(new Date("10/09/2001")),
+          endDate: dateToFirestoreTimeStamp(new Date("10/10/2001"))
+        })
+
+      expect(res.status).toEqual(StatusCodes.CREATED)
+
+      const { data: history } =
+        await new BookingHistoryService().getLatestHistory(10)
+      expect(history).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            event_type: "changed_date_availability",
+            performed_by: ADMIN_USER_UID
+          })
+        ])
+      )
+    })
+
     it("Should create booking slots specified within the date range, using the specified slots - while also overwriting old availabilities", async () => {
       const startDate = dateToFirestoreTimeStamp(new Date("10/09/2001"))
       const endDate = dateToFirestoreTimeStamp(new Date("10/14/2001"))
@@ -611,6 +634,48 @@ describe("AdminController endpoint tests", () => {
         ).length
       ).toEqual(2)
     })
+
+    it("should record the admin who added the booking", async () => {
+      const bookingSlotService = new BookingSlotService()
+      const bookingDataService = new BookingDataService()
+
+      await bookingSlotService.createBookingSlot({
+        date: dateToFirestoreTimeStamp(new Date("02/01/2023")),
+        max_bookings: 10
+      })
+
+      const res = await request
+        .post("/admin/bookings/create")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send({
+          startDate: dateToFirestoreTimeStamp(new Date("01/01/2023")),
+          endDate: dateToFirestoreTimeStamp(new Date("12/31/2023")),
+          userId: MEMBER_USER_UID
+        })
+
+      expect(res.status).toEqual(StatusCodes.OK)
+
+      const [booking] =
+        await bookingDataService.getBookingsByUserId(MEMBER_USER_UID)
+      expect(booking).toEqual(
+        expect.objectContaining({
+          stripe_payment_id: "manual_entry",
+          added_by: ADMIN_USER_UID
+        })
+      )
+
+      const { data: history } =
+        await new BookingHistoryService().getLatestHistory(10)
+      expect(history).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            event_type: "added_user_to_booking",
+            uid: MEMBER_USER_UID,
+            performed_by: ADMIN_USER_UID
+          })
+        ])
+      )
+    })
   })
 
   describe("/admin/bookings/delete", () => {
@@ -650,6 +715,37 @@ describe("AdminController endpoint tests", () => {
         .send({})
 
       expect(res.body.data[0].availableSpaces).toEqual(10)
+    })
+
+    it("should record the admin who deleted the booking", async () => {
+      const { id } = await new BookingSlotService().createBookingSlot({
+        date: Timestamp.fromMillis(Date.now() + 5000),
+        max_bookings: 10
+      })
+      const createdBooking = await new BookingDataService().createBooking({
+        user_id: MEMBER_USER_UID,
+        booking_slot_id: id,
+        stripe_payment_id: ""
+      })
+
+      const deleteRes = await request
+        .post(`/admin/bookings/delete`)
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send({ bookingID: createdBooking.id })
+
+      expect(deleteRes.status).toEqual(StatusCodes.OK)
+
+      const { data: history } =
+        await new BookingHistoryService().getLatestHistory(10)
+      expect(history).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            event_type: "removed_user_from_booking",
+            uid: MEMBER_USER_UID,
+            performed_by: ADMIN_USER_UID
+          })
+        ])
+      )
     })
   })
 

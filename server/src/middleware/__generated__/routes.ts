@@ -291,6 +291,7 @@ const models: TsoaRoute.Models = {
             "membership": {"ref":"UserAccountTypes","required":true},
             "bookingId": {"dataType":"string","required":true},
             "stripePaymentId": {"dataType":"string"},
+            "addedBy": {"dataType":"string"},
         },
         "additionalProperties": false,
     },
@@ -514,6 +515,7 @@ const models: TsoaRoute.Models = {
             "timestamp": {"ref":"FirebaseFirestore.Timestamp","required":true},
             "start_date": {"ref":"FirebaseFirestore.Timestamp","required":true},
             "end_date": {"ref":"FirebaseFirestore.Timestamp","required":true},
+            "performed_by": {"dataType":"string"},
             "event_type": {"dataType":"enum","enums":["added_user_to_booking"],"required":true},
             "uid": {"dataType":"string","required":true},
         },
@@ -526,6 +528,7 @@ const models: TsoaRoute.Models = {
             "timestamp": {"ref":"FirebaseFirestore.Timestamp","required":true},
             "start_date": {"ref":"FirebaseFirestore.Timestamp","required":true},
             "end_date": {"ref":"FirebaseFirestore.Timestamp","required":true},
+            "performed_by": {"dataType":"string"},
             "event_type": {"dataType":"enum","enums":["removed_user_from_booking"],"required":true},
             "uid": {"dataType":"string","required":true},
         },
@@ -538,6 +541,7 @@ const models: TsoaRoute.Models = {
             "timestamp": {"ref":"FirebaseFirestore.Timestamp","required":true},
             "start_date": {"ref":"FirebaseFirestore.Timestamp","required":true},
             "end_date": {"ref":"FirebaseFirestore.Timestamp","required":true},
+            "performed_by": {"dataType":"string"},
             "event_type": {"dataType":"enum","enums":["changed_date_availability"],"required":true},
             "change": {"dataType":"double","required":true},
         },
@@ -1197,6 +1201,7 @@ export function RegisterRoutes(app: Router) {
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         const argsAdminController_makeDateAvailable: Record<string, TsoaRoute.ParameterSchema> = {
                 requestBody: {"in":"body","name":"requestBody","required":true,"ref":"MakeDatesAvailableRequestBody"},
+                request: {"in":"request","name":"request","required":true,"dataType":"object"},
         };
         app.post('/admin/bookings/make-dates-available',
             authenticateMiddleware([{"jwt":["admin"]}]),
@@ -1228,6 +1233,7 @@ export function RegisterRoutes(app: Router) {
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         const argsAdminController_makeDateUnavailable: Record<string, TsoaRoute.ParameterSchema> = {
                 requestBody: {"in":"body","name":"requestBody","required":true,"ref":"Omit_MakeDatesAvailableRequestBody.slots_"},
+                request: {"in":"request","name":"request","required":true,"dataType":"object"},
         };
         app.post('/admin/bookings/make-dates-unavailable',
             authenticateMiddleware([{"jwt":["admin"]}]),
@@ -1259,6 +1265,7 @@ export function RegisterRoutes(app: Router) {
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         const argsAdminController_createBookings: Record<string, TsoaRoute.ParameterSchema> = {
                 requestBody: {"in":"body","name":"requestBody","required":true,"ref":"CreateBookingsRequestModel"},
+                request: {"in":"request","name":"request","required":true,"dataType":"object"},
         };
         app.post('/admin/bookings/create',
             authenticateMiddleware([{"jwt":["admin"]}]),
@@ -1290,6 +1297,7 @@ export function RegisterRoutes(app: Router) {
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         const argsAdminController_removeBooking: Record<string, TsoaRoute.ParameterSchema> = {
                 requestBody: {"in":"body","name":"requestBody","required":true,"ref":"DeleteBookingRequest"},
+                request: {"in":"request","name":"request","required":true,"dataType":"object"},
         };
         app.post('/admin/bookings/delete',
             authenticateMiddleware([{"jwt":["admin"]}]),

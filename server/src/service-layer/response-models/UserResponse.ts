@@ -33,6 +33,10 @@ export interface BookingIdandUserData extends CombinedUserData {
    * The Stripe payment ID for the booking, or `"manual_entry"` if an admin added it
    */
   stripePaymentId?: string
+  /**
+   * The uid of the admin who manually added the booking, if recorded
+   */
+  addedBy?: string
 }
 
 export interface GetUserResponse extends CommonResponse {

@@ -85,6 +85,7 @@ const Navbar = ({
           <WrappedTab to="/">Home</WrappedTab>
           <WrappedTab to="/bookings">Book the Lodge!</WrappedTab>
           <WrappedTab to="/events">Events</WrappedTab>
+          <WrappedTab to="/map">Map</WrappedTab>
           <WrappedTab to="/shop">Shop</WrappedTab>
           <span className="hidden lg:block">
             <WrappedTab to="/about/faq" mobileCompatiability={false}>

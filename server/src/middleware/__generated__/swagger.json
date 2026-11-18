@@ -441,6 +441,145 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"MapPinType": {
+				"type": "string",
+				"enum": [
+					"sticker",
+					"member_photo"
+				],
+				"description": "The kind of photo a pin represents. Used to pick the marker icon on the map."
+			},
+			"Pick_MapPin.type-or-caption-or-latitude-or-longitude-or-created_at_": {
+				"properties": {
+					"type": {
+						"$ref": "#/components/schemas/MapPinType",
+						"description": "What the photo is of"
+					},
+					"caption": {
+						"type": "string",
+						"description": "Optional short caption shown alongside the photo"
+					},
+					"latitude": {
+						"type": "number",
+						"format": "double",
+						"minimum": -90,
+						"maximum": 90
+					},
+					"longitude": {
+						"type": "number",
+						"format": "double",
+						"minimum": -180,
+						"maximum": 180
+					},
+					"created_at": {
+						"$ref": "#/components/schemas/FirebaseFirestore.Timestamp",
+						"description": "When the pin was created"
+					}
+				},
+				"required": [
+					"type",
+					"latitude",
+					"longitude",
+					"created_at"
+				],
+				"type": "object",
+				"description": "From T, pick a set of properties whose keys are in the union K"
+			},
+			"PublicMapPin": {
+				"allOf": [
+					{
+						"$ref": "#/components/schemas/Pick_MapPin.type-or-caption-or-latitude-or-longitude-or-created_at_"
+					},
+					{
+						"properties": {
+							"image_url": {
+								"type": "string",
+								"description": "Public URL of the pin's photo"
+							},
+							"id": {
+								"type": "string"
+							}
+						},
+						"required": [
+							"image_url",
+							"id"
+						],
+						"type": "object"
+					}
+				],
+				"description": "A pin as shown publicly on the map. Does not include who uploaded it."
+			},
+			"GetMapPinsResponse": {
+				"properties": {
+					"error": {
+						"type": "string"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"items": {
+							"$ref": "#/components/schemas/PublicMapPin"
+						},
+						"type": "array"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
+			},
+			"CreateMapPinResponse": {
+				"properties": {
+					"error": {
+						"type": "string"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"$ref": "#/components/schemas/PublicMapPin"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
+			},
+			"CreateMapPinRequestBody": {
+				"properties": {
+					"image_id": {
+						"type": "string",
+						"description": "The id of the image already uploaded to `map-pins/{uid}/{image_id}` in\nFirebase Storage. Becomes the id of the pin.",
+						"pattern": "^[A-Za-z0-9_-]{8,64}$"
+					},
+					"type": {
+						"$ref": "#/components/schemas/MapPinType",
+						"description": "What the photo is of"
+					},
+					"caption": {
+						"type": "string",
+						"description": "Optional short caption",
+						"maxLength": 140
+					},
+					"latitude": {
+						"type": "number",
+						"format": "double",
+						"minimum": -90,
+						"maximum": 90
+					},
+					"longitude": {
+						"type": "number",
+						"format": "double",
+						"minimum": -180,
+						"maximum": 180
+					}
+				},
+				"required": [
+					"image_id",
+					"type",
+					"latitude",
+					"longitude"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"Event": {
 				"properties": {
 					"title": {
@@ -1518,6 +1657,52 @@
 				"type": "object",
 				"description": "Make all properties in T optional"
 			},
+			"Pick_MapPin.uploader_id_": {
+				"properties": {
+					"uploader_id": {
+						"type": "string",
+						"description": "The uid of the member who uploaded the pin. **Never** exposed publicly."
+					}
+				},
+				"required": [
+					"uploader_id"
+				],
+				"type": "object",
+				"description": "From T, pick a set of properties whose keys are in the union K"
+			},
+			"AdminMapPin": {
+				"allOf": [
+					{
+						"$ref": "#/components/schemas/PublicMapPin"
+					},
+					{
+						"$ref": "#/components/schemas/Pick_MapPin.uploader_id_"
+					}
+				],
+				"description": "A pin as shown to admins, which includes who uploaded it for moderation"
+			},
+			"GetLatestMapPinsResponse": {
+				"properties": {
+					"error": {
+						"type": "string"
+					},
+					"message": {
+						"type": "string"
+					},
+					"nextCursor": {
+						"type": "string",
+						"description": "Needed for firestore operations which do not support offset\nbased pagination\n\n**Will be undefined in case of last page**"
+					},
+					"data": {
+						"items": {
+							"$ref": "#/components/schemas/AdminMapPin"
+						},
+						"type": "array"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
+			},
 			"GetEventResponse": {
 				"properties": {
 					"error": {
@@ -2153,6 +2338,166 @@
 						}
 					}
 				}
+			}
+		},
+		"/map-pins": {
+			"get": {
+				"operationId": "GetMapPins",
+				"responses": {
+					"200": {
+						"description": "Fetched map pins",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetMapPinsResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Fetches pins inside a bounding box, capped at 500 pins. Public, and does not\ninclude who uploaded each pin.\n\nIf `min_lng` is greater than `max_lng` the box is treated as crossing the antimeridian.",
+				"security": [],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "min_lat",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"in": "query",
+						"name": "min_lng",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"in": "query",
+						"name": "max_lat",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"in": "query",
+						"name": "max_lng",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					}
+				]
+			},
+			"post": {
+				"operationId": "CreateMapPin",
+				"responses": {
+					"201": {
+						"description": "Created map pin",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CreateMapPinResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Creates a pin for an image the member has already uploaded to\n`map-pins/{uid}/{image_id}` in Firebase Storage",
+				"security": [
+					{
+						"jwt": [
+							"member"
+						]
+					},
+					{
+						"jwt": [
+							"admin"
+						]
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateMapPinRequestBody"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/map-pins/self": {
+			"get": {
+				"operationId": "GetOwnMapPins",
+				"responses": {
+					"200": {
+						"description": "Fetched own map pins",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetMapPinsResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Fetches the pins uploaded by the current user, newest first. Available to any\nlogged in user so that lapsed members can still see their pins.",
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": []
+			}
+		},
+		"/map-pins/{id}": {
+			"delete": {
+				"operationId": "DeleteMapPin",
+				"responses": {
+					"204": {
+						"description": "Deleted map pin",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CommonResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Deletes a pin and its image. Members can only delete their own pins,\nadmins can delete any pin.",
+				"security": [
+					{
+						"jwt": [
+							"member"
+						]
+					},
+					{
+						"jwt": [
+							"admin"
+						]
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
 			}
 		},
 		"/events": {
@@ -2954,6 +3299,53 @@
 						"in": "path",
 						"name": "id",
 						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/admin/map-pins": {
+			"get": {
+				"operationId": "GetLatestMapPins",
+				"responses": {
+					"200": {
+						"description": "Fetched latest map pins",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetLatestMapPinsResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Fetches the latest map pins, newest first, including who uploaded them.\nUses cursor based pagination.",
+				"security": [
+					{
+						"jwt": [
+							"admin"
+						]
+					}
+				],
+				"parameters": [
+					{
+						"description": "The maximum number of pins to fetch",
+						"in": "query",
+						"name": "limit",
+						"required": false,
+						"schema": {
+							"default": 20,
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"description": "The id of the last pin of the previous page",
+						"in": "query",
+						"name": "cursor",
+						"required": false,
 						"schema": {
 							"type": "string"
 						}

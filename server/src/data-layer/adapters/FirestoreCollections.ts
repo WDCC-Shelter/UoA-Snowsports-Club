@@ -10,9 +10,11 @@ import type {
 } from "data-layer/models/firebase"
 import {
   EMAIL_TEMPLATES_COLLECTION,
-  MAIL_CONFIG_COLLECTION
+  MAIL_CONFIG_COLLECTION,
+  MAP_PINS_COLLECTION
 } from "./CollectionNames"
 import type { EmailTemplate, MailConfig } from "../models/MailConfig"
+import type { MapPin } from "../models/MapPin"
 
 const FirestoreCollections = {
   users: firestore.collection<UserAdditionalInfo>("users"),
@@ -23,7 +25,8 @@ const FirestoreCollections = {
   mailConfig: firestore.collection<MailConfig>(MAIL_CONFIG_COLLECTION),
   emailTemplates: firestore.collection<EmailTemplate>(
     EMAIL_TEMPLATES_COLLECTION
-  )
+  ),
+  mapPins: firestore.collection<MapPin>(MAP_PINS_COLLECTION)
 } as const
 
 export default FirestoreCollections

@@ -56,6 +56,34 @@ export interface paths {
      */
     post: operations["GetBookingPayment"];
   };
+  "/map-pins": {
+    /**
+     * @description Fetches pins inside a bounding box, capped at 500 pins. Public, and does not
+     * include who uploaded each pin.
+     *
+     * If `min_lng` is greater than `max_lng` the box is treated as crossing the antimeridian.
+     */
+    get: operations["GetMapPins"];
+    /**
+     * @description Creates a pin for an image the member has already uploaded to
+     * `map-pins/{uid}/{image_id}` in Firebase Storage
+     */
+    post: operations["CreateMapPin"];
+  };
+  "/map-pins/self": {
+    /**
+     * @description Fetches the pins uploaded by the current user, newest first. Available to any
+     * logged in user so that lapsed members can still see their pins.
+     */
+    get: operations["GetOwnMapPins"];
+  };
+  "/map-pins/{id}": {
+    /**
+     * @description Deletes a pin and its image. Members can only delete their own pins,
+     * admins can delete any pin.
+     */
+    delete: operations["DeleteMapPin"];
+  };
   "/events": {
     /**
      * @description Fetches latest events starting from the event with the latest starting date
@@ -171,6 +199,13 @@ export interface paths {
     delete: operations["DeleteEvent"];
     /** @description Endpoint for admints to edit an event. */
     patch: operations["EditEvent"];
+  };
+  "/admin/map-pins": {
+    /**
+     * @description Fetches the latest map pins, newest first, including who uploaded them.
+     * Uses cursor based pagination.
+     */
+    get: operations["GetLatestMapPins"];
   };
   "/admin/redirect/{redirectKey}": {
     /** @description Returns a URL specified in environment variables */
@@ -361,6 +396,55 @@ export interface components {
       startDate?: components["schemas"]["FirebaseFirestore.Timestamp"];
       /** @description Firestore timestamp, should represent a UTC date that is set to exactly midnight */
       endDate?: components["schemas"]["FirebaseFirestore.Timestamp"];
+    };
+    /**
+     * @description The kind of photo a pin represents. Used to pick the marker icon on the map.
+     * @enum {string}
+     */
+    MapPinType: "sticker" | "member_photo";
+    /** @description From T, pick a set of properties whose keys are in the union K */
+    "Pick_MapPin.type-or-caption-or-latitude-or-longitude-or-created_at_": {
+      /** @description What the photo is of */
+      type: components["schemas"]["MapPinType"];
+      /** @description Optional short caption shown alongside the photo */
+      caption?: string;
+      /** Format: double */
+      latitude: number;
+      /** Format: double */
+      longitude: number;
+      /** @description When the pin was created */
+      created_at: components["schemas"]["FirebaseFirestore.Timestamp"];
+    };
+    /** @description A pin as shown publicly on the map. Does not include who uploaded it. */
+    PublicMapPin: components["schemas"]["Pick_MapPin.type-or-caption-or-latitude-or-longitude-or-created_at_"] & {
+      /** @description Public URL of the pin's photo */
+      image_url: string;
+      id: string;
+    };
+    GetMapPinsResponse: {
+      error?: string;
+      message?: string;
+      data?: components["schemas"]["PublicMapPin"][];
+    };
+    CreateMapPinResponse: {
+      error?: string;
+      message?: string;
+      data?: components["schemas"]["PublicMapPin"];
+    };
+    CreateMapPinRequestBody: {
+      /**
+       * @description The id of the image already uploaded to `map-pins/{uid}/{image_id}` in
+       * Firebase Storage. Becomes the id of the pin.
+       */
+      image_id: string;
+      /** @description What the photo is of */
+      type: components["schemas"]["MapPinType"];
+      /** @description Optional short caption */
+      caption?: string;
+      /** Format: double */
+      latitude: number;
+      /** Format: double */
+      longitude: number;
     };
     Event: {
       /** @description The title of this event */
@@ -834,6 +918,25 @@ export interface components {
       /** @description If `true` then only members should see the sign up link */
       is_members_only?: boolean;
     };
+    /** @description From T, pick a set of properties whose keys are in the union K */
+    "Pick_MapPin.uploader_id_": {
+      /** @description The uid of the member who uploaded the pin. **Never** exposed publicly. */
+      uploader_id: string;
+    };
+    /** @description A pin as shown to admins, which includes who uploaded it for moderation */
+    AdminMapPin: components["schemas"]["PublicMapPin"] & components["schemas"]["Pick_MapPin.uploader_id_"];
+    GetLatestMapPinsResponse: {
+      error?: string;
+      message?: string;
+      /**
+       * @description Needed for firestore operations which do not support offset
+       * based pagination
+       *
+       * **Will be undefined in case of last page**
+       */
+      nextCursor?: string;
+      data?: components["schemas"]["AdminMapPin"][];
+    };
     GetEventResponse: {
       error?: string;
       message?: string;
@@ -1142,6 +1245,82 @@ export interface operations {
       200: {
         content: {
           "application/json": components["schemas"]["BookingPaymentResponse"];
+        };
+      };
+    };
+  };
+  /**
+   * @description Fetches pins inside a bounding box, capped at 500 pins. Public, and does not
+   * include who uploaded each pin.
+   *
+   * If `min_lng` is greater than `max_lng` the box is treated as crossing the antimeridian.
+   */
+  GetMapPins: {
+    parameters: {
+      query: {
+        min_lat: number;
+        min_lng: number;
+        max_lat: number;
+        max_lng: number;
+      };
+    };
+    responses: {
+      /** @description Fetched map pins */
+      200: {
+        content: {
+          "application/json": components["schemas"]["GetMapPinsResponse"];
+        };
+      };
+    };
+  };
+  /**
+   * @description Creates a pin for an image the member has already uploaded to
+   * `map-pins/{uid}/{image_id}` in Firebase Storage
+   */
+  CreateMapPin: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreateMapPinRequestBody"];
+      };
+    };
+    responses: {
+      /** @description Created map pin */
+      201: {
+        content: {
+          "application/json": components["schemas"]["CreateMapPinResponse"];
+        };
+      };
+    };
+  };
+  /**
+   * @description Fetches the pins uploaded by the current user, newest first. Available to any
+   * logged in user so that lapsed members can still see their pins.
+   */
+  GetOwnMapPins: {
+    responses: {
+      /** @description Fetched own map pins */
+      200: {
+        content: {
+          "application/json": components["schemas"]["GetMapPinsResponse"];
+        };
+      };
+    };
+  };
+  /**
+   * @description Deletes a pin and its image. Members can only delete their own pins,
+   * admins can delete any pin.
+   */
+  DeleteMapPin: {
+    parameters: {
+      path: {
+        id: string;
+      };
+    };
+    responses: {
+      /** @description Deleted map pin */
+      204: {
+        content: {
+          "application/json": components["schemas"]["CommonResponse"];
         };
       };
     };
@@ -1544,6 +1723,28 @@ export interface operations {
       /** @description Successfully edited the event! */
       200: {
         content: never;
+      };
+    };
+  };
+  /**
+   * @description Fetches the latest map pins, newest first, including who uploaded them.
+   * Uses cursor based pagination.
+   */
+  GetLatestMapPins: {
+    parameters: {
+      query?: {
+        /** @description The maximum number of pins to fetch */
+        limit?: number;
+        /** @description The id of the last pin of the previous page */
+        cursor?: string;
+      };
+    };
+    responses: {
+      /** @description Fetched latest map pins */
+      200: {
+        content: {
+          "application/json": components["schemas"]["GetLatestMapPinsResponse"];
+        };
       };
     };
   };

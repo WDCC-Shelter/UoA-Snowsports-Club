@@ -1,4 +1,4 @@
-import type { MapBounds } from "@/models/MapPin"
+import type { CreateMapPinRequestBody, MapBounds } from "@/models/MapPin"
 import fetchClient from "../OpenApiFetchClient"
 
 const MapPinService = {
@@ -8,6 +8,13 @@ const MapPinService = {
     })
     if (!response.ok || !data?.data) {
       throw new Error("Failed to fetch map pins")
+    }
+    return data.data
+  },
+  createMapPin: async (body: CreateMapPinRequestBody) => {
+    const { data, response } = await fetchClient.POST("/map-pins", { body })
+    if (!response.ok || !data?.data) {
+      throw new Error(data?.error || "Failed to create map pin")
     }
     return data.data
   },

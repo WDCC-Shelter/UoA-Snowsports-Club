@@ -38,6 +38,9 @@ inputs:
   REDIRECT_MEMBERS_GOOGLE_SHEET_LINK:
     description: The Google Sheet link to use for authentication.
     required: true
+  FIREBASE_STORAGE_BUCKET:
+    description: The Firebase Storage bucket for user uploaded images (e.g. map pins), the same bucket the client uses.
+    required: true
   # HTTPs Secrets
   HTTPS_SERVER_KEY:
     description: The HTTPS server key to use for authentication.
@@ -135,6 +138,7 @@ runs:
           echo "NODE_MAILER_EMAIL=${{ inputs.NODE_MAILER_EMAIL }}" >> server/.env
           echo "NODE_MAILER_PASSWORD=${{ inputs.NODE_MAILER_PASSWORD }}" >> server/.env
           echo "REDIRECT_MEMBERS_GOOGLE_SHEET_LINK=${{ inputs.REDIRECT_MEMBERS_GOOGLE_SHEET_LINK }}" >> server/.env
+          echo "FIREBASE_STORAGE_BUCKET=${{ inputs.FIREBASE_STORAGE_BUCKET }}" >> server/.env
           echo "HTTPS_SERVER_CERTIFICATE=$(echo ${{ inputs.HTTPS_SERVER_CERTIFICATE }} | base64 --decode)" >> server/.env
           echo "HTTPS_SERVER_KEY=$(echo ${{ inputs.HTTPS_SERVER_KEY }} | base64 --decode)" >> server/.env
 

@@ -3,12 +3,13 @@ import { AboutItemSchema } from "@/models/sanity/AboutItem/Schema"
 import { CommitteeMemberSchema } from "@/models/sanity/CommitteeMembers/Schema"
 import { ContactDetailSchema } from "@/models/sanity/ContactDetail/Schema"
 import { FAQCategorySchema } from "@/models/sanity/FAQCategory/Schema"
+import { GalleryImageSchema } from "@/models/sanity/GalleryImage/Schema"
 import { HomePageSchema } from "@/models/sanity/HomePage/Schema"
 import { LifeMemberSchema } from "@/models/sanity/LifeMembers/Schema"
 import { LodgeInfoSchema } from "@/models/sanity/LodgeInfo/Schema"
+import { PageHelpSchema } from "@/models/sanity/PageHelp/Schema"
 import { PoliciesSchema } from "@/models/sanity/Policies/Schema"
 import { ShopItemSchema } from "@/models/sanity/ShopItem/Schema"
-import { GalleryImageSchema } from "@/models/sanity/GalleryImage/Schema"
 import { WellbeingPageSchema } from "@/models/sanity/WellbeingPage/Schema"
 
 export const schema: { types: SchemaTypeDefinition[] } = {
@@ -23,6 +24,7 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     ShopItemSchema,
     FAQCategorySchema,
     GalleryImageSchema,
-    WellbeingPageSchema
+    WellbeingPageSchema,
+    PageHelpSchema
   ]
 }

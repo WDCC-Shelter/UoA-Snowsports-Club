@@ -25,6 +25,8 @@ import BookingHistoryService from "data-layer/services/BookingHistoryService"
 import BookingSlotService from "data-layer/services/BookingSlotsService"
 import EventService from "data-layer/services/EventService"
 import MailConfigService from "data-layer/services/MailConfigService"
+import MapPinService from "data-layer/services/MapPinService"
+import { toAdminMapPin } from "business-layer/utils/MapPinUtils"
 import UserDataService from "data-layer/services/UserDataService"
 import type { UserRecord } from "firebase-admin/auth"
 import { type DocumentSnapshot, Timestamp } from "firebase-admin/firestore"
@@ -60,6 +62,7 @@ import type {
   BookingSlotUpdateResponse,
   UIdssByDateRangeResponse
 } from "service-layer/response-models/BookingResponse"
+import type { GetLatestMapPinsResponse } from "service-layer/response-models/MapPinResponse"
 import type {
   GetAllEmailTemplatesResponse,
   GetEmailTemplateResponse,
@@ -926,6 +929,36 @@ export class AdminController extends Controller {
       this.setStatus(StatusCodes.NO_CONTENT)
     } catch {
       this.setStatus(StatusCodes.INTERNAL_SERVER_ERROR)
+    }
+  }
+
+  /**
+   * Fetches the latest map pins, newest first, including who uploaded them.
+   * Uses cursor based pagination.
+   *
+   * @param limit The maximum number of pins to fetch
+   * @param cursor The id of the last pin of the previous page
+   */
+  @SuccessResponse("200", "Fetched latest map pins")
+  @Get("map-pins")
+  public async getLatestMapPins(
+    @Query() limit: number = 20,
+    @Query() cursor?: string
+  ): Promise<GetLatestMapPinsResponse> {
+    try {
+      const mapPinService = new MapPinService()
+      const snapshot = cursor
+        ? await mapPinService.getMapPinSnapshot(cursor)
+        : undefined
+      const { data, nextCursor } = await mapPinService.getLatestMapPins(
+        limit,
+        snapshot
+      )
+      return { data: data.map(toAdminMapPin), nextCursor }
+    } catch (e) {
+      console.error("Failed to fetch latest map pins", e)
+      this.setStatus(StatusCodes.INTERNAL_SERVER_ERROR)
+      return { error: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) }
     }
   }
 

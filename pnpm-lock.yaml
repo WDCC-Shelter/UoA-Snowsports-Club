@@ -225,6 +225,9 @@ importers:
       firebase-admin:
         specifier: ^12.0.0
         version: 12.7.0(encoding@0.1.13)
+      geofire-common:
+        specifier: ^6.0.0
+        version: 6.0.0
       helmet:
         specifier: ^7.1.0
         version: 7.2.0
@@ -5851,6 +5854,9 @@ packages:
   gensync@1.0.0-beta.2:
     resolution: {integrity: sha512-3hN7NaskYvMDLQY55gnW3NQ+mesEAepTqlg+VEbj7zzqEMBVNhzcGYYeqFo/TlYz6eQiFcp1HcsCZO+nGgS8zg==, tarball: https://packages.atlassian.com/api/npm/npm-remote/gensync/-/gensync-1.0.0-beta.2.tgz}
     engines: {node: '>=6.9.0'}
+
+  geofire-common@6.0.0:
+    resolution: {integrity: sha512-dQ2qKWMtHUEKT41Kw4dmAtMjvEyhWv1XPnHHlK5p5l5+0CgwHYQjhonGE2QcPP60cBYijbJ/XloeKDMU4snUQg==, tarball: https://packages.atlassian.com/api/npm/npm-remote/geofire-common/-/geofire-common-6.0.0.tgz}
 
   get-caller-file@2.0.5:
     resolution: {integrity: sha512-DyFP3BM/3YHTQOCUL/w0OZHR0lpKeGrxotcHWcqNEdnltqFwXVfhEBQ94eIo34AfQpo0rGki4cyIiftY06h2Fg==, tarball: https://packages.atlassian.com/api/npm/npm-remote/get-caller-file/-/get-caller-file-2.0.5.tgz}
@@ -18081,6 +18087,8 @@ snapshots:
       - supports-color
 
   gensync@1.0.0-beta.2: {}
+
+  geofire-common@6.0.0: {}
 
   get-caller-file@2.0.5: {}
 

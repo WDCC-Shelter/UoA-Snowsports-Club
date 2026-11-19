@@ -1,0 +1,34 @@
+rules_version = '2';
+
+// NOTE: deploying this file replaces the rules currently set in the Firebase console.
+// Any path not matched below is denied.
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    function isMemberOrAdmin() {
+      return request.auth != null
+        && (request.auth.token.member == true || request.auth.token.admin == true);
+    }
+
+    // Thumbnails for events, uploaded from the admin dashboard
+    match /event-images/{imageId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Photos for map pins. Members upload directly here, then create the pin
+    // through the backend (see MapPinController). Pins are immutable, so images
+    // can only be created, and deletion is done by the backend.
+    match /map-pins/{uid}/{imageId} {
+      allow read: if true;
+      allow create: if isMemberOrAdmin()
+        && request.auth.uid == uid
+        && imageId.matches('^[A-Za-z0-9_-]{8,64}$')
+        && request.resource.size < 2 * 1024 * 1024
+        && request.resource.contentType.matches('image/(webp|jpeg)');
+    }
+  }
+}

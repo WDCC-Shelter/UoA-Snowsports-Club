@@ -1,6 +1,7 @@
 "use client"
 
 import dynamic from "next/dynamic"
+import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { useCallback, useState } from "react"
 import MapPinPopup from "@/components/composite/MapPins/MapPinPopup/MapPinPopup"
@@ -91,7 +92,14 @@ const MapPage = () => {
           />
         )}
       />
-      {!isMember && (
+      {isMember ? (
+        <Link
+          href="/map/new"
+          className="bg-dark-blue-100 absolute bottom-8 left-1/2 -translate-x-1/2 rounded-full px-6 py-3 font-bold uppercase text-white shadow-lg"
+        >
+          Add pin
+        </Link>
+      ) : (
         <p className="bg-gray-1/90 text-dark-blue-100 absolute bottom-8 left-1/2 -translate-x-1/2 rounded-md px-4 py-2 text-sm shadow">
           Only members can upload pins
         </p>

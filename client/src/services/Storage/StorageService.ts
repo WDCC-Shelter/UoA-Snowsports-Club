@@ -10,7 +10,29 @@ const uid = () => {
   return Date.now().toString(36) + Math.random().toString(36).substr(2)
 }
 
+/**
+ * Folder map pin images are uploaded to, must match `storage.rules` and the server
+ */
+const MAP_PIN_IMAGE_FOLDER = "map-pins"
+
 const StorageService = {
+  /**
+   * Uploads the photo for a new map pin to the member's own folder
+   *
+   * @returns the id of the image, used to create the pin
+   */
+  uploadMapPinImage: async (uploaderId: string, image: Blob) => {
+    const imageId = crypto.randomUUID()
+    const imageRef = storageRef(
+      storage,
+      `${MAP_PIN_IMAGE_FOLDER}/${uploaderId}/${imageId}`
+    )
+    await uploadBytes(imageRef, image, {
+      contentType: image.type,
+      cacheControl: "public, max-age=31536000, immutable"
+    })
+    return imageId
+  },
   uploadEventImage: async (file: File) => {
     if (file === null) {
       return

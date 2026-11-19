@@ -37,6 +37,9 @@ const AdminNavbar = () => {
           <WrappedTab mobileCompatiability={false} to="/admin/booking-history">
             history
           </WrappedTab>
+          <WrappedTab mobileCompatiability={false} to="/admin/map-pins">
+            map pins
+          </WrappedTab>
           <WrappedTab mobileCompatiability={false} to="/admin/settings">
             settings
           </WrappedTab>

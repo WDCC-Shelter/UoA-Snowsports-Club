@@ -2,14 +2,24 @@ import { useMutation } from "@tanstack/react-query"
 import type { MapPinType } from "@/models/MapPin"
 import queryClient from "@/services/QueryClient"
 import StorageService from "@/services/Storage/StorageService"
-import { MAP_PINS_QUERY_KEY } from "./MapPinQueries"
+import {
+  LATEST_MAP_PINS_ADMIN_QUERY_KEY,
+  MAP_PINS_QUERY_KEY,
+  OWN_MAP_PINS_QUERY_KEY
+} from "./MapPinQueries"
 import MapPinService from "./MapPinService"
 
 /**
  * Invalidates every query that might contain map pins
  */
 export const invalidateMapPinQueries = async () => {
-  await queryClient.invalidateQueries({ queryKey: [MAP_PINS_QUERY_KEY] })
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: [MAP_PINS_QUERY_KEY] }),
+    queryClient.invalidateQueries({ queryKey: [OWN_MAP_PINS_QUERY_KEY] }),
+    queryClient.invalidateQueries({
+      queryKey: [LATEST_MAP_PINS_ADMIN_QUERY_KEY]
+    })
+  ])
 }
 
 export function useDeleteMapPinMutation() {

@@ -5,6 +5,7 @@ import { signOut } from "firebase/auth"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useCallback, useMemo, useState } from "react"
+import MyMapPinsPanel from "@/components/composite/Profile/MyMapPinsPanel/MyMapPinsPanel"
 import { Footer } from "@/components/generic/Footer/Footer"
 import ProfileInformationPanel from "@/components/generic/ProfileInformationPanel/ProfileInformationPanel"
 import ResponsiveBackgroundImage from "@/components/generic/ResponsiveBackgroundImage/ResponsiveBackground"
@@ -279,6 +280,11 @@ function ProfileInner() {
                   />
                 </ProfileInformationPanel>
                 <ProfileBookingsTable />
+                <MyMapPinsPanel
+                  canDelete={
+                    !!currentUserClaims?.member || !!currentUserClaims?.admin
+                  }
+                />
               </div>
             </div>
           </div>

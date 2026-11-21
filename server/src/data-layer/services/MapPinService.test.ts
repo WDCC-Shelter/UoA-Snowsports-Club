@@ -162,4 +162,85 @@ describe("MapPinService", () => {
     expect(secondPage.data.map((p) => p.id)).toEqual(["pin-1"])
     expect(secondPage.nextCursor).toBeUndefined()
   })
+
+  describe("moderation", () => {
+    it("hides flagged pins from the map", async () => {
+      await mapPinService.createMapPin("shown", {
+        ...auckland,
+        moderation_status: "approved"
+      })
+      await mapPinService.createMapPin("pending", {
+        ...auckland,
+        moderation_status: "pending"
+      })
+      await mapPinService.createMapPin("hidden", {
+        ...auckland,
+        moderation_status: "flagged"
+      })
+
+      const pins = await mapPinService.getMapPinsInBoundingBox(NZ_BOX)
+      expect(pins.map((p) => p.id).sort()).toEqual(["pending", "shown"])
+    })
+
+    it("fetches pending and flagged pins", async () => {
+      await mapPinService.createMapPin("pending", {
+        ...auckland,
+        moderation_status: "pending"
+      })
+      await mapPinService.createMapPin("old-flag", {
+        ...auckland,
+        moderation_status: "flagged",
+        created_at: Timestamp.fromMillis(1000)
+      })
+      await mapPinService.createMapPin("new-flag", {
+        ...auckland,
+        moderation_status: "flagged",
+        created_at: Timestamp.fromMillis(2000)
+      })
+
+      expect(
+        (await mapPinService.getPendingMapPins(10)).map((p) => p.id)
+      ).toEqual(["pending"])
+      expect(
+        (await mapPinService.getFlaggedMapPins()).map((p) => p.id)
+      ).toEqual(["new-flag", "old-flag"])
+    })
+
+    it("records the moderation result", async () => {
+      await mapPinService.createMapPin("pin", {
+        ...auckland,
+        moderation_status: "pending"
+      })
+      await mapPinService.setModerationStatus("pin", "flagged", {
+        adult: "LIKELY",
+        racy: "POSSIBLE",
+        violence: "VERY_UNLIKELY",
+        medical: "VERY_UNLIKELY",
+        spoof: "VERY_UNLIKELY"
+      })
+
+      const pin = await mapPinService.getMapPinById("pin")
+      expect(pin?.moderation_status).toBe("flagged")
+      expect(pin?.safe_search?.adult).toBe("LIKELY")
+      expect(pin?.moderated_at).toBeDefined()
+    })
+
+    it("marks pins from before moderation as pending", async () => {
+      // `auckland` has no moderation_status, like pins created before moderation
+      await mapPinService.createMapPin("legacy", auckland)
+      await mapPinService.createMapPin("approved", {
+        ...auckland,
+        moderation_status: "approved"
+      })
+
+      expect(await mapPinService.markUnmoderatedPinsAsPending()).toBe(1)
+      expect(
+        (await mapPinService.getMapPinById("legacy"))?.moderation_status
+      ).toBe("pending")
+      expect(
+        (await mapPinService.getMapPinById("approved"))?.moderation_status
+      ).toBe("approved")
+      expect(await mapPinService.markUnmoderatedPinsAsPending()).toBe(0)
+    })
+  })
 })

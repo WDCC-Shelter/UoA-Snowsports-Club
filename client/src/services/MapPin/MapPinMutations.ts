@@ -3,6 +3,7 @@ import type { MapPinType } from "@/models/MapPin"
 import queryClient from "@/services/QueryClient"
 import StorageService from "@/services/Storage/StorageService"
 import {
+  FLAGGED_MAP_PINS_ADMIN_QUERY_KEY,
   LATEST_MAP_PINS_ADMIN_QUERY_KEY,
   MAP_PINS_QUERY_KEY,
   OWN_MAP_PINS_QUERY_KEY
@@ -18,6 +19,9 @@ export const invalidateMapPinQueries = async () => {
     queryClient.invalidateQueries({ queryKey: [OWN_MAP_PINS_QUERY_KEY] }),
     queryClient.invalidateQueries({
       queryKey: [LATEST_MAP_PINS_ADMIN_QUERY_KEY]
+    }),
+    queryClient.invalidateQueries({
+      queryKey: [FLAGGED_MAP_PINS_ADMIN_QUERY_KEY]
     })
   ])
 }
@@ -26,6 +30,14 @@ export function useDeleteMapPinMutation() {
   return useMutation({
     mutationKey: ["delete-map-pin"],
     mutationFn: MapPinService.deleteMapPin,
+    onSettled: invalidateMapPinQueries
+  })
+}
+
+export function useApproveMapPinMutation() {
+  return useMutation({
+    mutationKey: ["approve-map-pin"],
+    mutationFn: MapPinService.approveMapPin,
     onSettled: invalidateMapPinQueries
   })
 }

@@ -34,6 +34,22 @@ const MapPinService = {
     }
     return data
   },
+  getFlaggedMapPinsAsAdmin: async () => {
+    const { data, response } = await fetchClient.GET("/admin/map-pins/flagged")
+    if (!response.ok || !data?.data) {
+      throw new Error("Failed to fetch flagged map pins")
+    }
+    return data.data
+  },
+  approveMapPin: async (id: string) => {
+    const { response } = await fetchClient.POST(
+      "/admin/map-pins/{id}/approve",
+      { params: { path: { id } } }
+    )
+    if (!response.ok) {
+      throw new Error("Failed to approve map pin")
+    }
+  },
   deleteMapPin: async (id: string) => {
     const { response } = await fetchClient.DELETE("/map-pins/{id}", {
       params: { path: { id } }

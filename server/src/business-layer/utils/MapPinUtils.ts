@@ -3,6 +3,7 @@ import type { DocumentDataWithUid } from "data-layer/models/common"
 import type { MapPin } from "data-layer/models/MapPin"
 import type {
   AdminMapPin,
+  OwnMapPin,
   PublicMapPin
 } from "service-layer/response-models/MapPinResponse"
 
@@ -23,11 +24,21 @@ export const toPublicMapPin = (
 })
 
 /**
+ * Converts a stored pin into the shape shown to the member who uploaded it
+ */
+export const toOwnMapPin = (pin: DocumentDataWithUid<MapPin>): OwnMapPin => ({
+  ...toPublicMapPin(pin),
+  // Pins from before moderation existed haven't been checked yet
+  moderation_status: pin.moderation_status ?? "pending"
+})
+
+/**
  * Converts a stored pin into the shape shown to admins
  */
 export const toAdminMapPin = (
   pin: DocumentDataWithUid<MapPin>
 ): AdminMapPin => ({
-  ...toPublicMapPin(pin),
-  uploader_id: pin.uploader_id
+  ...toOwnMapPin(pin),
+  uploader_id: pin.uploader_id,
+  ...(pin.safe_search && { safe_search: pin.safe_search })
 })

@@ -206,11 +206,18 @@ export interface paths {
     /** @description Endpoint for admints to edit an event. */
     patch: operations["EditEvent"];
   };
-  "/admin/map-pins": {
+  "/admin/map-pins/flagged": {
     /**
      * @description Fetches the latest map pins, newest first, including who uploaded them.
      * Uses cursor based pagination.
      */
+    get: operations["GetFlaggedMapPins"];
+  };
+  "/admin/map-pins/{id}/approve": {
+    /** @description Approves a map pin, so it's shown on the map even if the automatic check flagged it */
+    post: operations["ApproveMapPin"];
+  };
+  "/admin/map-pins": {
     get: operations["GetLatestMapPins"];
   };
   "/admin/redirect/{redirectKey}": {
@@ -433,6 +440,28 @@ export interface components {
       error?: string;
       message?: string;
       data?: components["schemas"]["PublicMapPin"][];
+    };
+    /**
+     * @description Result of automatically checking a pin's photo:
+     * - `pending`: not checked yet, still shown on the map
+     * - `approved`: checked (automatically or by an admin), shown on the map
+     * - `flagged`: possibly inappropriate, hidden from the map until an admin reviews it
+     *
+     * Photos that are very likely inappropriate are deleted outright instead.
+     * @enum {string}
+     */
+    MapPinModerationStatus: "pending" | "approved" | "flagged";
+    /**
+     * @description A pin as shown to the member who uploaded it, which includes whether it's
+     * hidden while waiting for an admin to review it
+     */
+    OwnMapPin: components["schemas"]["PublicMapPin"] & {
+      moderation_status: components["schemas"]["MapPinModerationStatus"];
+    };
+    GetOwnMapPinsResponse: {
+      error?: string;
+      message?: string;
+      data?: components["schemas"]["OwnMapPin"][];
     };
     CreateMapPinResponse: {
       error?: string;
@@ -958,13 +987,35 @@ export interface components {
       /** @description If `true` then only members should see the sign up link */
       is_members_only?: boolean;
     };
+    /**
+     * @description How likely a photo is to contain a kind of content, from Google Cloud Vision SafeSearch
+     * @enum {string}
+     */
+    SafeSearchLikelihood: "UNKNOWN" | "VERY_UNLIKELY" | "UNLIKELY" | "POSSIBLE" | "LIKELY" | "VERY_LIKELY";
+    SafeSearchResult: {
+      adult: components["schemas"]["SafeSearchLikelihood"];
+      racy: components["schemas"]["SafeSearchLikelihood"];
+      violence: components["schemas"]["SafeSearchLikelihood"];
+      medical: components["schemas"]["SafeSearchLikelihood"];
+      spoof: components["schemas"]["SafeSearchLikelihood"];
+    };
     /** @description From T, pick a set of properties whose keys are in the union K */
-    "Pick_MapPin.uploader_id_": {
+    "Pick_MapPin.uploader_id-or-safe_search_": {
       /** @description The uid of the member who uploaded the pin. **Never** exposed publicly. */
       uploader_id: string;
+      /** @description The automatic check's results, shown to admins when reviewing flagged pins */
+      safe_search?: components["schemas"]["SafeSearchResult"];
     };
-    /** @description A pin as shown to admins, which includes who uploaded it for moderation */
-    AdminMapPin: components["schemas"]["PublicMapPin"] & components["schemas"]["Pick_MapPin.uploader_id_"];
+    /**
+     * @description A pin as shown to admins, which includes who uploaded it and the results of
+     * the automatic check for moderation
+     */
+    AdminMapPin: components["schemas"]["OwnMapPin"] & components["schemas"]["Pick_MapPin.uploader_id-or-safe_search_"];
+    GetFlaggedMapPinsResponse: {
+      error?: string;
+      message?: string;
+      data?: components["schemas"]["AdminMapPin"][];
+    };
     GetLatestMapPinsResponse: {
       error?: string;
       message?: string;
@@ -1341,7 +1392,7 @@ export interface operations {
       /** @description Fetched own map pins */
       200: {
         content: {
-          "application/json": components["schemas"]["GetMapPinsResponse"];
+          "application/json": components["schemas"]["GetOwnMapPinsResponse"];
         };
       };
     };
@@ -1791,12 +1842,36 @@ export interface operations {
    * @description Fetches the latest map pins, newest first, including who uploaded them.
    * Uses cursor based pagination.
    */
+  GetFlaggedMapPins: {
+    responses: {
+      /** @description Fetched flagged map pins */
+      200: {
+        content: {
+          "application/json": components["schemas"]["GetFlaggedMapPinsResponse"];
+        };
+      };
+    };
+  };
+  /** @description Approves a map pin, so it's shown on the map even if the automatic check flagged it */
+  ApproveMapPin: {
+    parameters: {
+      path: {
+        id: string;
+      };
+    };
+    responses: {
+      /** @description Approved map pin */
+      204: {
+        content: {
+          "application/json": components["schemas"]["CommonResponse"];
+        };
+      };
+    };
+  };
   GetLatestMapPins: {
     parameters: {
       query?: {
-        /** @description The maximum number of pins to fetch */
         limit?: number;
-        /** @description The id of the last pin of the previous page */
         cursor?: string;
       };
     };

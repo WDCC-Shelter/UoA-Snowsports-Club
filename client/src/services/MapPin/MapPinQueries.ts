@@ -9,6 +9,8 @@ import MapPinService from "./MapPinService"
 export const MAP_PINS_QUERY_KEY = "map-pins" as const
 export const OWN_MAP_PINS_QUERY_KEY = "own-map-pins" as const
 export const LATEST_MAP_PINS_ADMIN_QUERY_KEY = "latest-map-pins-admin" as const
+export const FLAGGED_MAP_PINS_ADMIN_QUERY_KEY =
+  "flagged-map-pins-admin" as const
 
 /**
  * Fetches pins in the given bounds. Should be given bounds from `toQueryBounds`
@@ -45,5 +47,15 @@ export function useLatestMapPinsAdminQuery() {
     queryFn: MapPinService.getLatestMapPinsAsAdmin,
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.nextCursor
+  })
+}
+
+/**
+ * Pins hidden by the automatic check, waiting for an admin to review them
+ */
+export function useFlaggedMapPinsAdminQuery() {
+  return useQuery({
+    queryKey: [FLAGGED_MAP_PINS_ADMIN_QUERY_KEY],
+    queryFn: MapPinService.getFlaggedMapPinsAsAdmin
   })
 }

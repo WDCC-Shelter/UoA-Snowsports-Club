@@ -57,6 +57,13 @@ const MyMapPinsPanel = ({ canDelete }: IMyMapPinsPanel) => {
             canDelete={canDelete}
             onDelete={onDelete}
             deletingId={deletingId}
+            renderDetails={(pin) =>
+              pin.moderation_status === "flagged" && (
+                <span className="text-red w-64 text-xs">
+                  Hidden from the map until an admin reviews it
+                </span>
+              )
+            }
           />
         </div>
       )}

@@ -218,6 +218,26 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "MapPinModerationStatus": {
+        "dataType": "refAlias",
+        "type": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":["pending"]},{"dataType":"enum","enums":["approved"]},{"dataType":"enum","enums":["flagged"]}],"validators":{}},
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "OwnMapPin": {
+        "dataType": "refAlias",
+        "type": {"dataType":"intersection","subSchemas":[{"ref":"PublicMapPin"},{"dataType":"nestedObjectLiteral","nestedProperties":{"moderation_status":{"ref":"MapPinModerationStatus","required":true}}}],"validators":{}},
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "GetOwnMapPinsResponse": {
+        "dataType": "refObject",
+        "properties": {
+            "error": {"dataType":"string"},
+            "message": {"dataType":"string"},
+            "data": {"dataType":"array","array":{"dataType":"refAlias","ref":"OwnMapPin"}},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "CreateMapPinResponse": {
         "dataType": "refObject",
         "properties": {
@@ -646,14 +666,41 @@ const models: TsoaRoute.Models = {
         "type": {"dataType":"nestedObjectLiteral","nestedProperties":{"title":{"dataType":"string"},"description":{"dataType":"string"},"image_url":{"dataType":"string"},"location":{"dataType":"string"},"google_forms_link":{"dataType":"string"},"sign_up_start_date":{"ref":"FirebaseFirestore.Timestamp"},"sign_up_end_date":{"ref":"FirebaseFirestore.Timestamp"},"physical_start_date":{"ref":"FirebaseFirestore.Timestamp"},"physical_end_date":{"ref":"FirebaseFirestore.Timestamp"},"max_occupancy":{"dataType":"double"},"is_members_only":{"dataType":"boolean"}},"validators":{}},
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "Pick_MapPin.uploader_id_": {
+    "SafeSearchLikelihood": {
         "dataType": "refAlias",
-        "type": {"dataType":"nestedObjectLiteral","nestedProperties":{"uploader_id":{"dataType":"string","required":true}},"validators":{}},
+        "type": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":["UNKNOWN"]},{"dataType":"enum","enums":["VERY_UNLIKELY"]},{"dataType":"enum","enums":["UNLIKELY"]},{"dataType":"enum","enums":["POSSIBLE"]},{"dataType":"enum","enums":["LIKELY"]},{"dataType":"enum","enums":["VERY_LIKELY"]}],"validators":{}},
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "SafeSearchResult": {
+        "dataType": "refObject",
+        "properties": {
+            "adult": {"ref":"SafeSearchLikelihood","required":true},
+            "racy": {"ref":"SafeSearchLikelihood","required":true},
+            "violence": {"ref":"SafeSearchLikelihood","required":true},
+            "medical": {"ref":"SafeSearchLikelihood","required":true},
+            "spoof": {"ref":"SafeSearchLikelihood","required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "Pick_MapPin.uploader_id-or-safe_search_": {
+        "dataType": "refAlias",
+        "type": {"dataType":"nestedObjectLiteral","nestedProperties":{"uploader_id":{"dataType":"string","required":true},"safe_search":{"ref":"SafeSearchResult"}},"validators":{}},
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "AdminMapPin": {
         "dataType": "refAlias",
-        "type": {"dataType":"intersection","subSchemas":[{"ref":"PublicMapPin"},{"ref":"Pick_MapPin.uploader_id_"}],"validators":{}},
+        "type": {"dataType":"intersection","subSchemas":[{"ref":"OwnMapPin"},{"ref":"Pick_MapPin.uploader_id-or-safe_search_"}],"validators":{}},
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "GetFlaggedMapPinsResponse": {
+        "dataType": "refObject",
+        "properties": {
+            "error": {"dataType":"string"},
+            "message": {"dataType":"string"},
+            "data": {"dataType":"array","array":{"dataType":"refAlias","ref":"AdminMapPin"}},
+        },
+        "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "GetLatestMapPinsResponse": {
@@ -1971,6 +2018,67 @@ export function RegisterRoutes(app: Router) {
 
               await templateService.apiHandler({
                 methodName: 'deleteEvent',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: 204,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        const argsAdminController_getFlaggedMapPins: Record<string, TsoaRoute.ParameterSchema> = {
+        };
+        app.get('/admin/map-pins/flagged',
+            authenticateMiddleware([{"jwt":["admin"]}]),
+            ...(fetchMiddlewares<RequestHandler>(AdminController)),
+            ...(fetchMiddlewares<RequestHandler>(AdminController.prototype.getFlaggedMapPins)),
+
+            async function AdminController_getFlaggedMapPins(request: ExRequest, response: ExResponse, next: any) {
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args: argsAdminController_getFlaggedMapPins, request, response });
+
+                const controller = new AdminController();
+
+              await templateService.apiHandler({
+                methodName: 'getFlaggedMapPins',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: 200,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        const argsAdminController_approveMapPin: Record<string, TsoaRoute.ParameterSchema> = {
+                id: {"in":"path","name":"id","required":true,"dataType":"string"},
+        };
+        app.post('/admin/map-pins/:id/approve',
+            authenticateMiddleware([{"jwt":["admin"]}]),
+            ...(fetchMiddlewares<RequestHandler>(AdminController)),
+            ...(fetchMiddlewares<RequestHandler>(AdminController.prototype.approveMapPin)),
+
+            async function AdminController_approveMapPin(request: ExRequest, response: ExResponse, next: any) {
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args: argsAdminController_approveMapPin, request, response });
+
+                const controller = new AdminController();
+
+              await templateService.apiHandler({
+                methodName: 'approveMapPin',
                 controller,
                 response,
                 next,

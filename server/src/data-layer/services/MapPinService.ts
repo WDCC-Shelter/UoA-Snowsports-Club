@@ -3,8 +3,12 @@ import type {
   DocumentDataWithUid,
   PaginatedFirebaseResponse
 } from "data-layer/models/common"
-import type { MapPin } from "data-layer/models/MapPin"
-import type { DocumentSnapshot } from "firebase-admin/firestore"
+import type {
+  MapPin,
+  MapPinModerationStatus,
+  SafeSearchResult
+} from "data-layer/models/MapPin"
+import { type DocumentSnapshot, Timestamp } from "firebase-admin/firestore"
 import { geohashForLocation } from "geofire-common"
 
 /**
@@ -177,6 +181,8 @@ class MapPinService {
       for (const doc of snapshot.docs) {
         if (seen.has(doc.id)) continue
         const pin = doc.data()
+        // Flagged pins are hidden until an admin reviews them
+        if (pin.moderation_status === "flagged") continue
         if (boxes.some((b) => isInBox(pin.latitude, pin.longitude, b))) {
           seen.add(doc.id)
           pins.push({ ...pin, id: doc.id })
@@ -238,6 +244,75 @@ class MapPinService {
           ? res.docs[res.docs.length - 1]?.id
           : undefined
     }
+  }
+
+  /**
+   * Fetches pins whose photo hasn't been checked yet, in no particular order
+   * (ordering would need a composite index)
+   *
+   * @param limit the maximum number of pins to fetch
+   */
+  public async getPendingMapPins(
+    limit: number
+  ): Promise<DocumentDataWithUid<MapPin>[]> {
+    const result = await FirestoreCollections.mapPins
+      .where("moderation_status", "==", "pending")
+      .limit(limit)
+      .get()
+    return result.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+  }
+
+  /**
+   * Fetches every pin waiting for an admin to review it, newest first
+   */
+  public async getFlaggedMapPins(): Promise<DocumentDataWithUid<MapPin>[]> {
+    // Sorted in memory to avoid needing a composite index, there should only be a few
+    const result = await FirestoreCollections.mapPins
+      .where("moderation_status", "==", "flagged")
+      .get()
+    return result.docs
+      .map((doc) => ({ ...doc.data(), id: doc.id }))
+      .sort((a, b) => b.created_at.toMillis() - a.created_at.toMillis())
+  }
+
+  /**
+   * Records the result of checking a pin's photo
+   */
+  public async setModerationStatus(
+    id: string,
+    status: MapPinModerationStatus,
+    safeSearch?: SafeSearchResult
+  ) {
+    return await FirestoreCollections.mapPins.doc(id).update({
+      moderation_status: status,
+      moderated_at: Timestamp.now(),
+      ...(safeSearch && { safe_search: safeSearch })
+    })
+  }
+
+  /**
+   * Marks pins created before moderation existed as `pending`, so they get checked.
+   *
+   * Firestore can't query for a missing field, so this reads every pin. Only meant
+   * to be run occasionally (i.e when the server starts).
+   *
+   * @returns the number of pins marked as pending
+   */
+  public async markUnmoderatedPinsAsPending(): Promise<number> {
+    const result = await FirestoreCollections.mapPins
+      .select("moderation_status")
+      .get()
+    const unmoderated = result.docs.filter(
+      (doc) => !doc.get("moderation_status")
+    )
+    await Promise.all(
+      unmoderated.map((doc) =>
+        FirestoreCollections.mapPins
+          .doc(doc.id)
+          .update({ moderation_status: "pending" })
+      )
+    )
+    return unmoderated.length
   }
 }
 

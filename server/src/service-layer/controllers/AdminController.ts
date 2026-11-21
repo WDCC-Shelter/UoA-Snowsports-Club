@@ -62,7 +62,11 @@ import type {
   BookingSlotUpdateResponse,
   UIdssByDateRangeResponse
 } from "service-layer/response-models/BookingResponse"
-import type { GetLatestMapPinsResponse } from "service-layer/response-models/MapPinResponse"
+import type { CommonResponse } from "service-layer/response-models/CommonResponse"
+import type {
+  GetFlaggedMapPinsResponse,
+  GetLatestMapPinsResponse
+} from "service-layer/response-models/MapPinResponse"
 import type {
   GetAllEmailTemplatesResponse,
   GetEmailTemplateResponse,
@@ -939,6 +943,47 @@ export class AdminController extends Controller {
    * @param limit The maximum number of pins to fetch
    * @param cursor The id of the last pin of the previous page
    */
+  /**
+   * Fetches every map pin hidden by the automatic check, waiting for an admin
+   * to approve or delete it. Newest first.
+   */
+  @SuccessResponse("200", "Fetched flagged map pins")
+  @Get("map-pins/flagged")
+  public async getFlaggedMapPins(): Promise<GetFlaggedMapPinsResponse> {
+    try {
+      const pins = await new MapPinService().getFlaggedMapPins()
+      return { data: pins.map(toAdminMapPin) }
+    } catch (e) {
+      console.error("Failed to fetch flagged map pins", e)
+      this.setStatus(StatusCodes.INTERNAL_SERVER_ERROR)
+      return { error: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) }
+    }
+  }
+
+  /**
+   * Approves a map pin, so it's shown on the map even if the automatic check flagged it
+   */
+  @SuccessResponse("204", "Approved map pin")
+  @Post("map-pins/{id}/approve")
+  public async approveMapPin(
+    @Path() id: string
+  ): Promise<CommonResponse | undefined> {
+    try {
+      const mapPinService = new MapPinService()
+      if (!(await mapPinService.getMapPinById(id))) {
+        this.setStatus(StatusCodes.NOT_FOUND)
+        return { error: "Pin not found" }
+      }
+      await mapPinService.setModerationStatus(id, "approved")
+      this.setStatus(StatusCodes.NO_CONTENT)
+      return undefined
+    } catch (e) {
+      console.error("Failed to approve map pin", e)
+      this.setStatus(StatusCodes.INTERNAL_SERVER_ERROR)
+      return { error: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) }
+    }
+  }
+
   @SuccessResponse("200", "Fetched latest map pins")
   @Get("map-pins")
   public async getLatestMapPins(

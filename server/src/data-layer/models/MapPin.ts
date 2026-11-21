@@ -6,6 +6,35 @@ import type { Timestamp } from "firebase-admin/firestore"
 export type MapPinType = "sticker" | "member_photo"
 
 /**
+ * Result of automatically checking a pin's photo:
+ * - `pending`: not checked yet, still shown on the map
+ * - `approved`: checked (automatically or by an admin), shown on the map
+ * - `flagged`: possibly inappropriate, hidden from the map until an admin reviews it
+ *
+ * Photos that are very likely inappropriate are deleted outright instead.
+ */
+export type MapPinModerationStatus = "pending" | "approved" | "flagged"
+
+/**
+ * How likely a photo is to contain a kind of content, from Google Cloud Vision SafeSearch
+ */
+export type SafeSearchLikelihood =
+  | "UNKNOWN"
+  | "VERY_UNLIKELY"
+  | "UNLIKELY"
+  | "POSSIBLE"
+  | "LIKELY"
+  | "VERY_LIKELY"
+
+export interface SafeSearchResult {
+  adult: SafeSearchLikelihood
+  racy: SafeSearchLikelihood
+  violence: SafeSearchLikelihood
+  medical: SafeSearchLikelihood
+  spoof: SafeSearchLikelihood
+}
+
+/**
  * A single photo pinned to a location on the public UASC map.
  *
  * Pins are immutable once created, and the document id is the same as the
@@ -46,4 +75,17 @@ export interface MapPin {
    * When the pin was created
    */
   created_at: Timestamp
+  /**
+   * Whether the photo has been checked for inappropriate content. Pins created
+   * before moderation existed may not have this, and are treated as `pending`.
+   */
+  moderation_status?: MapPinModerationStatus
+  /**
+   * When the photo was last checked or reviewed
+   */
+  moderated_at?: Timestamp
+  /**
+   * The automatic check's results, shown to admins when reviewing flagged pins
+   */
+  safe_search?: SafeSearchResult
 }

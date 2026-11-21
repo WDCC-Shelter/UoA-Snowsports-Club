@@ -1,6 +1,6 @@
 import MapPinImageService from "business-layer/services/MapPinImageService"
 import { AuthServiceClaims } from "business-layer/utils/AuthServiceClaims"
-import { toPublicMapPin } from "business-layer/utils/MapPinUtils"
+import { toOwnMapPin, toPublicMapPin } from "business-layer/utils/MapPinUtils"
 import MapPinService from "data-layer/services/MapPinService"
 import { Timestamp } from "firebase-admin/firestore"
 import { getReasonPhrase, StatusCodes } from "http-status-codes"
@@ -9,7 +9,8 @@ import type { SelfRequestModel } from "service-layer/request-models/UserRequests
 import type { CommonResponse } from "service-layer/response-models/CommonResponse"
 import type {
   CreateMapPinResponse,
-  GetMapPinsResponse
+  GetMapPinsResponse,
+  GetOwnMapPinsResponse
 } from "service-layer/response-models/MapPinResponse"
 import {
   Body,
@@ -86,12 +87,12 @@ export class MapPinController extends Controller {
   @Get("self")
   public async getOwnMapPins(
     @Request() request: SelfRequestModel
-  ): Promise<GetMapPinsResponse> {
+  ): Promise<GetOwnMapPinsResponse> {
     try {
       const pins = await new MapPinService().getMapPinsByUploader(
         request.user.uid
       )
-      return { data: pins.map(toPublicMapPin) }
+      return { data: pins.map(toOwnMapPin) }
     } catch (e) {
       console.error("Failed to fetch own map pins", e)
       this.setStatus(StatusCodes.INTERNAL_SERVER_ERROR)
@@ -132,7 +133,9 @@ export class MapPinController extends Controller {
         geohash: MapPinService.geohashFor(latitude, longitude),
         image_path: imagePath,
         uploader_id: uid,
-        created_at: Timestamp.now()
+        created_at: Timestamp.now(),
+        // Shown straight away, then checked by the moderation job
+        moderation_status: "pending" as const
       }
       await mapPinService.createMapPin(image_id, pin)
 

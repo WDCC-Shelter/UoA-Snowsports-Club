@@ -1,6 +1,7 @@
 import "dotenv/config"
 import type http from "node:http"
 import https from "node:https"
+import { startMapPinModerationJob } from "business-layer/jobs/MapPinModerationJob"
 import cors from "cors"
 import express, { type Express, type Request, type Response } from "express"
 import helmet from "helmet"
@@ -71,6 +72,11 @@ if (process.env.NODE_ENV === "production") {
   _app = app.listen(port, () => {
     console.log(`UASC staging backend server listening on port ${port}.`)
   })
+}
+
+// Not run in tests, which use the moderation service directly
+if (process.env.JEST_WORKER_ID === undefined) {
+  startMapPinModerationJob()
 }
 
 // So we can use for testing

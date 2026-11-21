@@ -4,7 +4,12 @@ export type MapPinType = components["schemas"]["MapPinType"]
 
 export type PublicMapPin = components["schemas"]["PublicMapPin"]
 
+export type OwnMapPin = components["schemas"]["OwnMapPin"]
+
 export type AdminMapPin = components["schemas"]["AdminMapPin"]
+
+export type MapPinModerationStatus =
+  components["schemas"]["MapPinModerationStatus"]
 
 export type CreateMapPinRequestBody =
   components["schemas"]["CreateMapPinRequestBody"]

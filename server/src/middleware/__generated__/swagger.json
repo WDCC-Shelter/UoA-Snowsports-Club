@@ -532,6 +532,52 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"MapPinModerationStatus": {
+				"type": "string",
+				"enum": [
+					"pending",
+					"approved",
+					"flagged"
+				],
+				"description": "Result of automatically checking a pin's photo:\n- `pending`: not checked yet, still shown on the map\n- `approved`: checked (automatically or by an admin), shown on the map\n- `flagged`: possibly inappropriate, hidden from the map until an admin reviews it\n\nPhotos that are very likely inappropriate are deleted outright instead."
+			},
+			"OwnMapPin": {
+				"allOf": [
+					{
+						"$ref": "#/components/schemas/PublicMapPin"
+					},
+					{
+						"properties": {
+							"moderation_status": {
+								"$ref": "#/components/schemas/MapPinModerationStatus"
+							}
+						},
+						"required": [
+							"moderation_status"
+						],
+						"type": "object"
+					}
+				],
+				"description": "A pin as shown to the member who uploaded it, which includes whether it's\nhidden while waiting for an admin to review it"
+			},
+			"GetOwnMapPinsResponse": {
+				"properties": {
+					"error": {
+						"type": "string"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"items": {
+							"$ref": "#/components/schemas/OwnMapPin"
+						},
+						"type": "array"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
+			},
 			"CreateMapPinResponse": {
 				"properties": {
 					"error": {
@@ -1714,11 +1760,55 @@
 				"type": "object",
 				"description": "Make all properties in T optional"
 			},
-			"Pick_MapPin.uploader_id_": {
+			"SafeSearchLikelihood": {
+				"type": "string",
+				"enum": [
+					"UNKNOWN",
+					"VERY_UNLIKELY",
+					"UNLIKELY",
+					"POSSIBLE",
+					"LIKELY",
+					"VERY_LIKELY"
+				],
+				"description": "How likely a photo is to contain a kind of content, from Google Cloud Vision SafeSearch"
+			},
+			"SafeSearchResult": {
+				"properties": {
+					"adult": {
+						"$ref": "#/components/schemas/SafeSearchLikelihood"
+					},
+					"racy": {
+						"$ref": "#/components/schemas/SafeSearchLikelihood"
+					},
+					"violence": {
+						"$ref": "#/components/schemas/SafeSearchLikelihood"
+					},
+					"medical": {
+						"$ref": "#/components/schemas/SafeSearchLikelihood"
+					},
+					"spoof": {
+						"$ref": "#/components/schemas/SafeSearchLikelihood"
+					}
+				},
+				"required": [
+					"adult",
+					"racy",
+					"violence",
+					"medical",
+					"spoof"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Pick_MapPin.uploader_id-or-safe_search_": {
 				"properties": {
 					"uploader_id": {
 						"type": "string",
 						"description": "The uid of the member who uploaded the pin. **Never** exposed publicly."
+					},
+					"safe_search": {
+						"$ref": "#/components/schemas/SafeSearchResult",
+						"description": "The automatic check's results, shown to admins when reviewing flagged pins"
 					}
 				},
 				"required": [
@@ -1730,13 +1820,31 @@
 			"AdminMapPin": {
 				"allOf": [
 					{
-						"$ref": "#/components/schemas/PublicMapPin"
+						"$ref": "#/components/schemas/OwnMapPin"
 					},
 					{
-						"$ref": "#/components/schemas/Pick_MapPin.uploader_id_"
+						"$ref": "#/components/schemas/Pick_MapPin.uploader_id-or-safe_search_"
 					}
 				],
-				"description": "A pin as shown to admins, which includes who uploaded it for moderation"
+				"description": "A pin as shown to admins, which includes who uploaded it and the results of\nthe automatic check for moderation"
+			},
+			"GetFlaggedMapPinsResponse": {
+				"properties": {
+					"error": {
+						"type": "string"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"items": {
+							"$ref": "#/components/schemas/AdminMapPin"
+						},
+						"type": "array"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
 			},
 			"GetLatestMapPinsResponse": {
 				"properties": {
@@ -2502,7 +2610,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/GetMapPinsResponse"
+									"$ref": "#/components/schemas/GetOwnMapPinsResponse"
 								}
 							}
 						}
@@ -3399,6 +3507,67 @@
 				]
 			}
 		},
+		"/admin/map-pins/flagged": {
+			"get": {
+				"operationId": "GetFlaggedMapPins",
+				"responses": {
+					"200": {
+						"description": "Fetched flagged map pins",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetFlaggedMapPinsResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Fetches the latest map pins, newest first, including who uploaded them.\nUses cursor based pagination.",
+				"security": [
+					{
+						"jwt": [
+							"admin"
+						]
+					}
+				],
+				"parameters": []
+			}
+		},
+		"/admin/map-pins/{id}/approve": {
+			"post": {
+				"operationId": "ApproveMapPin",
+				"responses": {
+					"204": {
+						"description": "Approved map pin",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CommonResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Approves a map pin, so it's shown on the map even if the automatic check flagged it",
+				"security": [
+					{
+						"jwt": [
+							"admin"
+						]
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
 		"/admin/map-pins": {
 			"get": {
 				"operationId": "GetLatestMapPins",
@@ -3414,7 +3583,6 @@
 						}
 					}
 				},
-				"description": "Fetches the latest map pins, newest first, including who uploaded them.\nUses cursor based pagination.",
 				"security": [
 					{
 						"jwt": [
@@ -3424,7 +3592,6 @@
 				],
 				"parameters": [
 					{
-						"description": "The maximum number of pins to fetch",
 						"in": "query",
 						"name": "limit",
 						"required": false,
@@ -3435,7 +3602,6 @@
 						}
 					},
 					{
-						"description": "The id of the last pin of the previous page",
 						"in": "query",
 						"name": "cursor",
 						"required": false,

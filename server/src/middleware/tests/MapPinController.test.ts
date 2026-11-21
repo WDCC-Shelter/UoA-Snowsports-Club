@@ -104,6 +104,8 @@ describe("MapPinController endpoint tests", () => {
       expect(res.body.data.map((p: { id: string }) => p.id)).toEqual([
         "my-pin-1234"
       ])
+      // Pins from before moderation are treated as pending
+      expect(res.body.data[0].moderation_status).toEqual("pending")
     })
 
     it("is available to guests so lapsed members can see their pins", async () => {
@@ -148,7 +150,8 @@ describe("MapPinController endpoint tests", () => {
           validBody.longitude
         ),
         uploader_id: MEMBER_USER_UID,
-        image_path: MapPinImageService.imagePathFor(MEMBER_USER_UID, IMAGE_ID)
+        image_path: MapPinImageService.imagePathFor(MEMBER_USER_UID, IMAGE_ID),
+        moderation_status: "pending"
       })
     })
 
@@ -324,6 +327,92 @@ describe("MapPinController endpoint tests", () => {
         .send()
 
       expect(res.status).toEqual(StatusCodes.UNAUTHORIZED)
+    })
+  })
+
+  describe("admin moderation", () => {
+    it("hides flagged pins from the public map", async () => {
+      await seedPin("flagged-pin-1234", MEMBER_USER_UID, {
+        moderation_status: "flagged"
+      })
+
+      const res = await request.get(`/map-pins?${NZ_QUERY}`).send()
+      expect(res.body.data).toHaveLength(0)
+    })
+
+    it("lists flagged pins with their check results for admins", async () => {
+      await seedPin("flagged-pin-1234", MEMBER_USER_UID, {
+        moderation_status: "flagged",
+        safe_search: {
+          adult: "LIKELY",
+          racy: "POSSIBLE",
+          violence: "VERY_UNLIKELY",
+          medical: "VERY_UNLIKELY",
+          spoof: "VERY_UNLIKELY"
+        }
+      })
+      await seedPin("approved-pin-1234", MEMBER_USER_UID, {
+        moderation_status: "approved"
+      })
+
+      const res = await request
+        .get("/admin/map-pins/flagged")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send()
+
+      expect(res.status).toEqual(StatusCodes.OK)
+      expect(res.body.data).toHaveLength(1)
+      expect(res.body.data[0]).toMatchObject({
+        id: "flagged-pin-1234",
+        moderation_status: "flagged",
+        uploader_id: MEMBER_USER_UID,
+        safe_search: { adult: "LIKELY" }
+      })
+    })
+
+    it("lets admins approve a flagged pin so it shows on the map", async () => {
+      await seedPin("flagged-pin-1234", MEMBER_USER_UID, {
+        moderation_status: "flagged"
+      })
+
+      const res = await request
+        .post("/admin/map-pins/flagged-pin-1234/approve")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send()
+
+      expect(res.status).toEqual(StatusCodes.NO_CONTENT)
+      expect(
+        (await mapPinService.getMapPinById("flagged-pin-1234"))
+          ?.moderation_status
+      ).toEqual("approved")
+      const map = await request.get(`/map-pins?${NZ_QUERY}`).send()
+      expect(map.body.data).toHaveLength(1)
+    })
+
+    it("returns not found when approving a missing pin", async () => {
+      const res = await request
+        .post("/admin/map-pins/missing-pin/approve")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send()
+      expect(res.status).toEqual(StatusCodes.NOT_FOUND)
+    })
+
+    it("does not let members review pins", async () => {
+      await seedPin("flagged-pin-1234", MEMBER_USER_UID, {
+        moderation_status: "flagged"
+      })
+
+      const list = await request
+        .get("/admin/map-pins/flagged")
+        .set("Authorization", `Bearer ${memberToken}`)
+        .send()
+      const approve = await request
+        .post("/admin/map-pins/flagged-pin-1234/approve")
+        .set("Authorization", `Bearer ${memberToken}`)
+        .send()
+
+      expect(list.status).toEqual(StatusCodes.UNAUTHORIZED)
+      expect(approve.status).toEqual(StatusCodes.UNAUTHORIZED)
     })
   })
 })

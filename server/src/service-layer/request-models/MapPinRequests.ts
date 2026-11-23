@@ -29,3 +29,30 @@ export interface CreateMapPinRequestBody {
    */
   longitude: number
 }
+
+/**
+ * Changes an admin makes to a pin. Only the fields given are changed.
+ */
+export interface EditMapPinRequestBody {
+  type?: MapPinType
+  /**
+   * An empty caption removes it
+   *
+   * @maxLength 140 Caption must be at most 140 characters
+   */
+  caption?: string
+  /**
+   * Must be given together with `longitude`
+   *
+   * @minimum -90
+   * @maximum 90
+   */
+  latitude?: number
+  /**
+   * Must be given together with `latitude`
+   *
+   * @minimum -180
+   * @maximum 180
+   */
+  longitude?: number
+}

@@ -63,7 +63,9 @@ import type {
   UIdssByDateRangeResponse
 } from "service-layer/response-models/BookingResponse"
 import type { CommonResponse } from "service-layer/response-models/CommonResponse"
+import type { EditMapPinRequestBody } from "service-layer/request-models/MapPinRequests"
 import type {
+  EditMapPinResponse,
   GetFlaggedMapPinsResponse,
   GetLatestMapPinsResponse
 } from "service-layer/response-models/MapPinResponse"
@@ -979,6 +981,53 @@ export class AdminController extends Controller {
       return undefined
     } catch (e) {
       console.error("Failed to approve map pin", e)
+      this.setStatus(StatusCodes.INTERNAL_SERVER_ERROR)
+      return { error: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) }
+    }
+  }
+
+  /**
+   * Edits a map pin's type, caption or location. Only the fields given are changed,
+   * an empty caption removes it, and latitude and longitude must be given together.
+   */
+  @SuccessResponse("200", "Edited map pin")
+  @Patch("map-pins/{id}")
+  public async editMapPin(
+    @Request() request: SelfRequestModel,
+    @Path() id: string,
+    @Body() body: EditMapPinRequestBody
+  ): Promise<EditMapPinResponse> {
+    const { type, caption, latitude, longitude } = body
+    const hasLatitude = latitude !== undefined
+    const hasLongitude = longitude !== undefined
+
+    if (hasLatitude !== hasLongitude) {
+      this.setStatus(StatusCodes.BAD_REQUEST)
+      return { error: "Latitude and longitude must be changed together" }
+    }
+    if (type === undefined && caption === undefined && !hasLatitude) {
+      this.setStatus(StatusCodes.BAD_REQUEST)
+      return { error: "Nothing to change" }
+    }
+
+    try {
+      const trimmedCaption = caption?.trim()
+      const edited = await new MapPinService().editMapPin(
+        id,
+        {
+          type,
+          ...(caption !== undefined && { caption: trimmedCaption || null }),
+          ...(hasLatitude && { location: { latitude, longitude } })
+        },
+        request.user.uid
+      )
+      if (!edited) {
+        this.setStatus(StatusCodes.NOT_FOUND)
+        return { error: "Pin not found" }
+      }
+      return { data: toAdminMapPin({ ...edited, id }) }
+    } catch (e) {
+      console.error("Failed to edit map pin", e)
       this.setStatus(StatusCodes.INTERNAL_SERVER_ERROR)
       return { error: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) }
     }

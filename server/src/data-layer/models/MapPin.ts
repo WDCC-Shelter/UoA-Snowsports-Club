@@ -37,8 +37,9 @@ export interface SafeSearchResult {
 /**
  * A single photo pinned to a location on the public UASC map.
  *
- * Pins are immutable once created, and the document id is the same as the
- * id of the uploaded image (see {@link MapPin.image_path}).
+ * Members can't edit pins once created, only admins can (type, caption and
+ * location). The document id is the same as the id of the uploaded image
+ * (see {@link MapPin.image_path}).
  */
 export interface MapPin {
   /**
@@ -88,4 +89,12 @@ export interface MapPin {
    * The automatic check's results, shown to admins when reviewing flagged pins
    */
   safe_search?: SafeSearchResult
+  /**
+   * When an admin last edited the pin
+   */
+  edited_at?: Timestamp
+  /**
+   * The uid of the admin who last edited the pin. **Never** exposed publicly.
+   */
+  edited_by?: string
 }

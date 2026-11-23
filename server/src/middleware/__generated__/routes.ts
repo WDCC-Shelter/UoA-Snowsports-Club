@@ -703,6 +703,27 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "EditMapPinResponse": {
+        "dataType": "refObject",
+        "properties": {
+            "error": {"dataType":"string"},
+            "message": {"dataType":"string"},
+            "data": {"ref":"AdminMapPin"},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "EditMapPinRequestBody": {
+        "dataType": "refObject",
+        "properties": {
+            "type": {"ref":"MapPinType"},
+            "caption": {"dataType":"string","validators":{"maxLength":{"errorMsg":"Caption must be at most 140 characters","value":140}}},
+            "latitude": {"dataType":"double","validators":{"minimum":{"value":-90},"maximum":{"value":90}}},
+            "longitude": {"dataType":"double","validators":{"minimum":{"value":-180},"maximum":{"value":180}}},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "GetLatestMapPinsResponse": {
         "dataType": "refObject",
         "properties": {
@@ -2084,6 +2105,39 @@ export function RegisterRoutes(app: Router) {
                 next,
                 validatedArgs,
                 successStatus: 204,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        const argsAdminController_editMapPin: Record<string, TsoaRoute.ParameterSchema> = {
+                request: {"in":"request","name":"request","required":true,"dataType":"object"},
+                id: {"in":"path","name":"id","required":true,"dataType":"string"},
+                body: {"in":"body","name":"body","required":true,"ref":"EditMapPinRequestBody"},
+        };
+        app.patch('/admin/map-pins/:id',
+            authenticateMiddleware([{"jwt":["admin"]}]),
+            ...(fetchMiddlewares<RequestHandler>(AdminController)),
+            ...(fetchMiddlewares<RequestHandler>(AdminController.prototype.editMapPin)),
+
+            async function AdminController_editMapPin(request: ExRequest, response: ExResponse, next: any) {
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args: argsAdminController_editMapPin, request, response });
+
+                const controller = new AdminController();
+
+              await templateService.apiHandler({
+                methodName: 'editMapPin',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: 200,
               });
             } catch (err) {
                 return next(err);

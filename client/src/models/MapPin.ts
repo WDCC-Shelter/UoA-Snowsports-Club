@@ -11,6 +11,9 @@ export type AdminMapPin = components["schemas"]["AdminMapPin"]
 export type MapPinModerationStatus =
   components["schemas"]["MapPinModerationStatus"]
 
+export type EditMapPinRequestBody =
+  components["schemas"]["EditMapPinRequestBody"]
+
 export type CreateMapPinRequestBody =
   components["schemas"]["CreateMapPinRequestBody"]
 

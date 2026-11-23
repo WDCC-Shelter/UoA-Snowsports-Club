@@ -42,6 +42,14 @@ export function useApproveMapPinMutation() {
   })
 }
 
+export function useEditMapPinMutation() {
+  return useMutation({
+    mutationKey: ["edit-map-pin"],
+    mutationFn: MapPinService.editMapPin,
+    onSuccess: invalidateMapPinQueries
+  })
+}
+
 export type CreateMapPinVariables = {
   uploaderId: string
   /**

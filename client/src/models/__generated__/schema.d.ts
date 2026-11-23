@@ -217,6 +217,13 @@ export interface paths {
     /** @description Approves a map pin, so it's shown on the map even if the automatic check flagged it */
     post: operations["ApproveMapPin"];
   };
+  "/admin/map-pins/{id}": {
+    /**
+     * @description Edits a map pin's type, caption or location. Only the fields given are changed,
+     * an empty caption removes it, and latitude and longitude must be given together.
+     */
+    patch: operations["EditMapPin"];
+  };
   "/admin/map-pins": {
     get: operations["GetLatestMapPins"];
   };
@@ -1015,6 +1022,27 @@ export interface components {
       error?: string;
       message?: string;
       data?: components["schemas"]["AdminMapPin"][];
+    };
+    EditMapPinResponse: {
+      error?: string;
+      message?: string;
+      data?: components["schemas"]["AdminMapPin"];
+    };
+    /** @description Changes an admin makes to a pin. Only the fields given are changed. */
+    EditMapPinRequestBody: {
+      type?: components["schemas"]["MapPinType"];
+      /** @description An empty caption removes it */
+      caption?: string;
+      /**
+       * Format: double
+       * @description Must be given together with `longitude`
+       */
+      latitude?: number;
+      /**
+       * Format: double
+       * @description Must be given together with `latitude`
+       */
+      longitude?: number;
     };
     GetLatestMapPinsResponse: {
       error?: string;
@@ -1864,6 +1892,30 @@ export interface operations {
       204: {
         content: {
           "application/json": components["schemas"]["CommonResponse"];
+        };
+      };
+    };
+  };
+  /**
+   * @description Edits a map pin's type, caption or location. Only the fields given are changed,
+   * an empty caption removes it, and latitude and longitude must be given together.
+   */
+  EditMapPin: {
+    parameters: {
+      path: {
+        id: string;
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["EditMapPinRequestBody"];
+      };
+    };
+    responses: {
+      /** @description Edited map pin */
+      200: {
+        content: {
+          "application/json": components["schemas"]["EditMapPinResponse"];
         };
       };
     };

@@ -1,4 +1,8 @@
-import type { CreateMapPinRequestBody, MapBounds } from "@/models/MapPin"
+import type {
+  CreateMapPinRequestBody,
+  EditMapPinRequestBody,
+  MapBounds
+} from "@/models/MapPin"
 import fetchClient from "../OpenApiFetchClient"
 
 const MapPinService = {
@@ -49,6 +53,22 @@ const MapPinService = {
     if (!response.ok) {
       throw new Error("Failed to approve map pin")
     }
+  },
+  editMapPin: async ({
+    id,
+    changes
+  }: {
+    id: string
+    changes: EditMapPinRequestBody
+  }) => {
+    const { data, response } = await fetchClient.PATCH("/admin/map-pins/{id}", {
+      params: { path: { id } },
+      body: changes
+    })
+    if (!response.ok || !data?.data) {
+      throw new Error(data?.error || "Failed to edit map pin")
+    }
+    return data.data
   },
   deleteMapPin: async (id: string) => {
     const { response } = await fetchClient.DELETE("/map-pins/{id}", {

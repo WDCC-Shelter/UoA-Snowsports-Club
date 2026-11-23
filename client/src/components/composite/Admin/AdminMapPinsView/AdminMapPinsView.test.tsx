@@ -110,4 +110,13 @@ describe("AdminMapPinsView", () => {
       })
     ).toBe("Violence: very likely")
   })
+
+  it("opens editing for a pin", () => {
+    const onEdit = jest.fn()
+    render(
+      <AdminMapPinsView pins={[pin]} onDelete={jest.fn()} onEdit={onEdit} />
+    )
+    fireEvent.click(screen.getByText("Edit pin"))
+    expect(onEdit).toHaveBeenCalledWith(pin)
+  })
 })

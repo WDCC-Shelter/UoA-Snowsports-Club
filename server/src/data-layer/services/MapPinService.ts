@@ -8,7 +8,11 @@ import type {
   MapPinModerationStatus,
   SafeSearchResult
 } from "data-layer/models/MapPin"
-import { type DocumentSnapshot, Timestamp } from "firebase-admin/firestore"
+import {
+  type DocumentSnapshot,
+  FieldValue,
+  Timestamp
+} from "firebase-admin/firestore"
 import { geohashForLocation } from "geofire-common"
 
 /**
@@ -288,6 +292,46 @@ class MapPinService {
       moderated_at: Timestamp.now(),
       ...(safeSearch && { safe_search: safeSearch })
     })
+  }
+
+  /**
+   * Applies an admin's changes to a pin, keeping the geohash in sync with the location
+   *
+   * @param changes `caption: null` removes the caption, and the location must
+   * be changed as a whole
+   * @param editedBy the uid of the admin making the change
+   * @returns the updated pin, or `undefined` if it doesn't exist
+   */
+  public async editMapPin(
+    id: string,
+    changes: {
+      type?: MapPin["type"]
+      caption?: string | null
+      location?: { latitude: number; longitude: number }
+    },
+    editedBy: string
+  ): Promise<MapPin | undefined> {
+    const ref = FirestoreCollections.mapPins.doc(id)
+    if (!(await ref.get()).exists) return undefined
+
+    await ref.update({
+      ...(changes.type && { type: changes.type }),
+      ...(changes.caption !== undefined && {
+        caption:
+          changes.caption === null ? FieldValue.delete() : changes.caption
+      }),
+      ...(changes.location && {
+        latitude: changes.location.latitude,
+        longitude: changes.location.longitude,
+        geohash: MapPinService.geohashFor(
+          changes.location.latitude,
+          changes.location.longitude
+        )
+      }),
+      edited_at: Timestamp.now(),
+      edited_by: editedBy
+    })
+    return (await ref.get()).data()
   }
 
   /**

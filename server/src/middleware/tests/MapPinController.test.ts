@@ -415,4 +415,106 @@ describe("MapPinController endpoint tests", () => {
       expect(approve.status).toEqual(StatusCodes.UNAUTHORIZED)
     })
   })
+
+  describe("PATCH /admin/map-pins/{id}", () => {
+    const edit = (id: string, body: object, token = adminToken) =>
+      request
+        .patch(`/admin/map-pins/${id}`)
+        .set("Authorization", `Bearer ${token}`)
+        .send(body)
+
+    it("lets admins change the type and caption", async () => {
+      await seedPin("pin-to-edit-1234", MEMBER_USER_UID, {
+        caption: "old caption"
+      })
+
+      const res = await edit("pin-to-edit-1234", {
+        type: "member_photo",
+        caption: "  New caption  "
+      })
+
+      expect(res.status).toEqual(StatusCodes.OK)
+      expect(res.body.data).toMatchObject({
+        id: "pin-to-edit-1234",
+        type: "member_photo",
+        caption: "New caption",
+        uploader_id: MEMBER_USER_UID
+      })
+      const stored = await mapPinService.getMapPinById("pin-to-edit-1234")
+      expect(stored?.edited_by).toEqual(ADMIN_USER_UID)
+      expect(stored?.edited_at).toBeDefined()
+      // Who edited it is never returned
+      expect(res.body.data.edited_by).toBeUndefined()
+    })
+
+    it("removes the caption when it's empty", async () => {
+      await seedPin("pin-to-edit-1234", MEMBER_USER_UID, {
+        caption: "old caption"
+      })
+
+      const res = await edit("pin-to-edit-1234", { caption: "   " })
+
+      expect(res.status).toEqual(StatusCodes.OK)
+      expect(res.body.data.caption).toBeUndefined()
+      expect(
+        (await mapPinService.getMapPinById("pin-to-edit-1234"))?.caption
+      ).toBeUndefined()
+    })
+
+    it("moves the pin, keeping it findable at its new location", async () => {
+      await seedPin("pin-to-move-1234", MEMBER_USER_UID)
+      const tokyo = { latitude: 35.6762, longitude: 139.6503 }
+
+      const res = await edit("pin-to-move-1234", tokyo)
+
+      expect(res.status).toEqual(StatusCodes.OK)
+      expect(
+        (await mapPinService.getMapPinById("pin-to-move-1234"))?.geohash
+      ).toEqual(MapPinService.geohashFor(tokyo.latitude, tokyo.longitude))
+
+      const nz = await request.get(`/map-pins?${NZ_QUERY}`).send()
+      expect(nz.body.data).toHaveLength(0)
+      const japan = await request
+        .get("/map-pins?min_lat=30&min_lng=130&max_lat=40&max_lng=145")
+        .send()
+      expect(japan.body.data.map((p: { id: string }) => p.id)).toEqual([
+        "pin-to-move-1234"
+      ])
+    })
+
+    it.each([
+      ["only a latitude", { latitude: -36 }],
+      ["only a longitude", { longitude: 174 }],
+      ["nothing to change", {}],
+      ["an invalid type", { type: "selfie" }],
+      ["a caption over 140 characters", { caption: "a".repeat(141) }],
+      ["an out of range latitude", { latitude: 91, longitude: 174 }],
+      ["fields that can't be edited", { uploader_id: ADMIN_USER_UID }]
+    ])("rejects %s", async (_, body) => {
+      await seedPin("pin-to-edit-1234", MEMBER_USER_UID)
+
+      const res = await edit("pin-to-edit-1234", body)
+
+      expect(res.status).toEqual(StatusCodes.BAD_REQUEST)
+      expect(
+        (await mapPinService.getMapPinById("pin-to-edit-1234"))?.uploader_id
+      ).toEqual(MEMBER_USER_UID)
+    })
+
+    it("returns not found for a missing pin", async () => {
+      const res = await edit("missing-pin", { caption: "hi" })
+      expect(res.status).toEqual(StatusCodes.NOT_FOUND)
+    })
+
+    it("does not let members edit pins, even their own", async () => {
+      await seedPin("my-pin-1234", MEMBER_USER_UID, { caption: "mine" })
+
+      const res = await edit("my-pin-1234", { caption: "changed" }, memberToken)
+
+      expect(res.status).toEqual(StatusCodes.UNAUTHORIZED)
+      expect(
+        (await mapPinService.getMapPinById("my-pin-1234"))?.caption
+      ).toEqual("mine")
+    })
+  })
 })

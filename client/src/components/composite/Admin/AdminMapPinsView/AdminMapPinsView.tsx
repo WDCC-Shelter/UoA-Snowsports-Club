@@ -14,6 +14,10 @@ export interface IAdminMapPinsView {
   deletingId?: string
   onApprove?: (id: string) => void
   approvingId?: string
+  /**
+   * Shows an edit button on each pin if given
+   */
+  onEdit?: (pin: AdminMapPin) => void
 }
 
 type SafeSearch = NonNullable<AdminMapPin["safe_search"]>
@@ -61,8 +65,20 @@ const AdminMapPinsView = ({
   onDelete,
   deletingId,
   onApprove,
-  approvingId
+  approvingId,
+  onEdit
 }: IAdminMapPinsView) => {
+  const editButton = (pin: AdminMapPin) =>
+    onEdit && (
+      <button
+        type="button"
+        onClick={() => onEdit(pin)}
+        className="text-dark-blue-100 self-start text-sm font-bold underline"
+      >
+        Edit pin
+      </button>
+    )
+
   return (
     <div className="flex w-full max-w-[1200px] flex-col items-center gap-8 px-4">
       {flaggedPins.length > 0 && (
@@ -97,6 +113,7 @@ const AdminMapPinsView = ({
                 >
                   {approvingId === pin.id ? "Approving..." : "Approve pin"}
                 </button>
+                {editButton(pin)}
               </div>
             )}
           />
@@ -125,6 +142,7 @@ const AdminMapPinsView = ({
                 <span className="text-gray-4 break-all text-xs">
                   Uploaded by {pin.uploader_id}
                 </span>
+                {editButton(pin)}
               </div>
             )}
           />

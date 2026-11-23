@@ -51,3 +51,7 @@ export interface GetOwnMapPinsResponse extends CommonResponse {
 export interface GetFlaggedMapPinsResponse extends CommonResponse {
   data?: AdminMapPin[]
 }
+
+export interface EditMapPinResponse extends CommonResponse {
+  data?: AdminMapPin
+}
